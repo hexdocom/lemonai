@@ -5,7 +5,7 @@
 <script setup>
 import { ref, watch, onMounted, nextTick } from "vue";
 
-// API 文档: https://markdown-it.github.io/markdown-it
+// API documentation: https://markdown-it.github.io/markdown-it
 import markdownIt from "markdown-it";
 
 // https://github.com/arve0/markdown-it-attrs
@@ -16,9 +16,9 @@ import markdownItAttrs from "markdown-it-attrs";
 import markdownItMermaid, { renderMermaidElements } from "./markdown-it-mermaid";
 import markdownItPrism from "./markdown-it-prism";
 // https://github.com/jGleitz/markdown-it-prism#options
-// 代码高亮
+// Code highlighting
 
-// 脑图渲染
+// Mind map rendering
 // import markdownItMarkmap from './markdown-it-markmap';
 
 // import markdownItHighlight from 'markdown-it-highlightjs'
@@ -53,13 +53,13 @@ const props = defineProps({
 
 const renderHTML = ref("");
 
-// 渲染 mermaid 图表的函数
+// Function to render mermaid charts
 async function renderMermaid() {
   await nextTick();
   try {
     await renderMermaidElements();
   } catch (error) {
-    console.error('渲染 Mermaid 图表时出错:', error);
+    console.error('Error rendering Mermaid charts:', error);
   }
 }
 
@@ -68,7 +68,7 @@ watch(
   async (val) => {
     await nextTick();
     renderHTML.value = md.render(val);
-    // 渲染完成后，处理 mermaid 图表
+    // Process mermaid charts after rendering
     await renderMermaid();
   }
 );
@@ -76,7 +76,7 @@ watch(
 onMounted(async () => {
   await nextTick();
   renderHTML.value = md.render(props.content || "");
-  // 初始渲染后，处理 mermaid 图表
+  // Process mermaid charts after initial render
   await renderMermaid();
 });
 </script>
@@ -84,7 +84,7 @@ onMounted(async () => {
 <style lang="scss">
 .dialog-item {
 
-  /* 代码不换行 */
+  /* Code without line wrapping */
   pre {
     box-sizing: border-box;
   }
@@ -198,14 +198,14 @@ onMounted(async () => {
     }
   }
 
-  /* Mermaid 样式 */
+  /* Mermaid styles */
   .mermaid-container {
     margin: 16px 0;
     display: flex;
     justify-content: center;
     
     &.mermaid-rendered {
-      // 渲染完成的 mermaid 图表
+      // Rendered mermaid chart
       svg {
         max-width: 100%;
         height: auto;
@@ -216,121 +216,20 @@ onMounted(async () => {
   .mermaid-error {
     background: #fff5f5;
     border: 1px solid #fed7d7;
-    border-radius: 12px;
+    border-radius: 8px;
+    padding: 16px;
     margin: 16px 0;
-    font-family: system-ui, -apple-system, sans-serif;
-    box-shadow: 0 2px 8px rgba(229, 62, 62, 0.1);
+    color: #e53e3e;
     
-    .mermaid-error-header {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      padding: 16px 16px 12px 16px;
-      border-bottom: 1px solid #fed7d7;
-      background: linear-gradient(135deg, #fed7d7 0%, #fbb6ce 100%);
-      border-radius: 12px 12px 0 0;
-      color: #c53030;
-      
-      svg {
-        flex-shrink: 0;
-      }
-      
-      h4 {
-        margin: 0 !important;
-        font-size: 16px;
-        font-weight: 600;
-      }
+    p {
+      margin: 0 0 8px 0 !important;
+      font-weight: 600;
     }
     
-    .mermaid-error-content {
-      padding: 16px;
-      
-      .error-message {
-        margin-bottom: 16px;
-        
-        strong {
-          display: block;
-          margin-bottom: 8px;
-          color: #2d3748;
-          font-size: 14px;
-        }
-        
-        code {
-          display: block;
-          background: #f7fafc;
-          border: 1px solid #e2e8f0;
-          border-radius: 6px;
-          padding: 12px;
-          font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, monospace;
-          font-size: 13px;
-          color: #e53e3e;
-          line-height: 1.5;
-          word-break: break-word;
-        }
-      }
-      
-      .error-suggestions {
-        margin-bottom: 16px;
-        
-        strong {
-          display: block;
-          margin-bottom: 8px;
-          color: #2d3748;
-          font-size: 14px;
-        }
-        
-        ul {
-          margin: 0 !important;
-          padding-left: 0 !important;
-          list-style: none;
-          
-          li {
-            padding: 6px 0;
-            font-size: 14px;
-            color: #4a5568;
-            line-height: 1.5;
-            
-            &:before {
-              content: "💡";
-              margin-right: 8px;
-            }
-          }
-        }
-      }
-      
-      .error-code {
-        border: 1px solid #e2e8f0;
-        border-radius: 6px;
-        
-        summary {
-          padding: 12px;
-          cursor: pointer;
-          background: #f7fafc;
-          border-radius: 6px 6px 0 0;
-          font-size: 14px;
-          font-weight: 500;
-          color: #4a5568;
-          user-select: none;
-          
-          &:hover {
-            background: #edf2f7;
-          }
-        }
-        
-        pre {
-          margin: 0 !important;
-          padding: 12px !important;
-          background: #1a202c !important;
-          border-radius: 0 0 6px 6px;
-          
-          code {
-            color: #e2e8f0 !important;
-            font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, monospace;
-            font-size: 13px;
-            line-height: 1.6;
-          }
-        }
-      }
+    pre {
+      background: #f5f5f5 !important;
+      color: #666 !important;
+      margin: 8px 0 0 0 !important;
     }
   }
 }
