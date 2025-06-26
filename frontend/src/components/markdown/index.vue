@@ -3,9 +3,9 @@
 </template>
 
 <script setup>
-import { ref, watch, onMounted,nextTick } from "vue";
+import { ref, watch, onMounted, nextTick } from "vue";
 
-// API 文档: https://markdown-it.github.io/markdown-it
+// API documentation: https://markdown-it.github.io/markdown-it
 import markdownIt from "markdown-it";
 
 // https://github.com/arve0/markdown-it-attrs
@@ -13,12 +13,12 @@ import markdownItAttrs from "markdown-it-attrs";
 // https://www.npmjs.com/package/markdown-it-graphviz
 // import markdownItGraphviz from "markdown-it-graphviz";
 // import markdownItCodeCopy from 'markdown-it-code-copy';
-import markdownItMermaid from "./markdown-it-mermaid";
+import markdownItMermaid, { renderMermaidElements } from "./markdown-it-mermaid";
 import markdownItPrism from "./markdown-it-prism";
 // https://github.com/jGleitz/markdown-it-prism#options
-// 代码高亮
+// Code highlighting
 
-// 脑图渲染
+// Mind map rendering
 // import markdownItMarkmap from './markdown-it-markmap';
 
 // import markdownItHighlight from 'markdown-it-highlightjs'
@@ -29,14 +29,14 @@ const md = markdownIt({
   html: false,
   breaks: true,
   langPrefix: "language-",
-  quotes: "“”‘’",
+  quotes: "\u201c\u201d\u2018\u2019",
 })
   .use(markdownItAttrs)
-  .use(markdownItMermaid, { theme: "forest" })
+  .use(markdownItMermaid, { theme: "default" })
+  .use(markdownItPrism);
 
 // md.use(markdownItGraphviz);
 // md.use(markdownItCodeCopy);
-md.use(markdownItPrism);
 // md.use(markdownItMarkmap);
 
 // import markdownItThink from "./markdown-it-think.js";
@@ -53,29 +53,38 @@ const props = defineProps({
 
 const renderHTML = ref("");
 
+// Function to render mermaid charts
+async function renderMermaid() {
+  await nextTick();
+  try {
+    await renderMermaidElements();
+  } catch (error) {
+    console.error('Error rendering Mermaid charts:', error);
+  }
+}
+
 watch(
   () => props.content,
-  (val) => {
-    nextTick(() => {
-      renderHTML.value = md.render(val);
-    })
+  async (val) => {
+    await nextTick();
+    renderHTML.value = md.render(val);
+    // Process mermaid charts after rendering
+    await renderMermaid();
   }
 );
 
-
-// console.log("props", props.content);
-onMounted(() => {
-  nextTick(() => {
-    renderHTML.value = md.render(props.content || "");
-  })
- 
+onMounted(async () => {
+  await nextTick();
+  renderHTML.value = md.render(props.content || "");
+  // Process mermaid charts after initial render
+  await renderMermaid();
 });
 </script>
 
 <style lang="scss">
 .dialog-item {
 
-  /* 代码不换行 */
+  /* Code without line wrapping */
   pre {
     box-sizing: border-box;
   }
@@ -186,6 +195,41 @@ onMounted(() => {
       // color: #8b8b8b;
       text-shadow: none;
       
+    }
+  }
+
+  /* Mermaid styles */
+  .mermaid-container {
+    margin: 16px 0;
+    display: flex;
+    justify-content: center;
+    
+    &.mermaid-rendered {
+      // Rendered mermaid chart
+      svg {
+        max-width: 100%;
+        height: auto;
+      }
+    }
+  }
+
+  .mermaid-error {
+    background: #fff5f5;
+    border: 1px solid #fed7d7;
+    border-radius: 8px;
+    padding: 16px;
+    margin: 16px 0;
+    color: #e53e3e;
+    
+    p {
+      margin: 0 0 8px 0 !important;
+      font-weight: 600;
+    }
+    
+    pre {
+      background: #f5f5f5 !important;
+      color: #666 !important;
+      margin: 8px 0 0 0 !important;
     }
   }
 }

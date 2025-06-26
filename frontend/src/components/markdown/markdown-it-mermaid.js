@@ -7,83 +7,96 @@ import MarkdownIt from "markdown-it";
 // import Mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@9/dist/mermaid.esm.min.mjs';
 import Mermaid from "mermaid";
 
-// Define interface to await readiness of import
-export default function mermaid(md, options = {}) {
+// Ensure Mermaid is initialized
+let mermaidInitialized = false;
 
-  // Setup Mermaid
-  Mermaid.initialize({
-    startOnLoad: true,
-    securityLevel: "loose",
-    ...options,
-  });
+function initMermaid(options = {}) {
+  if (!mermaidInitialized) {
+    Mermaid.initialize({
+      startOnLoad: false,
+      securityLevel: "loose",
+      theme: "default",
+      ...options,
+    });
+    mermaidInitialized = true;
+  }
+}
+
+export default function mermaid(md, options = {}) {
+  initMermaid(options);
 
   function getLangName(info) {
     return info.split(/\s+/g)[0];
   }
 
-  // Store reference to original renderer.
+  // Store reference to original fence renderer
   let defaultFenceRenderer = md.renderer.rules.fence;
 
-  // Render custom code types as SVGs, letting the fence parser do all the heavy lifting.
   function customFenceRenderer(tokens = [], idx, options = {}, env, slf) {
-
     let token = tokens[idx];
     let info = token.info.trim();
     let langName = info ? getLangName(info) : "";
 
+    // Check if it's a mermaid code block
     if (["mermaid", "{mermaid}"].indexOf(langName) === -1) {
+      // Not mermaid, use default renderer
       if (defaultFenceRenderer !== undefined) {
         return defaultFenceRenderer(tokens, idx, options, env, slf);
       }
-      // Missing fence renderer!
       return "";
     }
 
-    let imageHTML = "";
-    let imageAttrs = [];
-
-    // Create element to render into
-    const element = document.createElement("div");
-    document.body.appendChild(element);
-
-    // Render with Mermaid
+    // Process mermaid code block
     try {
-      // console.log('token.content', token.content);
-      const container_id = "mermaid-container";
-      // console.log('Mermaid.mermaidAPI', Mermaid.mermaidAPI);
+      const mermaidCode = token.content.trim();
+      if (!mermaidCode) {
+        return '<div class="mermaid-error">Mermaid content is empty</div>';
+      }
 
-      Mermaid.mermaidAPI.render(
-        container_id,
-        token.content,
-        (html) => {
-          // console.log('html', html);
-          // We need to forcibly extract the max-width/height attributes to set on img tag
-          let svg = document.getElementById(container_id);
-          if (svg !== null) {
-            imageAttrs.push([
-              "style",
-              `max-width:${svg.style.maxWidth};max-height:${svg.style.maxHeight}`,
-            ]);
-          }
-          // Store HTML
-          imageHTML = html;
-        },
-        element
-      );
-    } catch (e) {
-      console.log('render error', e);
-      return defaultFenceRenderer(tokens, idx, options, env, slf);
-    } finally {
-      // element.remove();
+      // Generate unique ID
+      const containerId = `mermaid-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+      
+      // Return a div containing mermaid code, let Vue component process it after mounted
+      return `<div class="mermaid-container" id="${containerId}" data-mermaid="${encodeURIComponent(mermaidCode)}">${mermaidCode}</div>`;
+    } catch (error) {
+      console.error('Mermaid rendering error:', error);
+      return `<div class="mermaid-error">
+        <p>Mermaid chart rendering failed</p>
+        <pre style="background: #f5f5f5; padding: 10px; border-radius: 4px; font-size: 12px; color: #666;">${error.message}</pre>
+      </div>`;
     }
-
-    // Store encoded image data
-    imageAttrs.push([
-      "src",
-      `data:image/svg+xml,${encodeURIComponent(imageHTML)}`,
-    ]);
-    return `<img ${slf.renderAttrs({ attrs: imageAttrs })}>`;
   }
 
   md.renderer.rules.fence = customFenceRenderer;
+}
+
+// Export render function for Vue component usage
+export async function renderMermaidElements() {
+  const mermaidElements = document.querySelectorAll('.mermaid-container[data-mermaid]');
+  
+  for (let element of mermaidElements) {
+    try {
+      const mermaidCode = decodeURIComponent(element.getAttribute('data-mermaid'));
+      const id = element.id;
+      
+      // Clear original content
+      element.innerHTML = '';
+      element.removeAttribute('data-mermaid');
+      
+      // Render with mermaid
+      const { svg } = await Mermaid.render(id + '-svg', mermaidCode);
+      element.innerHTML = svg;
+      element.classList.add('mermaid-rendered');
+      
+    } catch (error) {
+      console.error('Mermaid rendering error:', error);
+      element.innerHTML = `
+        <div class="mermaid-error">
+          <p>Mermaid chart rendering failed</p>
+          <pre style="background: #f5f5f5; padding: 10px; border-radius: 4px; font-size: 12px; color: #666;">${error.message}</pre>
+        </div>
+      `;
+      element.classList.add('mermaid-error');
+    }
+  }
 }
