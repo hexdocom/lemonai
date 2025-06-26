@@ -1,6 +1,6 @@
 <template>
   <div class="model-service">
-    <h2>{{ $t('setting.modelService.title') }}</h2>
+    <h2 v-if="!showLanuch">{{ $t('setting.modelService.title') }}</h2>
     <div class="model-service-container">
       <div class="provider-sidebar">
         <div class="provider-search" style="justify-content: center; align-items: center;">
@@ -138,6 +138,7 @@
         </div>
       </div>
     </div>
+    <!-- <div v-if="showLanuch" class="lanuch-model"> -->
     <add-platform ref="addPlatformRef" @add-platform="handleAddPlatform"/>
     <setting-platform ref="settingPlatformRef" @update-platform="handleUpdatePlatform"/>
   </div>
@@ -174,7 +175,7 @@ import AddPlatform from '@/components/platforms/addPlatform.vue'
 import SettingPlatform from '@/components/platforms/settingPlatform.vue'
 import ModelsList from '@/components/platforms/modelsList.vue'
 import emitter from '@/utils/emitter'
-
+import modelService from '@/services/default-model-setting'
 import {driver} from "driver.js";
 import "driver.js/dist/driver.css";
 
@@ -195,7 +196,8 @@ const showInfoPlatform = ref(true)
 const modelVisible  = ref(false)
 const selectedModel = ref(null)
 const checkLoading = ref(false)
-
+//launch model
+const showLanuch =ref(false)
 //handleCheckApiKey
 const  handleCheckApiKey = async () => {
   modelVisible.value = true;
@@ -353,16 +355,14 @@ const colors = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEEAD', '#D4A5A5'
 
 onMounted(async () => {
   //触发全局事件 closeTour 延迟500mms
-  setTimeout(() => {
-    console.log('触发 closeTour')
-    emitter.emit('closeTour')
-  }, 500)
   await init();
   //localStorage.setItem('tour_end', 'true');
-  if (localStorage.getItem('tour') === 'true' && localStorage.getItem('tour_end') !== 'true') {
+  emitter.on('model-start',async ()=>{ 
+    showLanuch.value = true
     step1();
-  }
+  })
 })
+
 
 
 let tourDriver = null; // 提升作用域，并初始化为空
@@ -397,7 +397,6 @@ const step1 = async () => {
           description: t('setting.modelService.modelServiceTipsTwo'),
           onNextClick: async () => {
             nextTick(() => {
-              // 设置缓存，结束引导
               tourDriver.moveNext();
             });
           },
@@ -413,9 +412,8 @@ const step1 = async () => {
           onNextClick: async () => {
             nextTick(() => {
               // 设置缓存，结束引导
-              localStorage.setItem('tour_end', 'true');
               tourDriver.moveNext();
-              emitter.emit('onSearchService');
+              // emitter.emit('onSearchService');
             });
           },
         }
@@ -487,7 +485,6 @@ const filteredPlatforms = computed(() => {
   );
 });
 const handleModelAdd = async (model) => {
-  // console.log(model)
  handleGetModels(choose_platform.value.id)
 }
 
@@ -499,7 +496,6 @@ const handleModelUpdate = async (model) => {
 emitter.on('fresh-pages', (value) => {
   // 刷新页面
   init()
-
 })
 </script>
 
@@ -508,6 +504,7 @@ emitter.on('fresh-pages', (value) => {
   padding: 16px;
   height: 100%;
   overflow-y: hidden;
+  width: 100%;
 }
 
 .model-service-container {
@@ -531,6 +528,7 @@ emitter.on('fresh-pages', (value) => {
 .provider-info {
   flex: 5;
   max-height: calc(100vh - 200px);
+  width: 100%;
   overflow-y: auto;
   box-sizing: border-box;
 }
@@ -927,6 +925,8 @@ emitter.on('fresh-pages', (value) => {
   font-size: 18px;
 }
 
+
+
 @media screen and (max-width: 768px) {
 
   h2 {
@@ -940,6 +940,7 @@ emitter.on('fresh-pages', (value) => {
 
   .model-service {
     padding: 0 !important;
+    width: 100%;
   }
 
   .provider-sidebar {

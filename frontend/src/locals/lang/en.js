@@ -1,5 +1,5 @@
 export default {
-    //登录界面
+    //login page
     account:{
       usernameLabel: 'Username:',
       edit: 'Edit',
@@ -100,7 +100,7 @@ export default {
       insufficientPoints: "Insufficient points",
       insufficientPointsPleaseGoToUpgradeOrPurchase: "You are using a subscription model or subscription search service, but your current points are insufficient, please go to upgrade or purchase",
     },
-    //会员
+    //member
     member: {
       freePlan: 'Free',
       expirationDate: 'Expiration date:',
@@ -291,8 +291,86 @@ export default {
         readingFile: "Reading file",
         search: "Search",
         searching: "Searching"
-      }
-
+      },
+      check: {
+        docker: {
+            sandboxCheck: "Sandbox Check",
+            sandboxService: "Sandbox Service",
+            dockerInstallation: "Docker Installation",
+            dockerInstall: "Docker installation",
+            checkDockerImage: "Checking Docker image",
+            dockerStartup: "Docker Startup",
+            dockerRunning: "Docker running",
+            dockerRun: "Check Docker Status",
+            dockerLaunch: "Docker Launch",
+            sandboxImage: "Sandbox Image",
+            checkingImage: "Checking image",
+            currentStatus: "Current Status",
+            checkSystem: "Check system",
+            option1: "Option 1",
+            recommended: "(Recommended)",
+            lemonOfflineDownload: "Lemon Offline Download",
+            option2: "Option 2",
+            dockerOfficialWebsite: "Docker Official Website",
+            tryingToStartDocker: "Trying to start Docker",
+            dockerIsStarting: "Docker is starting...",
+            imageNotDetected: "The image 'lemon-runtime-sandbox:latest' was not detected. Choose an option to obtain the image, then click Continue.",
+            getLemonRuntimeSandboxImage: "Get Lemon Runtime Sandbox Image",
+            runCommand: "Run command:",
+            toGetSandboxImage: "to get the sandbox image",
+            dockerIsRunning: "Docker is running ✅",
+            skipSandboxCheckConfirm: "Are you sure you want to skip the sandbox environment check?",
+            skip: "Skip",
+            continue: "Continue",
+            checkingSystemPlatform: "Checking system platform",
+            pleaseWait: "Please wait...",
+            checkingDockerInstallation: "Checking Docker installation",
+            checkingDockerStartup: "Checking Docker startup",
+            checkingLemonImage: "Checking Lemon image",
+            sandboxCheckSucceeded: "Sandbox environment check succeeded",
+            platformNotSupported: "Platform Not Supported",
+            dockerNotDetected: "Docker Not Detected. Please install Docker and click Continue.",
+            dockerNotRunning: "Docker Not Running. Attempting to start Docker...",
+            dockerStartedSuccessfully: "Docker Started Successfully",
+            dockerImageNotReady: "Docker Image Not Ready",
+            attemptToStartDocker: "Attempting to start Docker...",
+            dockerNotInstalled: "Docker is not installed",
+            dockerNotRunningStatus: "Docker is not running",
+            sandboxImageNotExist: "Lemon sandbox image is not detected",
+            dockerIsRunningStatus: "Docker is running...",
+            sandboxStep: "Sandbox Environment Setup",
+            modelStep: "Model Platform Setup",
+            searchStep: "Search Engine Setup",
+            next: "Next",
+            complete: "Complete",
+            configCompleted: "Lemon configuration completed",
+            enableModelPlatformFirst: "Please enable a model platform first",
+            configureSearchEngineFirst: "Please configure the search engine first",
+            configSucceeded: "Lemon configuration succeeded",
+        }
+    },
+  },
+    sub: {
+      modeSelection: "Mode Selection",
+      saasType: "Sub User",
+      goToView: "Go to View",
+      cloudServiceReady: "Cloud service, ready to use immediately",
+      cloudSandbox: "Lemon provides cloud sandbox service",
+      cloudModel: "Lemon provides cloud model service",
+      cloudSearch: "Lemon provides cloud search service",
+      supportSelfModel: "Supports self-subscribed models",
+      supportModelSeries: "Supports DeepSeek, Qwen3, Gemini, GPT and other series of models",
+      supportSelfSearch: "Supports self-subscribed search engines",
+      localDockerType: "Local Docker",
+      select: "Select",
+      requireLocalSandbox: "Requires local sandbox environment",
+      localDockerConfigType: "Local Docker & Config",
+      requireModelConfig: "Model configuration required",
+      requireSearchConfig: "Search engine configuration required",
+      notLoggedIn: "Not currently logged in, please log in and try again",
+      notSubscribed: "The current account is not subscribed, please subscribe first",
+      enableCloudFailed: "Failed to enable Lemon cloud model and search engine services",
+      enableCloudSuccess: "Lemon cloud model and search engine services have been enabled"
     },
     //设置界面
     setting: {
@@ -469,6 +547,7 @@ export default {
         searchServiceTipsOne: "Click search service, jump to search service page",
         searchEngineTipsOne: "Step 1: Select search service provider",
         searchEngineTipsTwo: "Step 2: Set input API key",
+        searchEngineTipsThree: "Step 3: Click Check API key",
         title: "Search service",
         blacklistSubscription: "Blacklist subscription",
         addSubscription: "Add subscription",
@@ -659,5 +738,5 @@ export default {
     },
     resultSubtitle: {
       submitted: "Your order has been successfully submitted"
-    }
   }
+}

@@ -237,7 +237,7 @@ const checkModel = async () => {
 };
 
 const handleNotification = async (path, message, toMessage) => {
-  const key = `jump-notification-${Date.now()}`; // 通知唯一 key
+  const key = `jump-notification-${Date.now()}`; // notice key
   notification.warning({
     message: message,
     key,
@@ -257,7 +257,8 @@ const handleNotification = async (path, message, toMessage) => {
 };
 
 const isLogin = computed(() => {
-  //判断是否存在用户ID user
+  //Determine whether there is a user present by id
+
   if (user.value.id) {
     return true;
   }

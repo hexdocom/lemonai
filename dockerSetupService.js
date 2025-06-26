@@ -1,6 +1,6 @@
 // src/dockerSetupService.js
 
-const { app, ipcMain, BrowserWindow } = require('electron');
+const { app, ipcMain, BrowserWindow} = require('electron');
 const { exec, spawn } = require('child_process');
 const fs = require('fs');
 const path = require('path');
@@ -228,6 +228,15 @@ function executeDockerInfo() {
             resolve(stdout);
         });
     });
+}
+
+async function checkDockerInstall(){
+    try {
+        await executeDockerInfo();
+        return  true;
+    } catch (error) {
+        return  false;
+    }
 }
 
 //判断docker 有没有运行 使用 docker ps 判断
@@ -547,5 +556,10 @@ async function checkAndRunDockerSetup(mainWindow) {
 export {
     initDockerSetupService,
     checkAndRunDockerSetup,
-    DOCKER_SETUP_DONE_KEY
+    DOCKER_SETUP_DONE_KEY,
+    checkSystem,
+    checkDockerInstall,
+    checkDockerRunning,
+    checkDockerEnvironmentReady,
+    attemptStartDocker
 };

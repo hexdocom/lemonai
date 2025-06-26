@@ -10,16 +10,19 @@
       <LocalPreview class="preview" />
     </div>
   </div>
+  <SubPreview class="sub"/>
+  <CheckComponent/>
 </template>
 
 <script setup>
 import { ref, onMounted, onUnmounted, watch } from 'vue'
-
 import Sidebar from './sidebar/index.vue'
 import ChatPanel from './components/ChatPanel.vue'
 import Preview from '@/components/preview/index.vue'
 import LocalPreview from '@/components/preview/fullPreview.vue'
-
+import SubPreview from '@/components/sub/index.vue'
+// import DockerCheck from '@/components/check/dockerModal.vue'
+import CheckComponent from '@/components/check/index.vue'
 import { useRoute } from 'vue-router';
 const route = useRoute();
 
@@ -48,7 +51,6 @@ onUnmounted(() => {
 .menu-switch {
   cursor: pointer; 
 }
-
 .lemon-container {
   display: flex;
   justify-content: center;
@@ -90,5 +92,9 @@ onUnmounted(() => {
     border: unset!important;
     box-shadow: unset!important;
  }
+}
+.check{
+  width: 80%!important;
+  height: 80%!important;
 }
 </style>

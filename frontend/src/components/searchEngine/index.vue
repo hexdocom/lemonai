@@ -132,14 +132,14 @@ const selectedConfig = ref({
   result_count: 5,
   blacklist: null
 })
-
+const canSkip = ref(false)
 
 const checkLoading = ref(false)
 
 let tourDriver = null; // 提升作用域，并初始化为空
 
 const handleCheckApiKey = async () => {
-  console.log("checkApiKeydasdsa")
+  console.log("checkApiKey")
   let config = {}
   //checkSearchProvider
   if (selectedConfig.value.provider_name == "Tavily") {
@@ -160,7 +160,6 @@ const handleCheckApiKey = async () => {
       message.error(t('setting.searchService.endpointRequired'))
       return
     }
-    
   }else {
     config.type = "local"
     config.engine = selectedConfig.value.provider_name;
@@ -171,11 +170,12 @@ const handleCheckApiKey = async () => {
   checkLoading.value = false
   if (res.status != "fail") {
     message.success(selectedConfig.value.provider_name+' '+ t('setting.searchService.checkSearchEngineSuccess'))
-    // message.success(res.message)
   } else {
     message.error(selectedConfig.value.provider_name+' '+ t('setting.searchService.checkSearchEngineFailed'))
   }
 }
+
+const isNext = ref(false)
 
 const step1 = async () => {
   tourDriver = driver({
@@ -207,9 +207,22 @@ const step1 = async () => {
           onNextClick: async () => {
             nextTick(() => {
               // 设置缓存，结束引导
-              localStorage.setItem('tour_end', 'true');
               tourDriver.moveNext();
-              emitter.emit('onDefaultModelSetting');
+              
+            });
+          },
+        }
+      },
+      {
+        element: '.save-button',
+        popover: {
+          side: 'bottom',
+          title: t('setting.searchService.searchService'),
+          description: t('setting.searchService.searchEngineTipsThree'),
+          onNextClick: async () => {
+            nextTick(() => {
+              // 设置缓存，结束引导
+              tourDriver.moveNext();
             });
           },
         }
@@ -263,15 +276,12 @@ function displayName(name) {
   return name
 }
 
-
 onMounted(async () => {
-  if (localStorage.getItem('tour') === 'true' && localStorage.getItem('tour_end') !== 'true') {
-    step1();
-  }
   try {
     searchTemplates.value = await searchEngineService.getSearchEngineTemplates()
+    // pass baidu and bing
+    searchTemplates.value = searchTemplates.value.filter(item => item.name !== 'Baidu' && item.name !== 'Bing')
     loading.value = false
-
     try {
       const userConfig = await searchEngineService.getSearchEngineConfig()
       // console.log('userConfig', userConfig)
@@ -306,6 +316,12 @@ onMounted(async () => {
     console.error('Failed to fetch templates:', error)
     loading.value = false
   }
+  emitter.on('search-start',async()=>{
+    step1()
+    isNext.value = true
+    searchTemplates.value = searchTemplates.value.filter(item => item.name !== 'Baidu' && item.name !== 'Bing' && item.name !== 'Lemon')
+    canSkip.value = true
+  })
 })
 
 
@@ -316,7 +332,6 @@ onUnmounted(() => {
 const handleSave = async () => {
   try {
     //判断当前的搜索服务
-    console.log("当前保存", selectedConfig.value)
     if (selectedConfig.value.provider_name === "Tavily") {
       await searchEngineService.updateSearchEngineConfig({
         provider_id: selectedConfig.value.provider_id,
@@ -359,6 +374,21 @@ const handleSave = async () => {
 </script>
 
 <style scoped lang="scss">
+.skip{
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.lanuch-search{
+  position: absolute;
+  right: 46px;
+  bottom: 30px;
+  background-color: #f2f2f2;
+  padding: 10px;
+  border-radius: 5px;
+  box-shadow: #c3b7b7 1px 1px 1px;
+
+}
 .search-container {
   //padding: auto;
   display: flex;

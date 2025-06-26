@@ -49,7 +49,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   },
   // 调用主进程的 handle 方法 (用于双向通信)
   invoke: (channel, ...args) => {
-    const validInvokeChannels = ['start-docker-setup'];
+    const validInvokeChannels = ['start-docker-setup','checkSystem','checkDockerInstall','checkDockerRunning','checkDockerEnvironmentReady','attemptStartDocker'];
     if (validInvokeChannels.includes(channel)) {
       return ipcRenderer.invoke(channel, ...args);
     } else {

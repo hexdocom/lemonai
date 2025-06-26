@@ -21,6 +21,7 @@ const service = {
         const response = await http.put(uri, data)
         return response.data || {};
     },
+    // 检测模型
     //api/default_model_setting/check
     async checkModel() {
         const uri = `/api/default_model_setting/check`

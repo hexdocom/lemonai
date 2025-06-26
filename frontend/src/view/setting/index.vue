@@ -40,8 +40,8 @@ const router = useRouter()
 
 
 
-import { driver } from "driver.js";
-import "driver.js/dist/driver.css";
+// import { driver } from "driver.js";
+// import "driver.js/dist/driver.css";
 const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
 
 //search-service
@@ -49,93 +49,93 @@ const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
 //model-service
 let tourDriver = null; // 提升作用域，并初始化为空
 
-const step1 = async () => {
-  tourDriver = driver({
-    animate: true,
-    showProgress: true,
-    prevBtnText: t('setting.prevStep'),
-    nextBtnText: t('setting.nextStep'),
-    doneBtnText: t('setting.doneStep'),
-    steps: [
-      {
-        element: '#model-service',
-        popover: {
-          side: 'bottom',
-          title: t('setting.modelService.modelService'),
-          description: t('setting.modelService.modelServiceTipsOne'),
-          onNextClick: async () => {
-            nextTick(() => { 
-              // 设置缓存，结束引导
-              localStorage.setItem('tour_end', 'true');
-              tourDriver.moveNext();
-            });
-          },
-        }
-      }
-    ]
-  });
+// const step1 = async () => {
+//   tourDriver = driver({
+//     animate: true,
+//     showProgress: true,
+//     prevBtnText: t('setting.prevStep'),
+//     nextBtnText: t('setting.nextStep'),
+//     doneBtnText: t('setting.doneStep'),
+//     steps: [
+//       {
+//         element: '#model-service',
+//         popover: {
+//           side: 'bottom',
+//           title: t('setting.modelService.modelService'),
+//           description: t('setting.modelService.modelServiceTipsOne'),
+//           onNextClick: async () => {
+//             nextTick(() => { 
+//               // 设置缓存，结束引导
+//               localStorage.setItem('tour_end', 'true');
+//               tourDriver.moveNext();
+//             });
+//           },
+//         }
+//       }
+//     ]
+//   });
 
-  tourDriver.drive();
-};
+//   tourDriver.drive();
+// };
 
 
-const step2 = async () => {
-  tourDriver = driver({
-    animate: true,
-    showProgress: true,
-    prevBtnText: t('setting.prevStep'),
-    nextBtnText: t('setting.nextStep'),
-    doneBtnText: t('setting.doneStep'),
-    steps: [
-      {
-        element: '#search-service',
-        popover: {
-          side: 'bottom',
-          title: t('setting.searchService.searchService'),
-          description: t('setting.searchService.searchServiceTipsOne'),
-          onNextClick: async () => {
-            nextTick(() => { 
-              // 设置缓存，结束引导
-              localStorage.setItem('tour_end', 'true');
-              tourDriver.moveNext();
-            });
-          },
-        }
-      }
-    ]
-  });
+// const step2 = async () => {
+//   tourDriver = driver({
+//     animate: true,
+//     showProgress: true,
+//     prevBtnText: t('setting.prevStep'),
+//     nextBtnText: t('setting.nextStep'),
+//     doneBtnText: t('setting.doneStep'),
+//     steps: [
+//       {
+//         element: '#search-service',
+//         popover: {
+//           side: 'bottom',
+//           title: t('setting.searchService.searchService'),
+//           description: t('setting.searchService.searchServiceTipsOne'),
+//           onNextClick: async () => {
+//             nextTick(() => { 
+//               // 设置缓存，结束引导
+//               localStorage.setItem('tour_end', 'true');
+//               tourDriver.moveNext();
+//             });
+//           },
+//         }
+//       }
+//     ]
+//   });
 
-  tourDriver.drive();
-};
+//   tourDriver.drive();
+// };
 
-const step3 = async () => {
-  tourDriver = driver({
-    animate: true,
-    showProgress: true,
-    prevBtnText: t('setting.prevStep'),
-    nextBtnText: t('setting.nextStep'),
-    doneBtnText: t('setting.doneStep'),
-    steps: [
-      {
-        element: '#default-model-setting',
-        popover: {
-          side: 'bottom',
-          title: t('setting.defaultModel.defaultModel'),
-          description: t('setting.defaultModel.defaultModelTipsOne'),
-          onNextClick: async () => {
-            nextTick(() => { 
-              // 设置缓存，结束引导
-              localStorage.setItem('tour_end', 'true');
-              tourDriver.moveNext();
-            });
-          },
-        }
-      }
-    ]
-  });
+// const step3 = async () => {
+//   tourDriver = driver({
+//     animate: true,
+//     showProgress: true,
+//     prevBtnText: t('setting.prevStep'),
+//     nextBtnText: t('setting.nextStep'),
+//     doneBtnText: t('setting.doneStep'),
+//     steps: [
+//       {
+//         element: '#default-model-setting',
+//         popover: {
+//           side: 'bottom',
+//           title: t('setting.defaultModel.defaultModel'),
+//           description: t('setting.defaultModel.defaultModelTipsOne'),
+//           onNextClick: async () => {
+//             nextTick(() => { 
+//               // 设置缓存，结束引导
+//               localStorage.setItem('tour_end', 'true');
+//               tourDriver.moveNext();
+//             });
+//           },
+//         }
+//       }
+//     ]
+//   });
 
-  tourDriver.drive();
-};
+//   tourDriver.drive();
+// };
 
 emitter.on('onSearchService', () => { 
   step2();
@@ -157,9 +157,9 @@ emitter.on('closeTour', () => {
 
 onMounted(() => {
   nextTick(() => {
-    if (localStorage.getItem('tour') === 'true' && localStorage.getItem('tour_end') !== 'true') {
-      step1();
-    }
+    // if (localStorage.getItem('tour') === 'true' && localStorage.getItem('tour_end') !== 'true') {
+    //   step1();
+    // }
   });
 });
 

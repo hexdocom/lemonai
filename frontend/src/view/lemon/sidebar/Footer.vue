@@ -5,18 +5,26 @@
         <User />
       </div>
       <div class="user-name">{{ user.user_name || user.mobile || user.user_email }}</div>
-      <div class="opDiv" ><!-- v-if="opShow" -->
+      <div class="opDiv"><!-- v-if="opShow" -->
         <UserProFile />
       </div>
     </div>
-    <!-- 当前版本号 -->
-    <div class="version-info" @click="handleVersionInfo">
-      V {{ versionInfo.localVersion }}
+
+
+    <div class="left-side">
+      <dockerStatus />
+      <!-- current version -->
+      <div class="version-info" @click="handleVersionInfo">
+        V {{ versionInfo.localVersion }}
+      </div>
     </div>
+
   </div>
 </template>
 
 <script setup>
+
+import dockerStatus from '@/components/check/dockerStatus.vue'
 import { ref, computed, onMounted, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import service from '@/services/default-model-setting'
@@ -25,74 +33,64 @@ import { useI18n } from 'vue-i18n'
 
 import User from '@/assets/sidebar/user.svg'
 import { useUserStore } from '@/store/modules/user.js'
-let { user,membership,points } = useUserStore();
+let { user, membership, points } = useUserStore();
 import versionService from '@/services/version';
-
+import { notification } from 'ant-design-vue';
 const router = useRouter();
 const opShow = ref(true);
 
 const { t } = useI18n()
-import { driver } from "driver.js";
-import "driver.js/dist/driver.css";
+import emitter from '@/utils/emitter'
 import UserProFile from '@/view/auth/components/user-profile.vue'
-const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
-const tour = async () => {
-  const tourDriver = driver({
-    animate: true,
-    showProgress: true,
-    prevBtnText: t('setting.prevStep'),
-    nextBtnText: t('setting.nextStep'),
-    doneBtnText: t('setting.doneStep'),
-    steps: [
-      {
-        element: '#setting',
-        popover: {
-          side: 'bottom',
-          title: t('setting.settingModel'),
-          description: t('setting.settingModelTips'),
-          onNextClick: async () => {
-            nextTick(() => {
-              //设置缓存 结束引导
-              localStorage.setItem('tour_end', 'true');
-              tourDriver.moveNext()
-            })
-          },
-        }
-      }
-    ]
-  });
-
-  tourDriver.drive();
-}
 
 //checkModel
 
-//检查是否配置模型
+//check model
 async function checkModel() {
-  //判断有没有 localStorage.setItem('tour_end', 'true');
-  if (localStorage.getItem('tour_end') == 'true') {
-    localStorage.setItem('tour', 'false');
-    return;
+  // check current type
+  let lemonType = localStorage.getItem('lemon-type');
+  console.log('lemonType', lemonType);
+  if(lemonType === null){
+      emitter.emit('show-type');
+      return
   }
-  let res = await service.checkModel();
-  if (res.has_default_platform && res.has_enabled_platform && res.has_search_setting) {
-    localStorage.setItem('tour', 'false');
-  } else {
-    localStorage.setItem('tour', 'true');
-    tour();
+  // check current model
+  const res = await service.checkModel()
+  console.log('res', res);
+  if (!res.has_default_platform && !res.has_enabled_platform) {
+    {
+      notification['warning']({
+        message: 'Task model not selected!',
+        description:
+          'Task model not selected, please select a model first',
+        duration: 4,
+      });
+    };
   }
+  if (!res.has_search_setting) {
+    {
+      notification['warning']({
+        message: 'search engine not available!',
+        description:
+          'current search engine not available, please configure search engine first',
+        duration: 4,
+      });
+    };
+  }
+
 }
-const  isLogin = computed(() => {
-    //判断是否存在用户ID user
-    if  (user.id) {
-        return true;    
-    }
-    return false;
+
+const isLogin = computed(() => {
+  //判断是否存在用户ID user
+  if (user.id) {
+    return true;
+  }
+  return false;
 });
 
 const handleVersionInfo = () => {
- //https://github.com/hexdocom/lemonai/releases
- window.open("https://github.com/hexdocom/lemonai/releases", '_blank');
+  //https://github.com/hexdocom/lemonai/releases
+  window.open("https://github.com/hexdocom/lemonai/releases", '_blank');
 }
 
 //获取用户信息 getUserInfo
@@ -120,9 +118,9 @@ onMounted(() => {
     checkModel();
     getUserInfo();
     versionService.getVersionInfo().then((res) => {
-    console.log(res);
-    versionInfo.value = res;
-  });
+      console.log(res);
+      versionInfo.value = res;
+    });
   });
 });
 </script>
@@ -167,6 +165,7 @@ onMounted(() => {
   }
 }
 
+
 .avatar {
   width: 24px;
   height: 24px;
@@ -193,20 +192,22 @@ onMounted(() => {
   justify-content: space-between;
 }
 
- .version-info {
+.version-info {
   font-size: 12px;
   color: #666;
   margin-left: 10px;
   padding: 2px 4px;
   cursor: pointer;
+  display: flex;
+  align-items: center;
 
   &:hover {
     color: #333;
     background-color: #fff;
     border-radius: 99999px;
-   
+
   }
- }
+}
 
 .footer-button {
   background: none;
@@ -234,5 +235,10 @@ onMounted(() => {
   height: 32px;
   cursor: pointer;
   min-width: 64px
+}
+
+.left-side {
+  display: flex;
+  flex-direction: row;
 }
 </style>
