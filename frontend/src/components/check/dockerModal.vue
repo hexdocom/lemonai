@@ -199,8 +199,8 @@ const mainStatuses = ref({
 // sub status 国际化
 const subStatuses = ref({
     'installed': [
-        { key: 'sub1', name: 'sub1', status: 'pending' }, // 'pending', 'success', 'loading'
-        { key: 'sub2', name: 'sub2', status: 'pending' }, // 'pending', 'success', 'loading'
+        { key: 'sub1', name: 'DockerSystem', status: 'pending' }, // 'pending', 'success', 'loading'
+        { key: 'sub2', name: 'dockerStartup', status: 'pending' }, // 'pending', 'success', 'loading'
     ],
     'started': [
         { key: 'sub1', name: 'dockerRunning', status: 'pending' }
@@ -218,8 +218,8 @@ function resetStatuses() {
     }
     subStatuses.value = {
         'installed': [
-            { key: 'sub1', name: 'sub1', status: 'pending' },
-            { key: 'sub2', name: 'sub2', status: 'pending' },
+            { key: 'sub1', name: 'DockerSystem', status: 'pending' },
+            { key: 'sub2', name: 'dockerInstallation', status: 'pending' },
         ],
         'started': [
             { key: 'sub1', name: 'dockerRunning', status: 'pending' }

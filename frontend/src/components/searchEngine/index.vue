@@ -284,6 +284,9 @@ onMounted(async () => {
     loading.value = false
     try {
       const userConfig = await searchEngineService.getSearchEngineConfig()
+      if(userConfig.provider_name === 'Baidu' || userConfig.provider_name === 'Bing'){
+        userConfig.provider_name = 'Tavily'
+      }
       // console.log('userConfig', userConfig)
       if (userConfig.provider_name) {
         selectedTemplate.value = userConfig.provider_name

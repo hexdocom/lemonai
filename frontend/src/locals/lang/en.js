@@ -298,6 +298,7 @@ export default {
             sandboxService: "Sandbox Service",
             dockerInstallation: "Docker Installation",
             dockerInstall: "Docker installation",
+            DockerSystem: "Check system",
             checkDockerImage: "Checking Docker image",
             dockerStartup: "Docker Startup",
             dockerRunning: "Docker running",

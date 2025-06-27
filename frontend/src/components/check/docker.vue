@@ -186,7 +186,7 @@ const mainStatuses = ref({
 // Sub-statuses
 const subStatuses = ref({
     'installed': [
-        { key: 'sub1', name: 'checkingSystemPlatform', status: 'pending' },
+        { key: 'sub1', name: 'DockerSystem', status: 'pending' },
         { key: 'sub2', name: 'dockerInstallation', status: 'pending' }
     ],
     'started': [
