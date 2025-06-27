@@ -80,7 +80,6 @@
                     <a-card class="steps-card">
                         <div>
                             <h3>{{ $t(title) }}</h3>
-                            <!-- <p>{{ $t(detail) }}</p> -->
                             <div class="more">
                                 <div class="install" v-if="showInstallTip">
                                     <div class="tip">
@@ -145,6 +144,9 @@
                                             <span>{{ $t('lemon.check.docker.dockerIsRunning') }}</span>
                                         </div>
                                     </div>
+                                </div>
+                                <div class="" v-else>
+                                    <span >{{ detail }}</span>
                                 </div>
                             </div>
                         </div>
@@ -237,7 +239,7 @@ const statusKeys = ['installed', 'started', 'image-container']
 // current status
 const currentStatus = computed(() => statusKeys[currentStep.value])
 const title = ref('lemon.check.docker.checkingSystemPlatform')
-const detail = ref('lemon.check.docker.pleaseWait')
+const detail = ref(t('common.wait'))
 // computer status
 const getStepStatus = (key) => {
     const status = mainStatuses.value[key]
@@ -257,7 +259,10 @@ const handleAction = () => {
         canContinue.value = false
         setTimeout(() => {
             isLoading.value = false
+            detail.value = t('common.wait')
         }, 1000)
+        
+        resetShowTip()
     } else {
         resetShowTip
         visible.value = false
@@ -385,6 +390,7 @@ onMounted(async () => {
 })
 onUnmounted(async () => {
     emitter.off('docker-check')
+
 })
 
 </script>
@@ -450,7 +456,8 @@ onUnmounted(async () => {
             // overflow-y: auto;
             background-color: #fff;
             // border-radius: 20px;
-            min-width: 560px;
+            width: 600px;
+            min-height: 540px;
 
             .content-wrapper {
                 max-width: 700px;

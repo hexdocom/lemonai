@@ -1,6 +1,5 @@
 <template>
     <div v-show="visible" class="docker-checker-modal">
-        <h2>{{ $t('lemon.check.docker.sandboxCheck') }}</h2>
         <div class="modal-content">
             <!-- Left sidebar: step indicators -->
             <div class="status-sidebar">
@@ -248,13 +247,12 @@ const checkDockerStatus = async () => {
 
     // System check
     title.value = 'lemon.check.docker.checkingSystemPlatform'
-    detail.value = 'lemon.check.docker.pleaseWait'
+
     await doWhileUntilTrue(checkSystem, dockerCheckErrorInfo, 'checkSystem')
     subStatuses.value.installed[0].status = 'success'
 
     // Docker install check
     title.value = 'lemon.check.docker.checkingDockerInstallation'
-    detail.value = 'lemon.check.docker.pleaseWait'
     await doWhileUntilTrue(checkDockerInstall, dockerCheckErrorInfo, 'checkDockerInstall')
     subStatuses.value.installed[1].status = 'success'
     mainStatuses.value.installed = 'success'
@@ -262,15 +260,13 @@ const checkDockerStatus = async () => {
 
     // Docker running check
     title.value = 'lemon.check.docker.checkingDockerStartup'
-    detail.value = 'lemon.check.docker.pleaseWait'
     await doWhileUntilTrue(checkDockerRunning, dockerCheckErrorInfo, 'checkDockerRunning')
     subStatuses.value.started[0].status = 'success'
     mainStatuses.value.started = 'success'
     localStorage.setItem('docker-launch', true)
-
     // Docker image/environment check
     title.value = 'lemon.check.docker.checkingLemonImage'
-    detail.value = 'lemon.check.docker.pleaseWait'
+    detail.value = ''
     await doWhileUntilTrue(checkDockerEnvironmentReady, dockerCheckErrorInfo, 'checkDockerEnvironmentReady')
     subStatuses.value['image-container'][0].status = 'success'
     mainStatuses.value['image-container'] = 'success'

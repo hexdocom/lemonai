@@ -169,10 +169,16 @@ const groupedOptions = computed(() => {
     });
   });
 
-  return Object.entries(groups).map(([group, options]) => ({
+  let result = Object.entries(groups).map(([group, options]) => ({
     label: group,
     options,
   }));
+  // let Lemon platform at first
+  const indexLemon = result.findIndex(item => item.label === 'Lemon');
+  if (indexLemon !== -1) {
+    result.unshift(result.splice(indexLemon, 1)[0]);
+  }
+  return result
 });
 
 const changeModel = async (modelId) => {

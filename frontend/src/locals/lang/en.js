@@ -323,7 +323,7 @@ export default {
             skip: "Skip",
             continue: "Continue",
             checkingSystemPlatform: "Checking system platform",
-            pleaseWait: "Please wait...",
+            pleaseWait: "",
             checkingDockerInstallation: "Checking Docker installation",
             checkingDockerStartup: "Checking Docker startup",
             checkingLemonImage: "Checking Lemon image",
@@ -785,6 +785,7 @@ export default {
   },
   common:{
     cancel: "Cancel",
-    ok: "OK"
+    ok: "OK",
+    wait:"Please wait..."
   }
 }

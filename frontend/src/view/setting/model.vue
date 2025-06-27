@@ -440,6 +440,7 @@ function init(id) {
           }
         }
     }
+    
     platforms.value = res.sort((u, v) => {
       // return u.name.toUpperCase() > v.name.toUpperCase() ? 1 : -1; // 忽略大小写进行排序，确保大写字母在小写字母之前
       return u.name.localeCompare(v.name); // 使用本地语言环境进行排序，确保正确的字母顺序
@@ -447,6 +448,8 @@ function init(id) {
       ...platform,
       color: colors[index % colors.length]
     }))
+    platforms.value = platforms.value.filter(platform => platform.name!=="Lemon")
+
     if (id) {
       choose_platform.value = platforms.value.find(p => p.id === id)
       handleGetModels(choose_platform.value.id)
