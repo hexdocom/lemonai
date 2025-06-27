@@ -347,9 +347,22 @@ export default {
             enableModelPlatformFirst: "Please enable a model platform first",
             configureSearchEngineFirst: "Please configure the search engine first",
             configSucceeded: "Lemon configuration succeeded",
-        }
+            dockerNotReady: "SandBox is not ready",
+            dockerNotReadyDes: "Docker is not ready, please click for check docker env and try again",
+        },
+        // ... existing code ...
+        dockerIsRunningStatus: "Docker Is Runing......",
+        // check/index.vue
+        sandboxStep: "Sandbox Setting",
+        modelStep: "Model Platform",
+        searchStep: "Search Engine",
+        next: "next",
+        complete: "complete",
+        configCompleted: "Lemon setup completed",
+        enableModelPlatformFirst: "please enable a model platform first",
+        configureSearchEngineFirst: "please configure the search engine first",
+        configSucceeded: "Lemon setup succeeded",
     },
-  },
     sub: {
       modeSelection: "Mode Selection",
       saasType: "Sub User",
@@ -364,14 +377,16 @@ export default {
       localDockerType: "Local Docker",
       select: "Select",
       requireLocalSandbox: "Requires local sandbox environment",
-      localDockerConfigType: "Local Docker & Config",
+      localDockerConfigType: "Local Config",
       requireModelConfig: "Model configuration required",
       requireSearchConfig: "Search engine configuration required",
-      notLoggedIn: "Not currently logged in, please log in and try again",
+      notLoggedIn: "Please log in and try again.",
       notSubscribed: "The current account is not subscribed, please subscribe first",
       enableCloudFailed: "Failed to enable Lemon cloud model and search engine services",
       enableCloudSuccess: "Lemon cloud model and search engine services have been enabled"
     },
+  },
+    
     //设置界面
     setting: {
       back: "Back",
@@ -629,7 +644,36 @@ export default {
         argsPlaceholder: "arg1\narg2",
         env: "Environment variables",
         envPlaceholder: "KEY1=VALUE1\nKEY2=VALUE2",
-        mcpServer: "MCP server"
+        mcpServer: "MCP server",
+        noServers: "No servers",
+        noServerSelected: "No server selected",
+        newServer: "New server",
+        deleteConfirmTitle: "Delete server",
+        deleteConfirmContent: "Are you sure you want to delete this server?",
+        importFromJson: "Import from JSON",
+        importModalTitle: "Import from JSON",
+        importModalDescription: "Please paste the JSON configuration of a single server, example below",
+        importSuccess: "Import successful",
+        importError: {
+          nameRequired: "Server name is required",
+          invalidJson: "Invalid JSON format"
+        },
+        fetchFailed: "Failed to fetch servers",
+        addSuccess: "Server added successfully",
+        addFailed: "Failed to add server",
+        updateSuccess: "Server updated successfully",
+        updateFailed: "Failed to update server",
+        deleteSuccess: "Server deleted successfully",
+        deleteFailed: "Failed to delete server",
+        serverOperations: {
+          fetchFailed: "Failed to fetch servers",
+          addSuccess: "Server added successfully",
+          addFailed: "Failed to add server",
+          updateSuccess: "Server updated successfully",
+          updateFailed: "Failed to update server",
+          deleteSuccess: "Server deleted successfully",
+          deleteFailed: "Failed to delete server"
+        },
       },
       experience: {
         title: "Experience library",
@@ -738,5 +782,9 @@ export default {
     },
     resultSubtitle: {
       submitted: "Your order has been successfully submitted"
+  },
+  common:{
+    cancel: "Cancel",
+    ok: "OK"
   }
 }

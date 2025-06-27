@@ -21,7 +21,8 @@
           </div>
         </div>
         <div class="input-container">
-          <a-textarea class="input-textarea" v-model:value="messageText" :placeholder="placeholder" :auto-size="{ minRows: 2, maxRows: 8 }" @keydown="keydown" />
+          <a-textarea class="input-textarea" v-model:value="messageText" :placeholder="placeholder"
+            :auto-size="{ minRows: 2, maxRows: 8 }" @keydown="keydown" />
           <div class="input-actions">
             <div class="left-actions">
               <a-upload v-model:file-list="fileList" :before-upload="beforeUpload" :show-upload-list="false">
@@ -31,19 +32,13 @@
                   </template>
                 </a-button>
               </a-upload>
-              <a-select
-                class="model-select"
-                @change="changeModel"
-                v-model:value="selectedModel"
-                :placeholder="$t('lemon.input.chooseModel')"
-                style="width: 200px"
-                :options="groupedOptions"
-                optionLabelProp="label"
-                :fieldNames="{ label: 'label', value: 'value', options: 'options' }"
-              >
+              <a-select class="model-select" @change="changeModel" v-model:value="selectedModel"
+                :placeholder="$t('lemon.input.chooseModel')" style="width: 200px" :options="groupedOptions"
+                optionLabelProp="label" :fieldNames="{ label: 'label', value: 'value', options: 'options' }">
                 <template #option="{ label, value, logo_url }">
                   <div style="display: flex; align-items: center">
-                    <img v-if="logo_url" :src="logo_url" alt="logo" style="width: 20px; height: 20px; margin-right: 8px" />
+                    <img v-if="logo_url" :src="logo_url" alt="logo"
+                      style="width: 20px; height: 20px; margin-right: 8px" />
                     <span>{{ label }}</span>
                   </div>
                 </template>
@@ -57,7 +52,8 @@
                   MCP
                 </a-button>
                 <template #overlay>
-                  <a-menu :selectedKeys="mcpMenuSelectedKeys" multiple class="mcp-server-menu" @click="handleMcpMenuClick">
+                  <a-menu :selectedKeys="mcpMenuSelectedKeys" multiple class="mcp-server-menu"
+                    @click="handleMcpMenuClick">
                     <a-menu-item key="disable">
                       <span>不启用 MCP</span>
                     </a-menu-item>
@@ -75,12 +71,11 @@
                 <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 16 16" fill="#fff">
                   <path
                     d="M7.91699 15.0642C7.53125 15.0642 7.22119 14.9397 6.98682 14.6907C6.75244 14.4465 6.63525 14.1218 6.63525 13.7166V6.39966L6.77441 3.34546L7.48486 3.89478L5.62451 6.12134L3.99121 7.76196C3.87402 7.87915 3.73975 7.97681 3.58838 8.05493C3.44189 8.13306 3.271 8.17212 3.07568 8.17212C2.73389 8.17212 2.4458 8.05981 2.21143 7.83521C1.98193 7.60571 1.86719 7.3103 1.86719 6.94897C1.86719 6.60229 1.99902 6.29712 2.2627 6.03345L6.97949 1.30933C7.0918 1.19214 7.2334 1.10181 7.4043 1.03833C7.5752 0.969971 7.74609 0.935791 7.91699 0.935791C8.08789 0.935791 8.25879 0.969971 8.42969 1.03833C8.60059 1.10181 8.74463 1.19214 8.86182 1.30933L13.5786 6.03345C13.8423 6.29712 13.9741 6.60229 13.9741 6.94897C13.9741 7.3103 13.8569 7.60571 13.6226 7.83521C13.3931 8.05981 13.1074 8.17212 12.7656 8.17212C12.5703 8.17212 12.397 8.13306 12.2456 8.05493C12.0991 7.97681 11.9673 7.87915 11.8501 7.76196L10.2095 6.12134L8.34912 3.89478L9.05957 3.34546L9.19141 6.39966V13.7166C9.19141 14.1218 9.07422 14.4465 8.83984 14.6907C8.60547 14.9397 8.29785 15.0642 7.91699 15.0642Z"
-                    fill="var(--icon-onblack)"
-                  ></path>
+                    fill="var(--icon-onblack)"></path>
                 </svg>
               </template>
             </a-button>
-            <!-- 停止按钮 -->
+            <!-- stop button -->
             <button v-else class="stop-button" @click="handleStop">
               <div></div>
             </button>
@@ -226,6 +221,12 @@ onMounted(async () => {
   emitter.on("changeMessageText", (text) => {
     messageText.value = text;
   });
+  emitter.on('change-model',async(model)=>{
+    if(model){
+      selectedModel.value = model.id;
+    }
+    await initModel();
+  })
 });
 
 //检查模型和搜索服务的配置情况
@@ -306,6 +307,36 @@ const handleSend = async () => {
       handleNotification("/setting/usage", t("auth.insufficientPoints"), t("auth.insufficientPointsPleaseGoToUpgradeOrPurchase"));
       return;
     }
+    // electron client？
+    if (window.electronAPI) {
+      // docker
+      let install = localStorage.getItem("docker-installed") === 'true';
+      let launch = localStorage.getItem("docker-launch") === 'true';
+      let image = localStorage.getItem("docker-image") === 'true';
+      if (!(install && launch && image)) {
+        const key = `jump-notification-${Date.now()}`; // notice key
+        notification.warning({
+          message: t('lemon.check.docker.dockerNotReady'),
+          key,
+          description: h(
+            "span",
+            {
+              style: { textDecoration: "underline", cursor: "pointer", color: "#1677ff" },
+            },
+            t('lemon.check.docker.dockerNotReadyDes')
+          ),//t('lemon.check.docker.dockerNotReadyDes'), //Sandbox environment is not ready, please check if Docker configuration is complete
+          duration: 4,
+          onClick: () => {
+            notification.close(key);
+            // check docker
+            emitter.emit('docker-check', true)
+          },
+        });
+        return
+      }
+    }
+
+
     emit("send", {
       text,
       mode: currentMode.value,
@@ -402,6 +433,7 @@ const keydown = (e) => {
   display: flex;
   justify-content: space-between;
 }
+
 :deep(.ant-dropdown-menu-item) {
   margin-bottom: 4px !important;
 }

@@ -578,7 +578,7 @@ emitter.on('fullPreviewVisable-close', () => {
 
   .fullpreview-container {
     .content {
-      /* max-width: 768px; */
+      max-width: 768px;
       margin: auto;
     }
   }

@@ -63,6 +63,9 @@ onMounted(async () => {
             return
         }
         checkWhile()
+        emitter.on('docker-check-over', () => {
+                updateDockerStatus()
+        })
     }
 });
 
@@ -79,7 +82,7 @@ async function checkWhile() {
         var3 = localStorage.getItem('docker-image')
         console.log('waiting for docker to be ready')
         // wait 5 second
-        await new Promise(resolve => setTimeout(resolve, 5000));
+        await new Promise(resolve => setTimeout(resolve, 3000));
     }
     dockerExist.value = true
     dockerRunning.value = true

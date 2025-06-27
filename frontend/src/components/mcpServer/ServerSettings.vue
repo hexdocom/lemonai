@@ -260,7 +260,7 @@ const showDeleteConfirm = (serverId) => {
     title: t("setting.mcpService.deleteConfirmTitle"),
     icon: () => h(ExclamationCircleOutlined, { style: "color: #ff4d4f" }),
     content: t("setting.mcpService.deleteConfirmContent"),
-    okText: t("common.yes", "Yes"),
+    okText: t("common.ok", "Yes"),
     okType: "danger",
     cancelText: t("common.cancel", "Cancel"),
     onOk() {

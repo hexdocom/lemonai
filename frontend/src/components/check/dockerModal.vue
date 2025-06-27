@@ -80,7 +80,7 @@
                     <a-card class="steps-card">
                         <div>
                             <h3>{{ $t(title) }}</h3>
-                            <p>{{ $t(detail) }}</p>
+                            <!-- <p>{{ $t(detail) }}</p> -->
                             <div class="more">
                                 <div class="install" v-if="showInstallTip">
                                     <div class="tip">
@@ -269,37 +269,34 @@ const canContinue = ref(false)
 const skip = ref(false)
 const checkDockerStatus = async () => {
     localStorage.setItem('docker-installed', false)
-    localStorage.setItem('docker-lanuch', false)
+    localStorage.setItem('docker-launch', false)
     localStorage.setItem('docker-image', false)
     // Installation
     // sys
     title.value = 'lemon.check.docker.checkingSystemPlatform'
-    detail.value = 'lemon.check.docker.pleaseWait'
     await doWhileUntilTure(checkSystem, dockerCheckErrorInfo, 'checkSystem')
     subStatuses.value.installed[0].status = 'success'
     // install 
     title.value = 'lemon.check.docker.checkingDockerInstallation'
-    detail.value = 'lemon.check.docker.pleaseWait'
     await doWhileUntilTure(checkDockerInstall, dockerCheckErrorInfo, 'checkDockerInstall')
     subStatuses.value.installed[1].status = 'success'
     mainStatuses.value.installed = 'success'
     localStorage.setItem('docker-installed', true)
     // Docker Setup
     title.value = 'lemon.check.docker.checkingDockerStartup'
-    detail.value = 'lemon.check.docker.pleaseWait'
     await doWhileUntilTure(checkDockerRunning, dockerCheckErrorInfo, 'checkDockerRunning')
     subStatuses.value.started[0].status = 'success'
     mainStatuses.value.started = 'success'
     localStorage.setItem('docker-launch', true)
     title.value = 'lemon.check.docker.checkingLemonImage'
-    detail.value = 'lemon.check.docker.pleaseWait'
     await doWhileUntilTure(checkDockerEnvironmentReady, dockerCheckErrorInfo, 'checkDockerEnvironmentReady')
     subStatuses.value['image-container'][0].status = 'success'
     mainStatuses.value['image-container'] = 'success'
     title.value = 'lemon.check.docker.sandboxCheckSucceeded'
-    detail.value = ''
     localStorage.setItem('docker-image', true)
     isComplete.value = true
+    // docker-check-over
+    emitter.emit('docker-check-over')
 }
 // Process error
 async function dockerCheckErrorInfo(key, result) {

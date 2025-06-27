@@ -1,11 +1,11 @@
 <template>
   <div class="mcp-manager-container">
     <div class="top-action-bar">
-      <h2 class="title">MCP 服务器</h2>
+      <h2 class="title">{{ $t("setting.mcpService.mcpServer") }}</h2>
       <div class="actions">
         <a-button @click="showImportModal">
           <template #icon><ImportOutlined /></template>
-          从 JSON 导入
+          {{ $t("setting.mcpService.importFromJson") }}
         </a-button>
         <a-button
           type="primary"
@@ -13,7 +13,7 @@
           style="margin-left: 8px"
         >
           <template #icon><PlusOutlined /></template>
-          添加服务器
+          {{ $t("setting.mcpService.addServer") }}
         </a-button>
       </div>
     </div>
@@ -50,12 +50,12 @@
 
     <a-modal
       v-model:visible="importModalVisible"
-      title="从 JSON 导入"
+      :title="$t('setting.mcpService.importModalTitle')"
       @ok="handleImportOk"
-      :ok-text="'OK'"
-      :cancel-text="'Cancel'"
+      :ok-text="$t('common.ok')"
+      :cancel-text="$t('common.cancel')"
     >
-      <p>请粘贴单个服务器的 JSON 配置, 示例如下</p>
+      <p>{{ $t("setting.mcpService.importModalDescription") }}</p>
       <pre>{{ exampleJson }}</pre>
       <a-textarea v-model:value="importJsonText" placeholder="" :rows="10" />
     </a-modal>

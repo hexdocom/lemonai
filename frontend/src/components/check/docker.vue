@@ -146,13 +146,7 @@
                 </div>
                 <!-- Bottom right buttons -->
                 <div class="action-button">
-                    <a-popconfirm :title="$t('lemon.check.docker.skipSandboxCheckConfirm')" ok-text="Yes" cancel-text="No" @confirm="handleSkipAction"
-                        @cancel="">
-                        <a-button v-show="canContinue" type="primary" :loading="isLoading"
-                            @click="openConfirmSkipModal = true" class="skip-button">
-                            {{ $t('lemon.check.docker.skip') }}
-                        </a-button>
-                    </a-popconfirm>
+                    
                     <a-button type="primary" :loading="isLoading" @click="handleAction" v-show="canContinue">
                         {{ $t('lemon.check.docker.continue') }}
                     </a-button>
@@ -249,7 +243,7 @@ const skip = ref(false)
 
 const checkDockerStatus = async () => {
     localStorage.setItem('docker-installed', false)
-    localStorage.setItem('docker-lanuch', false)
+    localStorage.setItem('docker-launch', false)
     localStorage.setItem('docker-image', false)
 
     // System check

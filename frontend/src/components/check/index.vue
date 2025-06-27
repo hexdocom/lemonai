@@ -1,6 +1,6 @@
 <template>
-    <a-modal v-model:visible="visible" :centered="true" width="auto" :footer="null" closable="false" :keyboard="false"
-        maskClosable="false" class="check">
+    <a-modal v-model:visible="visible" :centered="true" width="auto" :footer="null" :closable="false" :keyboard="false"
+        :maskClosable="false" class="check">
         <div class="main">
             <!-- Status check: Docker -> Model -> Search -->
             <div class="title">
@@ -57,20 +57,25 @@ const status_dict = ref([
     }
 ])
 
-function dockerStep() {
+async function dockerStep() {
     status_dict.value[0].status = 'finish'
     step.value = 1
 }
 
-function modelStep() {
+async function modelStep() {
     status_dict.value[1].status = 'finish'
     step.value = 2
 }
 
 async function searchStep() {
     status_dict.value[2].status = 'finish'
-    visible.value = false
+    
     message.success(t('lemon.check.configCompleted'))
+    // wait 1 seconds
+    setTimeout(() => {
+        visible.value = false
+    }, 1000);
+    
 }
 
 async function handleNextAction() {
@@ -94,15 +99,15 @@ async function handleSuccess() {
 
 onMounted(() => {
     emitter.on('docker-welcome', async () => {
-        dockerStep()
+        await dockerStep()
         emitter.emit('model-start', true)
     })
     emitter.on('model-welcome', async () => {
-        modelStep()
+        await modelStep()
         emitter.emit('search-start', true)
     })
     emitter.on('search-welcome', async () => {
-        searchStep()
+        await searchStep()
     })
     emitter.on('check-visiable', async () => {
         visible.value = true
@@ -133,7 +138,7 @@ onUnmounted(() => {
 .main {
     display: flex;
     flex-direction: column;
-    width: 980px;
+    width: 900px;
     max-height: 980px;
     background-color: #fff;
     padding-top: 20px;

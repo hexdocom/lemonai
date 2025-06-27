@@ -72,7 +72,7 @@
                                 <giftSvg class="icon" /><span>{{ $t('lemon.sub.supportSelfSearch') }}</span>
                             </div>
                             <div class="detail-item">
-                                <closeSvg class="icon"  /><span class="text">{{ $t('lemon.sub.requireLocalSandbox') }}</span><dockerSvg class="icon" />
+                                <dockerSvg class="icon" /><span class="text">{{ $t('lemon.sub.requireLocalSandbox') }} </span>
                             </div>
                         </div>
                     </div>
@@ -97,7 +97,7 @@
                                 <closeSvg class="icon" /><span>{{ $t('lemon.sub.requireSearchConfig') }}</span>
                             </div>
                             <div class="detail-item">
-                                <closeSvg class="icon" /><span>{{ $t('lemon.sub.requireLocalSandbox') }}</span><dockerSvg class="icon" />
+                                <dockerSvg class="icon" /> <span >{{ $t('lemon.sub.requireLocalSandbox') }} </span>
                             </div>
                         </div>
                     </div>
@@ -116,12 +116,15 @@ import closeSvg from '@/assets/svg/close.svg'
 import giftSvg from '@/assets/svg/gift.svg'
 //
 import { onMounted, ref} from 'vue'
-import { useUserStore } from '@/store/modules/user.js'
 import { message } from 'ant-design-vue'
 import { useRouter } from 'vue-router';
 import emitter from '@/utils/emitter.js'
 import { useI18n } from 'vue-i18n'
-
+import { storeToRefs } from 'pinia';
+import { useUserStore } from '@/store/modules/user.js'
+// store
+const userStore = useUserStore();
+const { user,membership,points } = storeToRefs(userStore);
 //server
 import modelService from '@/services/default-model-setting'
 import searchEngineService from '@/services/search-engine'
@@ -182,7 +185,9 @@ async function initAndSetLemonModelAndSearchEngine() {
 }
 
 const router = useRouter();
-let { user,membership,points } = useUserStore();
+
+
+
 
 const visible = ref(false)
 
@@ -201,14 +206,15 @@ const handleWeb = () => {
 // Open Free 
 const handleFree = () => {
     //Docker check
-    emitter.emit('check-visiable')
-    localStorage.setItem('lemon-type','config')
     visible.value = false
+    localStorage.setItem('lemon-type','config')
+    emitter.emit('check-visiable')
+    emitter.emit('change-model')
 }
 
 const handleLocalDockerType = async() =>{
     // check login status
-    if  (!user.id) {
+    if  (!user.value.id) {
         message.info(t('lemon.sub.notLoggedIn'))
         //  wait 1 seconds
         setTimeout(() => {
@@ -218,9 +224,9 @@ const handleLocalDockerType = async() =>{
     }
     // check user is membership
     let is_membership = false;
-    if (membership && membership?.startDate && membership?.endDate) {
-        const start = new Date(membership.startDate);
-        const end = new Date(membership.endDate);
+    if (membership.value && membership.value?.startDate && membership.value?.endDate) {
+        const start = new Date(membership.value?.startDate);
+        const end = new Date(membership.value?.endDate);
         const now = new Date();
         if (!isNaN(start.getTime()) && !isNaN(end.getTime())) {
           if (now >= start && now <= end) {
@@ -237,19 +243,20 @@ const handleLocalDockerType = async() =>{
         }, 1000);
         return
     }
-    // Run Check Docker
-    visible.value = false
-    emitter.emit('docker-check',true)
-    // wait 3 seconds
-    await new Promise(resolve => setTimeout(resolve, 3000))
+    // wait 2 seconds
+    await new Promise(resolve => setTimeout(resolve, 2000))
     
     // Set Lemon Model And Lemon Search Provider
-    const result = initAndSetLemonModelAndSearchEngine()
+    const result = await initAndSetLemonModelAndSearchEngine()
     if (!result) {
       message.error(t('lemon.sub.enableCloudFailed'))
       return
     }
     message.success(t('lemon.sub.enableCloudSuccess'))
+    // Run Check Docker
+    await new Promise(resolve => setTimeout(resolve, 2000))
+    visible.value = false
+    emitter.emit('docker-check',true)
     localStorage.setItem('lemon-type','lemon')   
 }
 
@@ -380,7 +387,7 @@ onMounted(()=>{
 
 .detail-item {
     display: flex;
-    align-items: center;
+    flex-direction: row;
     gap: 8px;
 }
 .text {
