@@ -259,6 +259,7 @@ const handleAction = () => {
             isLoading.value = false
         }, 1000)
     } else {
+        resetShowTip
         visible.value = false
     }
 }
@@ -366,6 +367,7 @@ async function lanuchDocker() {
         result = await checkDockerRunning()
         await new Promise(resolve => setTimeout(resolve, 300));
     }
+    
     canContinue.value = false
     resetShowTip()
 }
@@ -384,12 +386,6 @@ onMounted(async () => {
 onUnmounted(async () => {
     emitter.off('docker-check')
 })
-
-function handleSkipAction() {
-    skip.value = true
-    canContinue.value = false
-    visible.value = false
-}
 
 </script>
 
