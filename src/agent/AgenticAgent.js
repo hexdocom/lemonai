@@ -32,7 +32,7 @@ class AgenticAgent {
     this.logs = [];
     this.taskManager = new TaskManager('task_log.md', context.conversation_id); // assume task manager path
     const RunTime = runtimeMap[RUNTIME_TYPE];
-    this.runtime = new RunTime();
+    this.runtime = new RunTime(context);
     context.runtime = this.runtime;
     this.context = context;
     this.onTokenStream = context.onTokenStream;
