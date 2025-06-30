@@ -9,8 +9,9 @@ const resolveXML = (content) => {
   const result = parser.parse(content);
   // Temporary solution
   // TODO: Optimize Prompt to gen code with CDATA
-  if (result.write_code && result.write_code.content && result.write_code.content.startsWith(`<![CDATA[`)) {
-    result.write_code.content = result.write_code.content.replace(`<![CDATA[`, '').replace(`]]>`, '');
+  if (result.write_code && result.write_code.content && result.write_code.content.trim().startsWith(`<![CDATA[`)) {
+    const content = result.write_code.content.trim();
+    result.write_code.content = content.replace(`<![CDATA[`, '').replace(`]]>`, '');
   }
   return result;
 }

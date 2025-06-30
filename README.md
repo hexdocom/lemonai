@@ -31,21 +31,40 @@ Additionally, Lemon AI provides the **​flexibility to configure enhanced resul
 </a>
 
 ### function and characteristic
+The world's first full-stack open-source AI Agentic framework with comprehensive capabilities
+#### Multi: Infinite possibilities
+Universal AI Agent capabilities supporting unlimited task scenarios, including:
+- Deep search & research reports
+- Code generation & data analysis
+- Content creation & document processing
+Supports experience repository for self-learning and extending enterprise-specific customizations.
 
-#### Complex Task Solving
-Lemon is capable of solving a wide range of complex and dynamic tasks, including but not limited to market research, document processing, travel planning, and data analysis. Through independent thinking and systematic planning, it can flexibly utilize various tools in the virtual environment—such as writing and executing code, intelligently browsing web pages, and operating web applications.
+**Deployment options:** Open source code, Container, Client application, Online subscription - compatible with cloud/local/all-in-one systems
 
-#### Autonomy and Goal Orientation
-Lemon possesses a high degree of autonomy and can complete tasks independently without human intervention. It is able to perceive, reason, make decisions, and act based on predefined objectives.
+#### Fast: Rapid Deploy
+One-click deployment for immediate usage with minimal technical requirements:
+- Simplified installation process for all deployment options
+- Quick setup without complex configurations
+- Ready-to-use system within minutes
 
-#### Real-Time Task Monitoring
-Users can monitor the execution status of tasks in real time through the page sidebar.
+Supporting various deployment environments from personal computers to enterprise servers, with comprehensive documentation for smooth implementation.
 
-#### Multi-Scenario Coverage
-Lemon is designed to handle complex tasks across multiple domains, including market research, financial analysis, data analysis, code programming, life planning, and more.
+#### Good: Powerful & Flexibility
+Feature-rich framework with extensive capabilities:
+- Virtual machine integration
+- Code generation & execution
+- Browser operations & web search
+- Multi-tool integration
 
-#### Self-Subscription Mode
-In addition to the default model, Lemon supports user-defined model integration and online model access. These models can be used by configuring the model API.
+Highly adaptable architecture allows for custom modifications and extensions to fit specific business requirements and integration with existing systems.
+
+#### Economic: Same quality，10x cheaper
+Dramatically reduced operational costs:
+- Task execution costs 1/10 - 1/100 of other agent products
+- Open source subscription model
+- Based on open source DeepSeekV3 model
+
+Significant cost savings without compromising on quality or performance, making advanced AI capabilities accessible to organizations of all sizes.
 
 ### Using Lemon
 
@@ -129,6 +148,10 @@ We welcome your contribution to lemon to help improve lemon. Include: submit cod
 * [X(Twitter)](https://x.com/LemonAI_cc). Best for: sharing your applications and hanging out with the community.
 * [Discord](https://discord.gg/nQVE5mBy). Best for: sharing your applications and hanging out with the community.
 * commercial license（[service@hexdo.com](mailto:service@hexdo.com)）. Business consulting on commercial use licensing lemon.
+
+### Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=hexdocom/lemonai&type=Date)](https://www.star-history.com/#hexdocom/lemonai&Date)
 
 ### Security disclosure
 

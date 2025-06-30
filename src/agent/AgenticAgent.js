@@ -250,6 +250,9 @@ class AgenticAgent {
         const result = await completeCodeAct(task, this.context);
         // when one task failure, all stop
         if (result.status === 'failure') {
+          const msg = Message.format({ status: 'failure', task_id: task.id, action_type: 'task' })
+          this.onTokenStream(msg);
+          await Message.saveToDB(msg, this.context.conversation_id);
           return;
         }
         // Update task status to completed and log

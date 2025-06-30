@@ -34,6 +34,9 @@ ${JSON.stringify(toolDefinition)}
 <tool_list>
 You are provided with tools to complete user's task and proposal. Here is a list of tools you can use:
 ${toolDescription}
+<tool finish>
+{ "description": "Signal that a task is complete and provide a completion message", "name": "finish", "params": { "type": "object", "properties": { "message": { "description": "Explanation of the task completion result", "type": "string" } }, "required": ["message"] } }
+</tool>
 </tool_list>
 
 <tool_call_guidelines>
@@ -42,6 +45,7 @@ Follow these guidelines regarding tool calls
 - Pay Attention: Assuming that the information obtained by mcp_tool is more accurate, please use mcp_tool first to obtain accurate information before generating and creating.
 - You MUST only use the tools explicitly provided in the tool list. Do not treat file names or code functions as tool names. The available tool names:
 - ${Object.keys(tools).join('\n  - ')}
+- finish
 </tool_call_guidelines>
 
 </tools>`;
