@@ -2,6 +2,7 @@
     <a-tooltip>
         <template #title>
             <div>
+
                 <div v-if="!dockerExist" class="tips">
                     <warningSvg style="width: 22px;height: 22px;fill: white;" />
                     <span>
@@ -64,7 +65,7 @@ onMounted(async () => {
         }
         checkWhile()
         emitter.on('docker-check-over', () => {
-                updateDockerStatus()
+            updateDockerStatus()
         })
     }
 });
@@ -88,7 +89,7 @@ async function checkWhile() {
     dockerRunning.value = true
     dockerImgExist.value = true
 }
-const updateDockerStatus = async()=>{
+const updateDockerStatus = async () => {
     if (window.electronAPI) {
         let dockerInstall = await checkDockerInstall();
         console.log(dockerInstall)
@@ -101,7 +102,7 @@ const updateDockerStatus = async()=>{
     }
 }
 
-const handleDockerCheck = async() => {
+const handleDockerCheck = async () => {
 
     if (dockerExist.value &&
         dockerRunning.value &&

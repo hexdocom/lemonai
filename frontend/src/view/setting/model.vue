@@ -5,17 +5,16 @@
       <div class="provider-sidebar">
         <div class="provider-search" style="justify-content: center; align-items: center;">
           <a-input v-model:value="searchQuery" :placeholder="$t('setting.modelService.searchPlaceholder')" prefix-icon
-                   style="font-size: 14px; height: 36px; margin-bottom: 16px;">
+            style="font-size: 14px; height: 36px; margin-bottom: 16px;">
             <template #prefix>
-              <SearchOutlined/>
+              <SearchOutlined />
             </template>
           </a-input>
         </div>
 
         <div class="platform-list">
           <div v-for="platform in filteredPlatforms" :key="platform.id" class="platform-item"
-               :class="{ 'platform-item-active': choose_platform.id === platform.id }"
-               @click="handlePlatform(platform)">
+            :class="{ 'platform-item-active': choose_platform.id === platform.id }" @click="handlePlatform(platform)">
             <div v-if="platform.logo_url" class="platform-logo">
               <img :src="platform.logo_url" alt="logo" class="logo">
             </div>
@@ -28,23 +27,23 @@
         </div>
 
         <div class="provider-post platform-item" @click="handlePlatformAdd()"> + {{
-            $t('setting.modelService.addPlatform')
-          }}
+          $t('setting.modelService.addPlatform')
+        }}
         </div>
       </div>
       <div class="provider-sidebar-mobile">
         <div
-            style="display: flex; flex-direction: row; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+          style="display: flex; flex-direction: row; justify-content: space-between; align-items: center; margin-bottom: 8px;">
           <div style="color:#213547;font-size: 18px;font-weight: 700;">{{ $t(`setting.modelService.modelPlatform`) }}
           </div>
           <div class="provider-post" @click="handlePlatformAdd()"> + {{
-              $t('setting.modelService.addPlatform')
-            }}
+            $t('setting.modelService.addPlatform')
+          }}
           </div>
         </div>
         <a-select style="width: 100%;" v-model:value="choose_platform.id">
           <a-select-option v-for="platform in filteredPlatforms" :key="platform.id" :value="platform.id"
-                           @click="handlePlatform(platform)">
+            @click="handlePlatform(platform)">
             <div class="platform-item">
               <div v-if="platform.logo_url" class="platform-logo">
                 <img :src="platform.logo_url" alt="logo" class="logo">
@@ -62,10 +61,10 @@
         <div class="info-header">
           <span class="info-model-header">{{ getPlatformDisplayName(choose_platform.name) }} </span>
           <span v-if="choose_platform.source_type === 'user'" class="platform-icon">
-            <setting-outlined class="platform-setting" @click.stop="handlePlatformSetting"/>
+            <setting-outlined class="platform-setting" @click.stop="handlePlatformSetting" />
           </span>
           <span class="platform-status" v-if="!choose_platform.is_subscribe">
-            <a-switch v-model:checked="choose_platform.is_enabled" class="custom-switch" @change="handleSaveChanges"/>
+            <a-switch v-model:checked="choose_platform.is_enabled" class="custom-switch" @change="handleSaveChanges" />
           </span>
           <!-- <a-button :disabled="!isInfoChanged" type="primary" class="save-button" @click="handleSaveChanges">{{
             $t('setting.modelService.save') }}</a-button> -->
@@ -74,42 +73,34 @@
         <div class="info-content">
           <div class="info-platform" v-if="!choose_platform.is_subscribe">
             <!--      provider info DIY      -->
-            <div class="api-msg-container" >
-<!--              <div v-if="choose_platform.name===`Cloudsway`">-->
-<!--                <span class="api-key">{{ $t('setting.modelService.ak') }}</span>-->
-<!--                <a-input-password v-if="choose_platform.name===`Cloudsway`" id="api-key-value"-->
-<!--                                  v-model:value="choose_platform.api_key"-->
-<!--                                  :placeholder="$t('setting.modelService.akPlaceholder')" class="api-input" @blur="handleSaveChanges"/>-->
-<!--              </div>-->
+            <div class="api-msg-container">
               <div v-if="choose_platform.name.toLocaleString() === 'Ollama'">
-                      <!--       ollama do not have apikey           -->
+                <!--       ollama do not have apikey           -->
               </div>
               <div v-else>
-                <span class="api-key">{{handleApiTitle }}</span>
-                  <a-input-password id="api-key-value" v-model:value="choose_platform.api_key"
-                                  :placeholder="handleApiPlaceholder"  @change="handleSaveChanges">
-                     <template #addonAfter>
-                        <a-button class="no-button" @click="handleCheckApiKey" :loading="checkLoading" >{{
-               $t('setting.modelService.check') }}</a-button>
-                     </template>
-                  </a-input-password>
-
-
+                <span class="api-key">{{ handleApiTitle }}</span>
+                <a-input-password id="api-key-value" v-model:value="choose_platform.api_key"
+                  :placeholder="handleApiPlaceholder" @change="handleSaveChanges">
+                  <template #addonAfter>
+                    <a-button class="no-button" @click="handleCheckApiKey" :loading="checkLoading">{{
+                      $t('setting.modelService.check') }}</a-button>
+                  </template>
+                </a-input-password>
               </div>
-
             </div>
 
             <a v-if="choose_platform.key_obtain_url" :href="choose_platform.key_obtain_url" target="_blank"
-               class="get-api-link">{{ $t('setting.modelService.getApiKey')  }}</a>
+              class="get-api-link">{{ $t('setting.modelService.getApiKey') }}</a>
 
             <span class="api-address-title">{{ $t('setting.modelService.apiAddress') }}</span>
 
             <a-input v-model:value="choose_platform.api_url"
-                     :placeholder="$t('setting.modelService.apiAddressPlaceholder')" class="api-input" @change="handleSaveChanges">
+              :placeholder="$t('setting.modelService.apiAddressPlaceholder')" class="api-input"
+              @change="handleSaveChanges">
               <template #addonAfter v-if="handleShowCheckButton">
-                        <a-button class="no-button" @click="handleCheckApiKey" :loading="checkLoading" >{{
-               $t('setting.modelService.check') }}</a-button>
-                     </template>
+                <a-button class="no-button" @click="handleCheckApiKey" :loading="checkLoading">{{
+                  $t('setting.modelService.check') }}</a-button>
+              </template>
             </a-input>
             <div class="show-api-tips">
               <div>
@@ -131,33 +122,36 @@
           </div>
           <div class="info-model">
             <div>
-              <models-list :models="models" :platform_id="choose_platform.id" :is_subscribe="choose_platform.is_subscribe" @setting="" @delete="handleModelDelete"
-                           @add-model="handleModelAdd" @update-model="handleModelUpdate"/>
+              <models-list :models="models" :platform_id="choose_platform.id"
+                :is_subscribe="choose_platform.is_subscribe" @setting="" @delete="handleModelDelete"
+                @add-model="handleModelAdd" @update-model="handleModelUpdate" />
             </div>
           </div>
         </div>
       </div>
     </div>
     <!-- <div v-if="showLanuch" class="lanuch-model"> -->
-    <add-platform ref="addPlatformRef" @add-platform="handleAddPlatform"/>
-    <setting-platform ref="settingPlatformRef" @update-platform="handleUpdatePlatform"/>
+    <add-platform ref="addPlatformRef" @add-platform="handleAddPlatform" />
+    <setting-platform ref="settingPlatformRef" @update-platform="handleUpdatePlatform" />
   </div>
-    <!-- 选择模型弹窗 -->
-  <a-modal  :cancelText=" $t('setting.modelService.cancel')" :okText="$t('setting.modelService.confirm')" v-model:open="modelVisible" centered   :title="$t('setting.modelService.selectCheckModel')" width="400px" @ok="handleOk">
-      <a-select v-model:value="selectedModel" style="width: 100%">
-        <a-select-option v-for="model in models" :key="model.id" :value="model.model_id">
-          {{ model.model_name }}
-        </a-select-option>
-      </a-select>
+  <!-- 选择模型弹窗 -->
+  <a-modal :cancelText="$t('setting.modelService.cancel')" :okText="$t('setting.modelService.confirm')"
+    v-model:open="modelVisible" centered :title="$t('setting.modelService.selectCheckModel')" width="400px"
+    @ok="handleOk">
+    <a-select v-model:value="selectedModel" style="width: 100%">
+      <a-select-option v-for="model in models" :key="model.id" :value="model.model_id">
+        {{ model.model_name }}
+      </a-select-option>
+    </a-select>
   </a-modal>
 
 </template>
 
 <script setup>
-import {ref, onMounted, computed, watch, nextTick} from 'vue'
-import {useI18n} from 'vue-i18n'
+import { ref, onMounted, computed, watch, nextTick } from 'vue'
+import { useI18n } from 'vue-i18n'
 
-const {t} = useI18n()
+const { t } = useI18n()
 import service from '@/services/platforms'
 import {
   SettingOutlined,
@@ -170,17 +164,17 @@ import {
   BranchesOutlined,
   CameraOutlined
 } from '@ant-design/icons-vue'
-import {message} from 'ant-design-vue'
+import { message } from 'ant-design-vue'
 import AddPlatform from '@/components/platforms/addPlatform.vue'
 import SettingPlatform from '@/components/platforms/settingPlatform.vue'
 import ModelsList from '@/components/platforms/modelsList.vue'
 import emitter from '@/utils/emitter'
 import modelService from '@/services/default-model-setting'
-import {driver} from "driver.js";
+import { driver } from "driver.js";
 import "driver.js/dist/driver.css";
 
 import { useUserStore } from '@/store/modules/user.js'
-const { user,membership,points } = useUserStore();
+const { user, membership, points } = useUserStore();
 
 const platforms = ref({})
 const choose_platform = ref({
@@ -193,17 +187,17 @@ const originalInfo = ref({})
 const isInfoChanged = ref(false)
 const showInfoPlatform = ref(true)
 
-const modelVisible  = ref(false)
+const modelVisible = ref(false)
 const selectedModel = ref(null)
 const checkLoading = ref(false)
 //launch model
-const showLanuch =ref(false)
+const showLanuch = ref(false)
 //handleCheckApiKey
-const  handleCheckApiKey = async () => {
+const handleCheckApiKey = async () => {
   modelVisible.value = true;
 }
 
-const handleOk =  async () => {
+const handleOk = async () => {
   if (!selectedModel.value) {
     //setting.modelService.selectCheckModel
     message.error(t('setting.modelService.selectCheckModel'))
@@ -219,18 +213,18 @@ const handleOk =  async () => {
     "model": selectedModel.value
   })
   checkLoading.value = false
-  if(res.status){
+  if (res.status) {
     //res.message : LLM API call succeeded start
     message.success(t('setting.modelService.apiCallSucceeded'))
-  }else{
+  } else {
     //`LLM API call failed, HTTP status: ${response.status}, error: ${errorText}`
-    if(res.message.startsWith('LLM API call failed')){
+    if (res.message.startsWith('LLM API call failed')) {
       let resposneContent = res.message.replace('LLM API call failed', t('setting.modelService.apiCallFailed'))
       message.error(resposneContent)
-    }else if(res.message.startsWith('LLM API call timed out')){
+    } else if (res.message.startsWith('LLM API call timed out')) {
       let resposneContent = res.message.replace('LLM API call timed out', t('setting.modelService.apiCallTimeout'))
       message.error(resposneContent)
-    }else if(res.message.startsWith('Network or other error occurred during LLM API call')){
+    } else if (res.message.startsWith('Network or other error occurred during LLM API call')) {
       let resposneContent = res.message.replace('Network or other error occurred during LLM API call', t('setting.modelService.unknownError'))
       message.error(resposneContent)
     }
@@ -279,14 +273,14 @@ const handlePlatform = (platform) => {
 }
 
 watch([() => choose_platform.value.api_key, () => choose_platform.value.api_url, () => choose_platform.value.is_enabled],
-    () => {
-      if (!originalInfo.value) return
-      isInfoChanged.value =
-          choose_platform.value.api_key !== originalInfo.value.api_key ||
-          choose_platform.value.api_url !== originalInfo.value.api_url ||
-          choose_platform.value.is_enabled !== originalInfo.value.is_enabled
-    },
-    {deep: true}
+  () => {
+    if (!originalInfo.value) return
+    isInfoChanged.value =
+      choose_platform.value.api_key !== originalInfo.value.api_key ||
+      choose_platform.value.api_url !== originalInfo.value.api_url ||
+      choose_platform.value.is_enabled !== originalInfo.value.is_enabled
+  },
+  { deep: true }
 )
 
 const handleSaveChanges = async () => {
@@ -344,7 +338,7 @@ const handleAddPlatform = (platformData) => {
 const handleUpdatePlatform = (updatedPlatform) => {
   const index = platforms.value.findIndex(p => p.id === updatedPlatform.id)
   if (index !== -1) {
-    platforms.value[index] = {...updatedPlatform, color: platforms.value[index].color}
+    platforms.value[index] = { ...updatedPlatform, color: platforms.value[index].color }
     if (choose_platform.value.id === updatedPlatform.id) {
       choose_platform.value = platforms.value[index]
     }
@@ -357,7 +351,7 @@ onMounted(async () => {
   //触发全局事件 closeTour 延迟500mms
   await init();
   //localStorage.setItem('tour_end', 'true');
-  emitter.on('model-start',async ()=>{ 
+  emitter.on('model-start', async () => {
     showLanuch.value = true
     step1();
   })
@@ -430,17 +424,17 @@ function init(id) {
     let is_membership = false;
     //判断是不是在 membership.endDate: "2026-06-12T09:44:02.000Z" membership.startDate: "2025-06-12T09:44:02.000Z" 在这个时间范围内
     if (membership && membership?.startDate && membership?.endDate) {
-        const start = new Date(membership.startDate);
-        const end = new Date(membership.endDate);
-        const now = new Date();
+      const start = new Date(membership.startDate);
+      const end = new Date(membership.endDate);
+      const now = new Date();
 
-        if (!isNaN(start.getTime()) && !isNaN(end.getTime())) {
-          if (now >= start && now <= end) {
-            is_membership = true;
-          }
+      if (!isNaN(start.getTime()) && !isNaN(end.getTime())) {
+        if (now >= start && now <= end) {
+          is_membership = true;
         }
+      }
     }
-    
+
     platforms.value = res.sort((u, v) => {
       // return u.name.toUpperCase() > v.name.toUpperCase() ? 1 : -1; // 忽略大小写进行排序，确保大写字母在小写字母之前
       return u.name.localeCompare(v.name); // 使用本地语言环境进行排序，确保正确的字母顺序
@@ -448,7 +442,7 @@ function init(id) {
       ...platform,
       color: colors[index % colors.length]
     }))
-    platforms.value = platforms.value.filter(platform => platform.name!=="Lemon")
+    platforms.value = platforms.value.filter(platform => platform.name !== "Lemon")
 
     if (id) {
       choose_platform.value = platforms.value.find(p => p.id === id)
@@ -461,11 +455,11 @@ function init(id) {
   })
 }
 
-const handleGetModels = ( id) => {
-       service.getModels(id).then((res) => {
-        models.value = res
-        selectedModel.value = res[0]?.model_id
-      })
+const handleGetModels = (id) => {
+  service.getModels(id).then((res) => {
+    models.value = res
+    selectedModel.value = res[0]?.model_id
+  })
 }
 
 const filteredPlatforms = computed(() => {
@@ -488,7 +482,7 @@ const filteredPlatforms = computed(() => {
   );
 });
 const handleModelAdd = async (model) => {
- handleGetModels(choose_platform.value.id)
+  handleGetModels(choose_platform.value.id)
 }
 
 const handleModelUpdate = async (model) => {
@@ -735,14 +729,17 @@ emitter.on('fresh-pages', (value) => {
   width: 2px;
   height: 30px;
   background-color: transparent;
-  scrollbar-width: none; /* 默认隐藏 */
+  scrollbar-width: none;
+  /* 默认隐藏 */
 }
 
 .platform-list::-webkit-scrollbar-thumb {
   background-color: #d9d9d9;
   border-radius: 3px;
-  opacity: 0; /* 默认隐藏滚动条 */
-  transition: opacity 0.3s ease; /* 平滑过渡 */
+  opacity: 0;
+  /* 默认隐藏滚动条 */
+  transition: opacity 0.3s ease;
+  /* 平滑过渡 */
 }
 
 .platform-list::-webkit-scrollbar-track {
@@ -917,11 +914,12 @@ emitter.on('fresh-pages', (value) => {
 
 }
 
-.no-button{
+.no-button {
   border: unset !important;
-    background-color: unset!important;
-    height: unset!important;
+  background-color: unset !important;
+  height: unset !important;
 }
+
 .info-model-header {
   display: flex;
   font-weight: bold;
