@@ -45,7 +45,7 @@ const retryHandle = (retryCount, totalRetryAttempts, maxRetries, maxTotalRetries
       shouldContinue: false,
       result: {
         status: "failure",
-        comments: `连续${errorMessage ? "异常" : "执行失败"}达到最大次数(${maxRetries})${errorMessage ? ": " + errorMessage : ""}`,
+        comments: `Reached the maximum number of consecutive ${errorMessage ? "exceptions" : "execution failures"} (${maxRetries})${errorMessage ? ": " + errorMessage : ""}`,
       },
     };
   }
@@ -55,7 +55,7 @@ const retryHandle = (retryCount, totalRetryAttempts, maxRetries, maxTotalRetries
       shouldContinue: false,
       result: {
         status: "failure",
-        comments: `达到最大总重试次数(${maxTotalRetries})${errorMessage ? ": " + errorMessage : ""}`,
+        comments: `Reached the maximum total retry attempts (${maxTotalRetries})${errorMessage ? ": " + errorMessage : ""}`,
       },
     };
   }
@@ -117,12 +117,12 @@ const completeCodeAct = async (task = {}, context = {}) => {
        */
       if (!action) {
 
-        // 超出最大长度
+        // Exceeded maximum length
         console.log("content.length", content.length, MAX_CONTENT_LENGTH);
         if (content.length > MAX_CONTENT_LENGTH) {
           return {
             status: "failure",
-            comments: `模型输出异常, 停止任务`,
+            comments: `Model output exception, stopping task`,
           }
         }
 

@@ -1,15 +1,7 @@
 <template>
   <div class="mcp-server-menu">
-    <div v-if="!servers || servers.length === 0" class="no-servers-info">
-      <p>{{ $t("setting.mcpService.noServers") }}</p>
-    </div>
-    <div
-      v-for="server in servers"
-      :key="server.id"
-      class="menu-item"
-      :class="{ 'menu-item-selected': server.id === selectedServerId }"
-      @click="$emit('select', server)"
-    >
+    <div v-if="!servers || servers.length === 0" class="no-servers-info"></div>
+    <div v-for="server in servers" :key="server.id" class="menu-item" :class="{ 'menu-item-selected': server.id === selectedServerId }" @click="$emit('select', server)">
       <CodeOutlined />
       <span class="menu-item-lable">{{ server.name }}</span>
       <span

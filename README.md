@@ -66,9 +66,9 @@ Dramatically reduced operational costs:
 
 Significant cost savings without compromising on quality or performance, making advanced AI capabilities accessible to organizations of all sizes.
 
-### Using Lemon
+### Using Lemon AI
 
-* Quickly get Lemon running in your environment with this starter guide. Use our [documentation](https://document.lemonai.cc/) for further references and more in-depth instructions.
+* Quickly get Lemon AI running in your environment with this starter guide. Use our [documentation](https://document.lemonai.cc/) for further references and more in-depth instructions.
 
 ### System Requirements[​](https://docs.all-hands.dev/modules/usage/installation#system-requirements) <a href="#system-requirements" id="system-requirements"></a>
 
@@ -76,7 +76,7 @@ Significant cost savings without compromising on quality or performance, making 
 * Linux
 * Windows with [WSL](https://learn.microsoft.com/en-us/windows/wsl/install) and [Docker Desktop support](https://docs.docker.com/desktop/setup/install/windows-install/#system-requirements)
 
-A system with a modern processor and a minimum of **4GB RAM** is recommended to run Lemon.
+A system with a modern processor and a minimum of **4GB RAM** is recommended to run Lemon AI.
 
 ### Prerequisites <a href="#prerequisites" id="prerequisites"></a>
 
@@ -116,7 +116,7 @@ The docker command below to start the app must be run inside the WSL terminal.
 
 ### Start the App <a href="#start-the-app" id="start-the-app"></a>
 
-The easiest way to run Lemon is in Docker.
+The easiest way to run Lemon AI is in Docker.
 
 ```bash
 docker pull hexdolemonai/lemon-runtime-sandbox:latest
@@ -136,18 +136,24 @@ docker run -it --rm --pull=always \
   hexdolemonai/lemon:latest make run
 ```
 
-#### Contributing
+### Contributing
 
-For those who'd like to contribute code, see our [Contribution Guide](https://github.com/hexdocom/lemon/blob/main/CONTRIBUTING.md). At the same time, please consider supporting Lemon by sharing it on social media and at events and conferences.
+For those who'd like to contribute code, see our [Contribution Guide](https://github.com/hexdocom/lemon/blob/main/CONTRIBUTING.md). At the same time, please consider supporting Lemon AI by sharing it on social media and at events and conferences.
+
+#### contributors
+
+<a href="https://github.com/hexdocom/lemonai/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=hexdocom/lemonai" />
+</a>
 
 ### Community & contact
 
-We welcome your contribution to lemon to help improve lemon. Include: submit code, questions, new ideas, or share interesting and useful AI applications you have created based on lemon. We also welcome you to share lemon at different events, conferences and social media.
+We welcome your contribution to lemon AI to help improve lemon AI. Include: submit code, questions, new ideas, or share interesting and useful AI applications you have created based on lemon AI. We also welcome you to share lemon AI at different events, conferences and social media.
 
 * [GitHub Issues](https://github.com/hexdocom/Lemon/issues).Best for: bugs you encounter using Lemon.AI, and feature proposals. See our [Contribution Guide](https://github.com/hexdocom/lemon/blob/main/CONTRIBUTING.md).
 * [X(Twitter)](https://x.com/LemonAI_cc). Best for: sharing your applications and hanging out with the community.
 * [Discord](https://discord.gg/nQVE5mBy). Best for: sharing your applications and hanging out with the community.
-* commercial license（[service@hexdo.com](mailto:service@hexdo.com)）. Business consulting on commercial use licensing lemon.
+* commercial license（[service@hexdo.com](mailto:service@hexdo.com)）. Business consulting on commercial use licensing lemon AI.
 
 ### Star History
 
@@ -159,4 +165,4 @@ To protect your privacy, please avoid posting security issues on GitHub. Instead
 
 ### License
 
-This repository is available under the [Lemon Open Source License](https://github.com/hexdocom/lemon/blob/main/LICENSE), which is essentially Apache 2.0 with a few additional restrictions.
+This repository is available under the [Lemon AI Open Source License](https://github.com/hexdocom/lemon/blob/main/LICENSE), which is essentially Apache 2.0 with a few additional restrictions.

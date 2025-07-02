@@ -298,7 +298,7 @@ class DockerRuntime {
       meta_json = result.meta.json || []
       meta_file_path = result.meta.filepath || ''
     }
-    const msg = Message.format({ status: result.status, memorized: result.memorized || '', content: result.content || '', action_type: type, task_id: task_id, uuid: uuid || '', url: meta_url, json: meta_json, filepath: meta_file_path });
+    const msg = Message.format({ status: result.status, memorized: result.memorized || '', content: result.content || '', action_type: type, task_id: task_id, uuid: uuid || '', url: meta_url, json: meta_json, filepath: meta_file_path, comments: result.comments });
     await this.callback(msg, context);
     await Message.saveToDB(msg, context.conversation_id);
     return result;
@@ -311,8 +311,26 @@ class DockerRuntime {
       url: `http://${host}:${this.host_port}/execute_action`,
       data: { action: action, uuid: uuid },
     };
-    const response = await axios(request);
-    return response.data.data
+    try {
+      const response = await axios(request);
+      return response.data.data
+    } catch (e) {
+      let errorMsg = '';
+      if (e.errors) {
+        // 如果 e.errors 是对象或数组，转成字符串
+        if (typeof e.errors === 'object') {
+          errorMsg = JSON.stringify(e.errors);
+        } else {
+          errorMsg = e.errors.toString();
+        }
+      } else if (e.message) {
+        errorMsg = e.message;
+      } else {
+        errorMsg = String(e);
+      }
+
+      return { uuid: uuid, status: 'failure', comments: `Failed to do ${action.type}: ${errorMsg}` };
+    }
   }
 
   /**

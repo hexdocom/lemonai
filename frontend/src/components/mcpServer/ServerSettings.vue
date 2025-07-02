@@ -5,24 +5,12 @@
         <span class="mcp-server-content-header-title">
           {{ server.name }}
         </span>
-        <DeleteOutlined
-          class="mcp-server-content-header-delete-button"
-          @click="showDeleteConfirm(server.id)"
-        />
+        <DeleteOutlined class="mcp-server-content-header-delete-button" @click="showDeleteConfirm(server.id)" />
       </div>
       <div style="display: flex; align-items: center">
-        <a-switch
-          v-model:checked="server.activate"
-          class="mcp-server-content-header-activate-switch"
-          :loading="loading"
-          @change="handleActivateChange"
-        />
+        <a-switch v-model:checked="server.activate" class="mcp-server-content-header-activate-switch" :loading="loading" @change="handleActivateChange" />
         <div class="mcp-server-content-header-save-button-container">
-          <a-button
-            type="primary"
-            @click="$emit('save')"
-            class="mcp-server-content-header-save-button"
-          >
+          <a-button type="primary" @click="$emit('save')" class="mcp-server-content-header-save-button">
             <SaveOutlined />
             {{ $t("setting.mcpService.save") }}
           </a-button>
@@ -33,31 +21,16 @@
     <div class="mcp-server-content-main">
       <div class="mcp-server-content-main-name mcp-server-content-main-item">
         <span>{{ $t("setting.mcpService.name") }}</span>
-        <a-input
-          v-model:value="server.name"
-          :placeholder="$t('setting.mcpService.namePlaceholder')"
-          class="text-item input"
-        />
+        <a-input v-model:value="server.name" :placeholder="$t('setting.mcpService.namePlaceholder')" class="text-item input" />
       </div>
-      <div
-        class="mcp-server-content-main-description mcp-server-content-main-item"
-      >
+      <div class="mcp-server-content-main-description mcp-server-content-main-item">
         <span>{{ $t("setting.mcpService.description") }}</span>
-        <a-textarea
-          v-model:value="server.description"
-          :rows="4"
-          :placeholder="$t('setting.mcpService.descriptionPlaceholder')"
-          class="text-item"
-        />
+        <a-textarea v-model:value="server.description" :rows="4" :placeholder="$t('setting.mcpService.descriptionPlaceholder')" class="text-item" />
       </div>
       <!-- type -->
       <div class="mcp-server-content-main-type mcp-server-content-main-item">
         <span>{{ $t("setting.mcpService.type") }}</span>
-        <a-radio-group
-          v-model:value="server.type"
-          name="radioGroup"
-          class="input radio"
-        >
+        <a-radio-group v-model:value="server.type" name="radioGroup" class="input radio">
           <a-radio value="stdio">
             {{ $t("setting.mcpService.stdio") }}
           </a-radio>
@@ -69,39 +42,19 @@
           </a-radio>
         </a-radio-group>
       </div>
-      <div
-        class="mcp-server-content-main-command mcp-server-content-main-item"
-        v-if="server.type === 'stdio'"
-      >
+      <div class="mcp-server-content-main-command mcp-server-content-main-item" v-if="server.type === 'stdio'">
         <span>{{ $t("setting.mcpService.command") }}</span>
-        <a-input
-          v-model:value="server.command"
-          :placeholder="$t('setting.mcpService.commandPlaceholder')"
-          class="text-item input"
-        />
+        <a-input v-model:value="server.command" :placeholder="$t('setting.mcpService.commandPlaceholder')" class="text-item input" />
       </div>
-      <div
-        v-if="startsWithNpx || startsWithUvx"
-        class="mcp-server-content-main-source mcp-server-content-main-item"
-      >
+      <div v-if="startsWithNpx || startsWithUvx" class="mcp-server-content-main-source mcp-server-content-main-item">
         <span>{{ $t("setting.mcpService.packageSource") }}</span>
-        <a-radio-group
-          v-if="startsWithNpx"
-          v-model:value="server.registryUrl"
-          name="radioGroup"
-          class="input radio"
-        >
+        <a-radio-group v-if="startsWithNpx" v-model:value="server.registryUrl" name="radioGroup" class="input radio">
           <a-radio value="">{{ $t("setting.mcpService.default") }}</a-radio>
           <a-radio value="https://registry.npmmirror.com">
             {{ $t("setting.mcpService.taobaoNpmMirror") }}
           </a-radio>
         </a-radio-group>
-        <a-radio-group
-          v-if="startsWithUvx"
-          v-model:value="server.registryUrl"
-          name="radioGroup"
-          class="input radio"
-        >
+        <a-radio-group v-if="startsWithUvx" v-model:value="server.registryUrl" name="radioGroup" class="input radio">
           <a-radio value="">{{ $t("setting.mcpService.default") }}</a-radio>
           <a-radio value="https://pypi.tuna.tsinghua.edu.cn/simple">
             {{ $t("setting.mcpService.tsinghua") }}
@@ -120,37 +73,17 @@
           </a-radio>
         </a-radio-group>
       </div>
-      <div
-        v-if="server.type === 'sse' || server.type === 'streamableHttp'"
-        class="mcp-server-content-main-url mcp-server-content-main-item"
-      >
+      <div v-if="server.type === 'sse' || server.type === 'streamableHttp'" class="mcp-server-content-main-url mcp-server-content-main-item">
         <span>URL</span>
-        <a-input
-          v-model:value="server.url"
-          :placeholder="$t('setting.mcpService.urlPlaceholder')"
-          class="text-item input"
-          @update:value="handleUpdateServer({ url: $event })"
-        />
+        <a-input v-model:value="server.url" :placeholder="$t('setting.mcpService.urlPlaceholder')" class="text-item input" @update:value="handleUpdateServer({ url: $event })" />
       </div>
       <div class="mcp-server-content-main-args mcp-server-content-main-item">
         <span>{{ $t("setting.mcpService.args") }}</span>
-        <a-textarea
-          v-model:value="argsText"
-          :rows="4"
-          :placeholder="$t('setting.mcpService.argsPlaceholder')"
-          class="text-item"
-          @update:value="handleArgsChange"
-        />
+        <a-textarea v-model:value="argsText" :rows="4" :placeholder="$t('setting.mcpService.argsPlaceholder')" class="text-item" @update:value="handleArgsChange" />
       </div>
       <div class="mcp-server-content-main-env mcp-server-content-main-item">
         <span>{{ $t("setting.mcpService.env") }}</span>
-        <a-textarea
-          v-model:value="envText"
-          :rows="4"
-          :placeholder="$t('setting.mcpService.envPlaceholder')"
-          class="text-item"
-          @update:value="handleEnvChange"
-        />
+        <a-textarea v-model:value="envText" :rows="4" :placeholder="$t('setting.mcpService.envPlaceholder')" class="text-item" @update:value="handleEnvChange" />
       </div>
     </div>
   </div>
@@ -158,12 +91,7 @@
 
 <script setup>
 import { computed, ref, watch, h } from "vue";
-import {
-  SaveOutlined,
-  DeleteOutlined,
-  ExclamationCircleOutlined,
-  LoadingOutlined,
-} from "@ant-design/icons-vue";
+import { SaveOutlined, DeleteOutlined, ExclamationCircleOutlined, LoadingOutlined } from "@ant-design/icons-vue";
 import { message, Modal } from "ant-design-vue";
 import { useI18n } from "vue-i18n";
 import mcp_service from "@/services/mcp";

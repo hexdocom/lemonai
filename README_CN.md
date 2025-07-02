@@ -4,9 +4,9 @@
   <img src="./public/img/Lemon_logo.png" width="400">
 </div>
 <p align="center">
-  <a href="https://lemon-11.gitbook.io/lemon-docs">快速了解 Lemon AI</a> ·
-  <a href="https://lemon-11.gitbook.io/lemon-docs/kai-fa-bu-shu-zhi-nan/docker-kuai-su-bu-shu">Docker快速部署</a> ·
-  <a href="https://lemon-11.gitbook.io/lemon-docs">文档</a> ·
+  <a href="https://lemon-11.gitbook.io/lemonai/lemon-docs">快速了解 Lemon AI</a> ·
+  <a href="https://lemon-11.gitbook.io/lemonai/lemon-docs/kai-fa-bu-shu-zhi-nan/docker-kuai-su-bu-shu">Docker快速部署</a> ·
+  <a href="https://lemon-11.gitbook.io/lemonai/lemon-docs">文档</a> ·
   <a href="https://www.lemonai.cc">下载macOS 和 Windows 桌面应用程序</a> ·
 </p>
 
@@ -64,13 +64,11 @@ Lemon AI作为支持无限任务场景的通用 AI Agent 能力，包括：
 - 基于开源 DeepSeekV3 模型  
 - 在不牺牲质量和性能的前提下大幅节省成本，使各类规模组织都能轻松获取先进的 AI 能力
 
-### 使用 Lemon
+### 使用 Lemon AI
 
-* 使用这个[入门指南](https://lemon-11.gitbook.io/lemon-docs)快速在您的环境中运行 Lemon。更多参考和详细说明请参阅我们的文档。
+* 使用这个[入门指南](https://lemon-11.gitbook.io/lemon-docs)快速在您的环境中运行 Lemon AI。更多参考和详细说明请参阅我们的文档。
 
-### 运行 Lemon
-
----
+### 运行 Lemon AI
 
 #### 系统要求 <a href="#system-requirements" id="system-requirements"></a>
 
@@ -78,7 +76,7 @@ Lemon AI作为支持无限任务场景的通用 AI Agent 能力，包括：
 * Linux
 * [支持WSL](https://learn.microsoft.com/en-us/windows/wsl/install)和[Docker Desktop 的](https://docs.docker.com/desktop/setup/install/windows-install/#system-requirements)Windows
 
-建议使用具有现代处理器和至少**4GB RAM的系统来运行 Lemon。**
+建议使用具有现代处理器和至少**4GB RAM的系统来运行 Lemon AI。**
 
 #### **MacOS**
 
@@ -114,7 +112,7 @@ Lemon AI作为支持无限任务场景的通用 AI Agent 能力，包括：
 
 ### 启动应用程序 <a href="#start-the-app" id="start-the-app"></a>
 
-运行Lemon最简单的方法是使用 Docker。
+运行Lemon AI最简单的方法是使用 Docker。
 
 ```bash
 docker pull hexdolemonai/lemon-runtime-sandbox:latest
@@ -134,21 +132,26 @@ docker run -it --rm --pull=always \
   hexdolemonai/lemon:latest make run
 ```
 
-#### 贡献
+### 贡献
 
-对于那些想要贡献代码的人，请参阅我们的[贡献指南](https://github.com/hexdocom/lemon/blob/main/CONTRIBUTING_CN.md)。同时，请考虑通过社交媒体、活动和会议来支持 Lemon 的分享。
+对于那些想要贡献代码的人，请参阅我们的[贡献指南](https://github.com/hexdocom/lemon/blob/main/CONTRIBUTING_CN.md)。同时，请考虑通过社交媒体、活动和会议来支持 Lemon AI 的分享。
+
+#### 贡献者
+
+<a href="https://github.com/hexdocom/lemonai/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=hexdocom/lemonai" />
+</a>
+
 
 ### 社区与支持
 
----
+我们欢迎您为 Lemon AI 作出贡献，以帮助改善 Lemon AI。包括：提交代码、问题、新想法，或分享您基于 Lemon AI创建的有趣且有用的 AI 应用程序。同时，我们也欢迎您在不同的活动、会议和社交媒体上分享 Lemon AI。
 
-我们欢迎您为 Lemon 作出贡献，以帮助改善 Lemon。包括：提交代码、问题、新想法，或分享您基于 Lemon 创建的有趣且有用的 AI 应用程序。同时，我们也欢迎您在不同的活动、会议和社交媒体上分享 Lemon。
-
-* [GitHub Issues](https://github.com/hexdocom/lemon/issues)。👉：使用 Lemon 时遇到的错误和问题，请参阅贡献指南
+* [GitHub Issues](https://github.com/hexdocom/lemon/issues)。👉：使用 Lemon AI 时遇到的错误和问题，请参阅贡献指南
 * 电子邮件支持👉：关于使用 Lemon的问题。
 * [X(Twitter)](https://x.com/LemonAI_cc)。👉：分享您的应用程序并与社区交流。
 * [Discord](https://discord.gg/nQVE5mBy)。👉：分享您的应用程序并与社区交流。
-* 商业许可。👉：有关商业用途许可 Lemon的商业咨询。
+* 商业许可。👉：有关商业用途许可 Lemon AI的商业咨询。
 
 ### Star History
 
@@ -156,12 +159,8 @@ docker run -it --rm --pull=always \
 
 ### 安全问题
 
----
-
 为了保护您的隐私，请避免在 GitHub 上发布安全问题。发送问题至service@hexdo.com我们将为您做更进一步的解答。
 
 ### 执照
 
----
-
-本仓库遵循Lemon Open Source License 协议开源，该许可证本质上是Apache 2.0，但有一些额外的限制。
+本仓库遵循Lemon AI Open Source License 协议开源，该许可证本质上是Apache 2.0，但有一些额外的限制。
