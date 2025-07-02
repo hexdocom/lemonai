@@ -13,7 +13,7 @@
           </a-result>
   
           <a-card v-if="showOrderInfo" :title="$t('orderInfo')" style="margin-top: 24px; text-align: left;">
-            <p><strong>{{ $t('orderId') }}：</strong>{{ order.order_sn }}</p>
+            <p><strong>{{ $t('orderId') }}：</strong>{{ order_sn }}</p>
             <p><strong>{{ $t('paymentAmount') }}：</strong>
               {{ order.amount_total && order.currency ? formatAmount(order.amount_total, order.currency) : $t('unknown') }}
             </p>
@@ -55,6 +55,7 @@
   
   const orderLoaded = ref(false)
   const showOrderInfo = ref(false)
+  const order_sn = ref('')
 
   //是否来自客户端
   const fromClient = computed(() => {
@@ -138,6 +139,7 @@
           orderStatus.value = status
           if (terminalStates.includes(status)) {
             showOrderInfo.value = true
+            order_sn.value = res.order_sn
             //根据url 中的 参数 from 判断是否是客户端
             if(orderStatus.value === 'paid'){
               clearInterval(pollingTimer.value)

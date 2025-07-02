@@ -94,7 +94,7 @@ onMounted(() => {
 })
 
 //判断是国内还是海外 VITE_REGION
-const isAbroad = computed(() => import.meta.env.VITE_REGION === 'abroad');
+const isAbroad = ref(true)
 
 
 

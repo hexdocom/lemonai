@@ -102,6 +102,9 @@ export default {
     },
     //member
     member: {
+      selectPaymentMethod: "Select payment method",
+      payWithCard: "Pay with Stripe",
+      payWithWeChat: "Pay with WeChat",
       freePlan: 'Free',
       expirationDate: 'Expiration date:',
       upgrade: 'Upgrade',
@@ -148,6 +151,15 @@ export default {
       qrError: "QR code generation failed, please try again later",
       noPlanForBilling: "No available plans for billing",
       alreadyCurrentMember: "Already a current member",
+    },payment: {
+      stripe: {
+        title: 'Stripe',
+        description: 'Supports Visa / Mastercard / International Credit Cards'
+      },
+      wechat: {
+        title: 'WeChat Pay',
+        description: 'Scan to pay, instant confirmation, recommended for users in China'
+      }
     },
     //主界面
     lemon: {

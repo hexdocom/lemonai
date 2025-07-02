@@ -102,6 +102,9 @@ export default {
   },
   //会员
   member: {
+    selectPaymentMethod: "选择支付方式",
+    payWithCard: "使用银行卡 / Stripe 支付",
+    payWithWeChat: "使用微信支付",
     freePlan: '免费',
     expirationDate: '到期时间：',
     upgrade: '升级',
@@ -148,6 +151,16 @@ export default {
     qrError: "生成二维码失败，请稍后重试",
     noPlanForBilling: "暂无该计费方式的产品",
     alreadyCurrentMember: "已开通该会员"
+  },
+  payment: {
+    stripe: {
+      title: 'Stripe',
+      description: '支持 Visa / Mastercard / 国际信用卡'
+    },
+    wechat: {
+      title: '微信支付',
+      description: '扫码支付，实时到账，推荐国内用户'
+    }
   },
   //主界面
   lemon: {

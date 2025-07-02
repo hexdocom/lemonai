@@ -63,13 +63,52 @@
   <div v-else>{{ t('member.noPackagesAvailable') }}</div>
 </a-modal>
 <a-modal v-model:open="showQrCode" :title="t('member.wechatScanToPay')" centered :footer="null">
-<div style="text-align: center;">
+<div style="text-align: center;display: flex;
+    flex-direction: column;
+    align-items: center;">
   <div style="display: inline-block;">
     <a-qrcode :value="qrCodeUrl" :size="200" />
   </div>
   <p style="margin-top: 12px;">{{ t('member.wechatScanPrompt') }}</p>
 </div>
 </a-modal>
+
+<!-- 支付方式选择弹窗 -->
+<a-modal
+  v-model:open="showPaymentMethodModal"
+  :footer="null"
+  centered
+  width="480"
+  :title="$t('member.selectPaymentMethod')"
+>
+  <div style="display: flex; flex-direction: column; gap: 16px; padding: 12px 4px;">
+    <!-- Stripe -->
+    <div
+      class="payment-option"
+      @click="handlePayment('stripe')"
+    >
+      <StripeLogo/>
+      <div class="payment-content">
+        <div class="payment-title">{{ $t('payment.stripe.title') }}</div>
+        <div class="payment-description">{{ $t('payment.stripe.description') }}</div>
+      </div>
+    </div>
+
+    <!-- WeChat -->
+    <div
+      class="payment-option"
+      @click="handlePayment('wechat')"
+    >
+      <WechatLogo/>
+      <div class="payment-content">
+        <div class="payment-title">{{ $t('payment.wechat.title') }}</div>
+        <div class="payment-description">{{ $t('payment.wechat.description') }}</div>
+      </div>
+    </div>
+  </div>
+</a-modal>
+
+
 </template>
 
 <script setup>
@@ -91,10 +130,13 @@ import { useUserStore } from '@/store/modules/user.js'
 const userStore = useUserStore();
 const { user, membership, points } = storeToRefs(userStore);
 
+import StripeLogo from '@/assets/svg/stripe.svg'
+import WechatLogo from '@/assets/svg/wechatpay.svg'
+
 
 //判断是国内还是海外 VITE_REGION
-const isAbroad = computed(() => import.meta.env.VITE_REGION === 'abroad');
-
+// const isAbroad = computed(() => import.meta.env.VITE_REGION === 'abroad');
+const isAbroad = ref(true);
 
 //¥
 const currency = computed(() => {
@@ -122,6 +164,8 @@ const data = ref([
 
 const showQrCode = ref(false)
 const qrCodeUrl = ref('')
+const showPaymentMethodModal = ref(false)
+const selectedPlan = ref(null)
 const pollingTimer = ref(null)
 const loading = ref(false)
 
@@ -136,7 +180,9 @@ onMounted(() => {
       console.log("stripe-payment-success",orderId,amount,currency,status);
       if(status === 'paid'){
         message.success(t('member.paySuccess'));
-        router.push('/');
+        router.push({
+          name: 'app'
+        });
       }else{
         message.error(t('member.payFailed'));
       }
@@ -168,29 +214,29 @@ function getPointsTypeName(type) {
 
 
 const handleBuy = async (item) => {
+  showPaymentMethodModal.value = true
+  selectedPlan.value = item
+}
+
+const handlePayment = async (method) => {
+  showPaymentMethodModal.value = false
   loading.value = true
 
-  if(isAbroad.value){
-    let res = await membershipService.createStripePointPurchaseOrder(item.id)
-        //url 跳转到 url 不是新页面打开
+  if(method === 'stripe'){
+    let res = await membershipService.createStripePointPurchaseOrder(selectedPlan.value.id)
     window.location.href = res.url; 
     loading.value = false
   }else{
-
-  let res = await membershipService.createPointPurchaseOrder(item.id)
-
-  if (res && res.code_url) {
-    loading.value = false
-    qrCodeUrl.value = res.code_url
-    showQrCode.value = true
-    checkOrderStatus(res.order_sn)
-  } else {
-    loading.value = false
-    // 你可以使用 a-message 错误提示
-    // message.error("生成二维码失败，请稍后重试")
-    console.error("二维码生成失败", res)
-  }
-  console.log(res)
+    let res = await membershipService.createPointPurchaseOrder(selectedPlan.value.id)
+    if (res && res.code_url) {
+      loading.value = false
+      qrCodeUrl.value = res.code_url
+      showQrCode.value = true
+      checkOrderStatus(res.order_sn)
+    } else {
+      loading.value = false
+    }
+    console.log(res)
   }
 }
 
@@ -378,4 +424,47 @@ button {
     background-color: #f8f8f7!important;
   }
 }
+
+
+.payment-option {
+  display: flex;
+  align-items: center;
+  padding: 16px;
+  border: 1px solid #e5e5e5;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  background-color: #fff;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  gap: 16px;
+}
+
+.payment-option:hover {
+  border-color: #1677ff;
+  box-shadow: 0 4px 16px rgba(22,119,255,0.12);
+}
+
+.payment-logo {
+  width: 40px;
+  height: 40px;
+  margin-right: 16px;
+  object-fit: contain;
+}
+
+.payment-content {
+  display: flex;
+  flex-direction: column;
+}
+
+.payment-title {
+  font-weight: 600;
+  font-size: 16px;
+  margin-bottom: 4px;
+}
+
+.payment-description {
+  font-size: 13px;
+  color: #666;
+}
+
 </style>
