@@ -99,6 +99,9 @@ import modelService from "@/services/default-model-setting";
 import searchEngineService from "@/services/search-engine";
 import { notification } from "ant-design-vue";
 import { useI18n } from "vue-i18n";
+import {checkDockerInstall,
+    checkDockerRunning,
+    checkDockerEnvironmentReady} from '@/utils/docker.js'
 const { t } = useI18n();
 import { message } from "ant-design-vue";
 import { useRoute, useRouter } from "vue-router";
@@ -239,6 +242,7 @@ onMounted(async () => {
 // let res =  await modelService.checkModel();
 // if(res.has_default_platform && res.has_enabled_platform && res.has_search_setting){
 const checkModel = async () => {
+
   let res = await modelService.checkModel();
   return res;
 };
@@ -316,28 +320,15 @@ const handleSend = async () => {
     // electron client？
     if (window.electronAPI) {
       // docker
-      let install = localStorage.getItem("docker-installed") === 'true';
-      let launch = localStorage.getItem("docker-launch") === 'true';
-      let image = localStorage.getItem("docker-image") === 'true';
-      if (!(install && launch && image)) {
-        const key = `jump-notification-${Date.now()}`; // notice key
-        notification.warning({
-          message: t('lemon.check.docker.dockerNotReady'),
-          key,
-          description: h(
-            "span",
-            {
-              style: { textDecoration: "underline", cursor: "pointer", color: "#1677ff" },
-            },
-            t('lemon.check.docker.dockerNotReadyDes')
-          ),//t('lemon.check.docker.dockerNotReadyDes'), //Sandbox environment is not ready, please check if Docker configuration is complete
-          duration: 4,
-          onClick: () => {
-            notification.close(key);
-            // check docker
-            emitter.emit('docker-check', true)
-          },
-        });
+      let install  = await checkDockerInstall()
+      let launch  = await checkDockerRunning()
+      let image = await checkDockerEnvironmentReady()
+      localStorage.setItem('docker-installed',install.status)
+      localStorage.setItem("docker-launch",launch.status)
+      localStorage.setItem("docker-image",image.status)
+      console.log("docker status",install,launch,image)
+      if (!(install.status && launch.status && image.status)) {
+        emitter.emit('docker-check', true)
         return
       }
     }
