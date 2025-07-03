@@ -326,6 +326,7 @@ export default {
         dockerIsStarting: "Docker 正在启动...",
         imageNotDetected: "未检测到镜像 'lemon-runtime-sandbox:latest'。请根据选项获取镜像后，然后点击继续。",
         getLemonRuntimeSandboxImage: "获取 Lemon 运行时沙盒镜像",
+        getLemonDockerDoc: "获取官方教程",
         runCommand: "运行命令：",
         toGetSandboxImage: "以获取沙盒镜像",
         dockerIsRunning: "Docker 正在运行 ✅",

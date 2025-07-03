@@ -154,9 +154,21 @@
                 <div class="" v-else>
                   <span>{{ detail }}</span>
                 </div>
+                <div>
+                  
+                  <a href="https://lemon-11.gitbook.io/lemonai/development-deployment-guidelines/docker-quick-deployment"
+                    target="_blank">
+                    <span style="font-size: 14px;margin-left: 10px;">{{
+                      $t('lemon.check.docker.getLemonDockerDoc') }}</span>
+                  </a>
+                </div>
               </div>
+
+
             </div>
+
           </a-card>
+
         </div>
 
         <div class="action-button">

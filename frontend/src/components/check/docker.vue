@@ -148,13 +148,20 @@
                     </div>
                   </div>
                 </div>
+                <div>
+                  <a href="https://lemon-11.gitbook.io/lemonai/development-deployment-guidelines/docker-quick-deployment"
+                    target="_blank">
+                    <span style="font-size: 14px;margin-left: 10px;">{{
+                      $t('lemon.check.docker.getLemonDockerDoc') }}</span>
+                  </a>
+                </div>
               </div>
             </div>
+            
           </a-card>
         </div>
         <!-- Bottom right buttons -->
         <div class="action-button">
-
           <a-button type="primary" :loading="isLoading" @click="handleAction" v-show="canContinue">
             {{ $t('lemon.check.docker.continue') }}
           </a-button>

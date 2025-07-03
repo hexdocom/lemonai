@@ -328,6 +328,7 @@ export default {
             dockerIsStarting: "Docker is starting...",
             imageNotDetected: "The image 'lemon-runtime-sandbox:latest' was not detected. Choose an option to obtain the image, then click Continue.",
             getLemonRuntimeSandboxImage: "Get Lemon Runtime Sandbox Image",
+            getLemonDockerDoc: "Get Lemon Docker Doc",
             runCommand: "Run command:",
             toGetSandboxImage: "to get the sandbox image",
             dockerIsRunning: "Docker is running ✅",
