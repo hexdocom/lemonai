@@ -36,6 +36,7 @@
     "koa-static": "^5.0.0",
     "koa2-swagger-ui": "^5.11.0",
     "marked": "^15.0.12",
+    "mathjs": "^14.5.3",
     "minimist": "^1.2.8",
     "mocha": "^11.1.0",
     "module-alias": "^2.2.3",
