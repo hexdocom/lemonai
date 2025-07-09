@@ -159,7 +159,13 @@ const completeCodeAct = async (task = {}, context = {}) => {
         context.generate_files = [];
       }
       if (action_result.meta && action_result.meta.filepath) {
-        context.generate_files.push(action_result.meta.filepath);
+        const filepath = action_result.meta.filepath;
+        context.generate_files.push(filepath);
+        // Store the last written file path in the context
+        if (action.type === 'write_code' || (action.type === 'browser' && filepath)) { // Or any other actions that write files
+          context.last_written_file_path = filepath;
+          console.log(`Context: last_written_file_path set to ${filepath}`);
+        }
       }
       // console.log("action_result", action_result);
 
