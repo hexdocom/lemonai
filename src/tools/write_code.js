@@ -2,7 +2,7 @@ const { json2xml } = require('@src/utils/format');
 
 const WriteCode = {
   name: "write_code",
-  description: "1. When the requirement is to create a program, script, or web page that can be run directly, you should directly provide complete and usable code. 2. When the requirement is to plan, design, analyze, or write a report, you should use Markdown to generate a clearly structured document. 3. When read pdf file, use python3 code with PyPDF2",
+  description: "1. When the requirement is to create a program, script, or web page that can be run directly, you should directly provide complete and usable code. 2. When the requirement is to plan, design, analyze, or write a report, you should use Markdown to generate a clearly structured document. 3. When read pdf file, use python3 code with PyPDF2. After successful execution, the written filepath can be accessed by subsequent tools using the \"$LAST_WRITTEN_FILE_PATH\" placeholder.",
   params: {
     type: "object",
     properties: {
