@@ -1,6 +1,35 @@
 const { exec, spawn } = require('child_process');
 const { restrictFilepath } = require('./runtime.util');
 
+// Helper function to parse simple CSV data
+function parseSimpleCsv(csvString) {
+  if (!csvString || typeof csvString !== 'string') {
+    return null;
+  }
+  const lines = csvString.trim().split(/\r?\n/);
+  if (lines.length < 2) { // At least one header and one data line
+    return null;
+  }
+
+  const headers = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g, ''));
+  const data = [];
+
+  for (let i = 1; i < lines.length; i++) {
+    const values = lines[i].split(',').map(v => v.trim().replace(/^"|"$/g, ''));
+    if (values.length === headers.length) {
+      const row = {};
+      headers.forEach((header, index) => {
+        row[header] = values[index];
+      });
+      data.push(row);
+    } else {
+      // Line does not match header length, CSV might be malformed or complex
+      return null;
+    }
+  }
+  return data;
+}
+
 const runCommand = (command, args, cwd) => {
   return new Promise((resolve, reject) => {
     if (Array.isArray(args)) {
@@ -38,19 +67,52 @@ const terminal_run = async (action, uuid) => {
   const { command, args = [], cwd = '.' } = action.params;
   const executionDir = await restrictFilepath(cwd);
   try {
-    const result = await runCommand(command, args, executionDir);
-    return {
+    const cmdResult = await runCommand(command, args, executionDir);
+    const outputContent = cmdResult.stdout || 'Execution result has no return content';
+
+    let parsedJson = null;
+    let parsedCsv = null;
+
+    // Try to parse as JSON
+    if (outputContent.startsWith('{') && outputContent.endsWith('}')) { // Basic check
+        try {
+            parsedJson = JSON.parse(outputContent);
+        } catch (jsonError) {
+            // Not valid JSON, ignore error
+        }
+    }
+
+    // If not JSON, or if JSON parsing failed, try to parse as CSV
+    if (!parsedJson) {
+        try {
+            parsedCsv = parseSimpleCsv(outputContent);
+        } catch (csvError) {
+            // Not valid CSV or complex CSV, ignore error
+        }
+    }
+
+    const returnPayload = {
       uuid,
       status: 'success',
-      content: result.stdout || 'Execution result has no return content',
-      stderr: result.stderr,
+      content: outputContent,
+      stderr: cmdResult.stderr,
       meta: {
         action_type: action.type,
       }
     };
+
+    if (parsedJson) {
+      returnPayload.parsed_json = parsedJson;
+    }
+    if (parsedCsv) {
+      returnPayload.parsed_csv = parsedCsv;
+    }
+
+    return returnPayload;
+
   } catch (e) {
     console.error('Error executing command:', e);
-    return { status: 'failure', error: e.stderr || e.message, content: '' };
+    return { uuid, status: 'failure', error: e.stderr || e.message, content: '' };
   }
 }
 

@@ -209,9 +209,21 @@ class DockerRuntime {
    * @returns {Promise<ActionResult>}
    */
   async execute_action(action, context = {}, task_id) {
-    const { type, params } = action;
+    let { type, params } = action; // Make params mutable
+
+    // Resolve contextual file paths
+    const placeholder = "$LAST_WRITTEN_FILE_PATH";
+    if (context.last_written_file_path) {
+      for (const key in params) {
+        if (typeof params[key] === 'string' && params[key] === placeholder) {
+          params[key] = context.last_written_file_path;
+          console.log(`Runtime: Resolved ${placeholder} to ${params[key]} for action ${type}, param ${key}`);
+        }
+      }
+    }
+
     // 根据 action.type 调用对应的方法
-    console.log('action', action.type);
+    console.log('action', type, params); // Log resolved params
     const uuid = uuidv4();
     // action running message
     const tool = tools[type];
@@ -283,7 +295,7 @@ class DockerRuntime {
           const { content, meta = {} } = execute_result;
           result = { uuid, status: 'success', content, memorized: tool.memorized || false, meta };
         } else {
-          result = { status: 'failure', error: `Unknown action type: ${type}`, content: '', stderr: '' };
+    result = { uuid, status: 'failure', error: `Unknown action type: ${type}`, content: '', stderr: '' };
         }
     }
     // 保存 action 执行结果到 memory
