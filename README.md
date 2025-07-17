@@ -39,6 +39,7 @@ Universal AI Agent capabilities supporting unlimited task scenarios, including:
 - Deep search & research reports
 - Code generation & data analysis
 - Content creation & document processing
+- **NEW:** Perform calculations (e.g., "2+2", "sqrt(16)*5") using the integrated calculator tool.
 Supports experience repository for self-learning and extending enterprise-specific customizations.
 
 **Deployment options:** Open source code, Container, Client application, Online subscription - compatible with cloud/local/all-in-one systems
