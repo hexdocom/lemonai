@@ -11,6 +11,11 @@ const fields = {
     allowNull: false,
     comment: 'ID'
   },
+  user_id: {
+    type: DataTypes.BIGINT,
+    allowNull: true,
+    comment: '用户ID'
+  },
   setting_type: {
     type: DataTypes.STRING,
     allowNull: false,

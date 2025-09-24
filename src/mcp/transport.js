@@ -10,12 +10,12 @@ const initStreamTransport = async (server = {}) => {
     return new StreamableHTTPClientTransport(new URL(sse_url), options);
   } else if (server.type === 'sse') {
     const options = {
-      eventSourceInit: {
-        fetch: async (url, init) => {
-          const headers = { ...(server.headers || {}), ...(init?.headers || {}) };
-          return fetch(url, { ...init, headers });
-        },
-      },
+      // eventSourceInit: {
+      //   fetch: async (url, init) => {
+      //     const headers = { ...(server.headers || {}), ...(init?.headers || {}) };
+      //     return fetch(url, { ...init, headers });
+      //   },
+      // },
       requestInit: { headers: server.headers || {} },
     };
     const { SSEClientTransport } = await import('@modelcontextprotocol/sdk/client/sse.js');

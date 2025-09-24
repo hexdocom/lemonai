@@ -4,7 +4,6 @@ const path = require('path');
 const fs = require('fs');
 const File = require("@src/models/File");
 const { getDirpath } = require('@src/utils/electron');
-const WORKSPACE_DIR = getDirpath(process.env.WORKSPACE_DIR || 'workspace');
 
 /**
  * @swagger
@@ -50,7 +49,7 @@ const WORKSPACE_DIR = getDirpath(process.env.WORKSPACE_DIR || 'workspace');
  *                   description: Message
  *                 
  */
-router.post("/upload", async ({ request, response }) => {
+router.post("/upload", async ({ state, request, response }) => {
   const files = request.files.files;
   const { conversation_id = '' } = request.body;
 
@@ -58,6 +57,8 @@ router.post("/upload", async ({ request, response }) => {
   const fileArray = Array.isArray(files) ? files : [files];
 
   const uploadedFiles = [];
+
+  const WORKSPACE_DIR = getDirpath(process.env.WORKSPACE_DIR || 'workspace', state.user.id);
 
   for (const file of fileArray) {
     const uploadDir = path.join(WORKSPACE_DIR, 'upload');
@@ -172,10 +173,13 @@ router.put("/", async ({ request, response }) => {
  *                   type: string
  *                   description: Message
  */
-router.delete("/delete/:file_id", async ({ params, response }) => {
+router.delete("/delete/:file_id", async ({ state, params, request, response }) => {
 
   const { file_id } = params;
+  // 假设 conversation_id 通过 query 传递
+  const { conversation_id } = request.query || {};
 
+  const WORKSPACE_DIR = getDirpath(process.env.WORKSPACE_DIR || 'workspace', state.user.id);
   try {
     const file = await File.findOne({
       where: { id: file_id }
@@ -184,7 +188,15 @@ router.delete("/delete/:file_id", async ({ params, response }) => {
       return response.error("File does not exist");
     }
     await file.destroy();
-    const filePath = path.join(WORKSPACE_DIR, file.name);
+
+    // conversation_id 存在时拼接 Conversation_xxxxx
+    let filePath;
+    if (conversation_id) {
+      filePath = path.join(WORKSPACE_DIR, `Conversation_${conversation_id.slice(0, 6)}`, file.name);
+    } else {
+      filePath = path.join(WORKSPACE_DIR, 'upload', file.name);
+    }
+
     fs.unlinkSync(filePath);
     return response.success(null, "File deleted successfully");
   } catch (error) {

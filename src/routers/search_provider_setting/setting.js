@@ -76,22 +76,24 @@ router.put("/", async (ctx) => {
         blacklist
     } = ctx.request.body;
 
+    const user_id = ctx.state.user.id
+
     // Validate input
     if (!provider_id) {
-        ctx.body = {code: 400, msg: "Provider ID is required"};
+        ctx.body = { code: 400, msg: "Provider ID is required" };
         return;
     }
 
     // Check if the provider exists
     const provider = await SearchProviderTable.findByPk(provider_id);
     if (!provider) {
-        ctx.body = {code: 404, msg: "Provider not found"};
+        ctx.body = { code: 404, msg: "Provider not found" };
         return;
     }
 
     // 检查用户提供者配置表中是否存在记录
     const userConfig = await UserSearchSetting.findOne({
-        where: {id: 1} // if create user provider config, there be only one record
+        where: { user_id } // if create user provider config, there be only one record
     });
     let config = null;
     if (!userConfig) {
@@ -103,9 +105,10 @@ router.put("/", async (ctx) => {
             enable_enhanced_mode,
             result_count,
             blacklist,
+            user_id,
         });
     } else {
-        console.log('provider_id',provider_id)
+        console.log('provider_id', provider_id)
         // 更新新的配置项
         await userConfig.update({
             provider_id,
@@ -120,19 +123,19 @@ router.put("/", async (ctx) => {
     console.log(api_key)
     // 更新和创建用户提供者配置表中的记录
     let [userProviderConfig, created] = await UserProviderConfig.findOrCreate({
-        where: {provider_id: provider_id},
+        where: { provider_id: provider_id, user_id },
         defaults: {
         }
     });
     // update api_key 通过provider_id 更新。如果endpoint不为空，则也更新endpoint
     if (endpoint !== undefined && endpoint !== "") {
         await userProviderConfig.update({
-            base_config: {api_key, endpoint}
-        }, {where: {provider_id: provider_id}})
+            base_config: { api_key, endpoint }
+        }, { where: { provider_id: provider_id, user_id } })
     } else if (api_key !== undefined && api_key !== "") {
         await userProviderConfig.update({
-            base_config: {api_key}
-        }, {where: {provider_id: provider_id}})
+            base_config: { api_key }
+        }, { where: { provider_id: provider_id, user_id } })
     }
     const requestBody = Object.assign({
         provider_id: provider_id,
@@ -141,7 +144,7 @@ router.put("/", async (ctx) => {
         logo_url: provider.logo_url
     }, config.dataValues)
 
-    ctx.body = {code: 200, data: requestBody, msg: "Successfully upserted user provider config"};
+    ctx.body = { code: 200, data: requestBody, msg: "Successfully upserted user provider config" };
 });
 
 // Get user provider config
@@ -173,18 +176,19 @@ router.put("/", async (ctx) => {
 router.get("/", async (ctx) => {
 
     // Get user provider config
-    const config = await UserSearchSetting.findOne({});
+    const user_id = ctx.state.user.id
+    const config = await UserSearchSetting.findOne({ where: { user_id } });
 
     if (!config) {
-        ctx.body = {code: 1, msg: "User provider config not found"};
+        ctx.body = { code: 1, msg: "User provider config not found" };
         return;
     }
     const userProviderConfig = await UserProviderConfig.findOne({
-        where: {provider_id: config.provider_id}
+        where: { provider_id: config.provider_id, user_id }
     })
     const provider = await SearchProviderTable.findByPk(config.provider_id);
     if (!provider) {
-        ctx.body = {code: 404, msg: "Provider not found"};
+        ctx.body = { code: 404, msg: "Provider not found" };
         return;
     }
     const requestBody = Object.assign({
@@ -192,7 +196,7 @@ router.get("/", async (ctx) => {
         logo_url: provider.logo_url,
         base_config: userProviderConfig.dataValues.base_config
     }, config.dataValues);
-    ctx.body = {code: 200, data: requestBody, msg: "Successfully retrieved user provider config"};
+    ctx.body = { code: 200, data: requestBody, msg: "Successfully retrieved user provider config" };
 });
 
 
@@ -223,8 +227,9 @@ router.get("/", async (ctx) => {
  *                   description: Message
  */
 router.get("/configs", async (ctx) => {
-    const providers = await UserProviderConfig.findAll();
-    ctx.body = {code: 200, data: providers, msg: "Successfully retrieved provider configs"};
+    const user_id = ctx.state.user.id
+    const providers = await UserProviderConfig.findAll({ where: { user_id } });
+    ctx.body = { code: 200, data: providers, msg: "Successfully retrieved provider configs" };
 });
 // Get current provider templates list
 /**
@@ -254,7 +259,7 @@ router.get("/configs", async (ctx) => {
  */
 router.get("/templates", async (ctx) => {
     const providers = await SearchProviderTable.findAll();
-    ctx.body = {code: 200, data: providers, msg: "Successfully retrieved provider templates"};
+    ctx.body = { code: 200, data: providers, msg: "Successfully retrieved provider templates" };
 });
 
 
@@ -300,10 +305,10 @@ router.get("/templates", async (ctx) => {
  *                       type: string
  *                       description: Message
  */
-router.post("/check_search_provider", async ({request, response}) => {
-    const {type, api_key = "",endpoint="",engine = ""} = request.body;
+router.post("/check_search_provider", async ({ request, response }) => {
+    const { type, api_key = "", endpoint = "", engine = "" } = request.body;
     if (type === 'tavily') {
-        const talivy = new TalivySearch({key: api_key});
+        const talivy = new TalivySearch({ key: api_key });
         const res = await talivy.check()
         response.success(res)
     } else if (type === 'local') {
@@ -311,7 +316,7 @@ router.post("/check_search_provider", async ({request, response}) => {
         const res = await local.check(engine)
         response.success(res)
     } else if (type === 'cloudsway') {
-        const cloudsway = new CloudswaySearch({access_key: api_key, endpoint: endpoint});
+        const cloudsway = new CloudswaySearch({ access_key: api_key, endpoint: endpoint });
         const res = await cloudsway.check()
         response.success(res)
     } else {

@@ -52,24 +52,22 @@ const { Op } = require("sequelize");
  *                   description: Message
  *                 
  */
-router.post("/", async({ request, response}) => {
-  const body = request.body || {};
-  const { platform_id, model_id, model_name, group_name, model_types } = body;
-
-  const existingModel = await Model.findOne({ where: { model_id, platform_id } });
-  if (existingModel) {
-    return response.fail({}, "Model ID already exists");
-  }
-
-  const model = await Model.create({
-    platform_id,
-    model_id,
-    model_name,
-    group_name,
-    model_types
-  });
-
-  return response.success(model);
+router.post("/", async ({ state, request, response }) => {
+    const body = request.body || {};
+    const { platform_id, model_id, model_name, group_name,model_types } = body
+    const existingModel = await Model.findOne({ where: { model_id: model_id, user_id: state.user.id } });
+    if (existingModel) {
+        return response.error("Model ID already exists");
+    }
+    const model = await Model.create({
+        platform_id: platform_id,
+        model_id: model_id,
+        model_name: model_name,
+        group_name: group_name,
+        model_types: model_types,
+        user_id: state.user.id
+    });
+    return response.success(model);
 });
 
 // Get model list by platform id
@@ -108,14 +106,18 @@ router.post("/", async({ request, response}) => {
  *                   description: Message
  *                 
  */
-router.get("/list/:platform_id", async ({ params, response }) => {
-  const { platform_id } = params;
-
-  const models = await Model.findAll({
-    where: { platform_id: platform_id }
-  });
-
-  return response.success(models);
+router.get("/list/:platform_id", async ({ state, params, response }) => {
+    const { platform_id } = params;
+    const models = await Model.findAll({
+        where: {
+            platform_id: platform_id,
+            [Op.or]: [
+                { user_id: state.user.id },
+                { user_id: null }
+            ]
+        }
+    });
+    return response.success(models);
 });
 
 // update model
@@ -153,24 +155,28 @@ router.get("/list/:platform_id", async ({ params, response }) => {
  *
  */
 
-router.put("/:id", async ({ params, request, response }) => {
-  const { id } = params;
-  const body = request.body || {};
-
-  const { model_name, group_name, model_types } = body
-
-  const model = await Model.update(
-    {
-      model_name: model_name,
-      group_name: group_name,
-      model_types: model_types
-    },
-    {
-      where: { id: id },
+router.put("/:id", async ({ state, params, request, response }) => {
+    const { id } = params;
+    const body = request.body || {};
+    const { model_name, group_name,model_types } = body
+    const model = await Model.findOne({
+        where: {
+            id: id,
+            [Op.or]: [
+                { user_id: state.user.id },
+                { user_id: null }
+            ]
+        }
+    });
+    if (!model) {
+        return response.error("Model does not exist");
     }
-  );
-
-  return response.success(model);
+    await model.update({
+        model_name: model_name,
+        group_name: group_name,
+        model_types: model_types
+    });
+    return response.success(model);
 });
 
 // Delete model
@@ -206,14 +212,22 @@ router.put("/:id", async ({ params, request, response }) => {
  *                   type: string
  *                   description: Message
  */
-router.delete("/:id", async ({ params, response }) => {
-  const { id } = params;
-
-  await Model.destroy({
-    where: { id: id },
-  });
-
-  return response.success("Model deleted successfully");
+router.delete("/:id", async ({ state, params, response }) => {
+    const { id } = params;
+    const model = await Model.findOne({
+        where: {
+            id: id,
+            [Op.or]: [
+                { user_id: state.user.id },
+                { user_id: null }
+            ]
+        }
+    });
+    if (!model) {
+        return response.error("Model does not exist");
+    }
+    await model.destroy();
+    return response.success();
 });
 
 // get model list where platform is enabled
@@ -245,32 +259,42 @@ router.delete("/:id", async ({ params, response }) => {
  *                   description: Message
  */
 router.get("/enabled", async ({ response }) => {
-
-  const platforms = await Platform.findAll({
-    where: {
-      [Op.or]: [
-        { is_enabled: true },
-        { is_subscribe: true }
-      ]
-    },
-  });
-  let allModels = [];
-  for (let platform of platforms) {
-    const models = await Model.findAll({
-      where: {
-        platform_id: platform.id,
-      },
+    const platforms = await Platform.findAll({
+        where: {
+            is_enabled: true,
+        },
     });
-    for (let model of models) {
-      allModels.push({
-        ...model.dataValues,
-        platform_name: platform.name,
-        is_subscribe: platform.is_subscribe
-
-      });
+    let allModels = [];
+    for(let platform of platforms){
+        const models = await Model.findAll({
+            where: {
+                platform_id: platform.id,
+            },
+        });
+        for(let model of models){
+            allModels.push({
+                ...model.dataValues,
+                platform_name: platform.name,
+                requires_membership: model.requires_membership,
+                membership_level: model.membership_level,
+            });
+        }
     }
-  }
-  return response.success(allModels);
+    
+    // Sort by sort_weight (descending) first, then by requires_membership (false first)
+    allModels.sort((a, b) => {
+        // First sort by sort_weight (descending)
+        if (a.sort_weight !== b.sort_weight) {
+            return (b.sort_weight || 0) - (a.sort_weight || 0);
+        }
+        // Then sort by requires_membership (false first)
+        if (a.requires_membership !== b.requires_membership) {
+            return a.requires_membership - b.requires_membership;
+        }
+        return 0;
+    });
+    
+    return response.success(allModels);
 });
 
 module.exports = exports = router.routes();

@@ -6,6 +6,8 @@ const SearchProvider = require('@src/models/SearchProvider');
 const UserSearchSetting = require('@src/models/UserSearchSetting');
 const sub_server_request = require('@src/utils/sub_server_request')
 
+const doLemonSearch = require('@src/utils/do_lemon_search')
+
 /** @type {import('types/Tool').Tool} */
 const WebSearchTool = {
     name: "web_search", // Snake_case is common for LLM function names
@@ -48,8 +50,8 @@ const WebSearchTool = {
     execute: async ({ query, num_results = 3, conversation_id = "" }) => {
         try {
             // 如果设置了，默认走设置
-            let userSearchSetting = await UserSearchSetting.findOne()
-            num_results = userSearchSetting.dataValues.result_count || 3
+            // let userSearchSetting = await UserSearchSetting.findOne()
+            // num_results = userSearchSetting.dataValues.result_count || 3
 
             console.log(`[WebSearchTool] Searching for: "${query}" (max ${num_results} results)`);
             if (!query || typeof query !== 'string' || query.trim() === '') {
@@ -61,7 +63,8 @@ const WebSearchTool = {
             }
 
             // 判断当前设置
-            const searchProvider = await SearchProvider.findOne({ where: { id: userSearchSetting.provider_id } })
+            // const searchProvider = await SearchProvider.findOne({ where: { id: userSearchSetting.provider_id } })
+            const searchProvider = { name: 'Lemon' }
             let json = {}
             let content = ''
             let obj
@@ -99,7 +102,7 @@ const WebSearchTool = {
         } catch (error) {
             console.error(`[WebSearchTool] Error during execution for query "${query}":`, error);
             // Return a user-friendly error message or re-throw for the agent to handle
-            return `Error performing web search for "${query}". Please check the logs or try again. Details: ${error.message || 'Unknown error'}`;
+            throw new Error(`Error performing web search for "${query}". Please check the logs or try again. Details: ${error.message || 'Unknown error'}`);
         }
     },
 };
@@ -120,13 +123,13 @@ async function doTalivySearch(query, num_results) {
     return { json, content }
 }
 
-async function doLemonSearch(query, num_results, conversation_id) {
-    return sub_server_request('/api/sub_server/search', {
-        query,
-        num_results,
-        conversation_id
-    })
-}
+// async function doLemonSearch(query, num_results, conversation_id) {
+//     return sub_server_request('/api/sub_server/search', {
+//         query,
+//         num_results,
+//         conversation_id
+//     })
+// }
 
 async function doCloudswaySearch(query, num_results) {
     let userSearchSetting = await UserSearchSetting.findOne()

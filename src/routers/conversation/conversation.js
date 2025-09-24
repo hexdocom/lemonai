@@ -3,14 +3,17 @@ require("module-alias/register");
 
 const Conversation = require("@src/models/Conversation");
 const Message = require("@src/models/Message");
-const Model = require('@src/models/Model')
+const ModelTable = require('@src/models/Model')
 const auto_generate_title = require('@src/agent/generate-title')
+const { deleteStaticConf } = require('@src/utils/nginx-static')
+
+const { auth_check } = require('@src/utils/share_auth')
+const { getDirpath } = require('@src/utils/electron');
 
 const uuid = require("uuid");
 const { Op } = require("sequelize");
-
-const forwardRequest = require('@src/utils/sub_server_forward_request');
-const Platform = require("@src/models/Platform");
+const fs = require('fs').promises;
+const path = require('path');
 
 // Create a new conversation
 /**
@@ -49,19 +52,30 @@ const Platform = require("@src/models/Platform");
  *                   description: Message
  *                 
  */
-router.post("/", async ({ request, response }) => {
+router.post("/", async ({ state, request, response }) => {
   const body = request.body || {};
-  const { content } = body
-
+  const { content, mode_type, agent_id, model_id } = body
+  let modeType = mode_type || 'task'
   const conversation_id = uuid.v4();
   const title = content.slice(0, 20);
-  const newConversation = await Conversation.create({
-    conversation_id: conversation_id,
-    content: content,
-    title: title,
-    status: 'running'
-  });
 
+  // 构建要创建的对象
+  const newConversationData = {
+    conversation_id,
+    content,
+    title,
+    status: 'running',
+    user_id: state.user.id,
+    mode_type: modeType,
+    model_id,
+  };
+
+  // 仅在 modeType 为 'task' 时添加 agent_id
+  if (modeType === 'task') {
+    newConversationData.agent_id = agent_id;
+  }
+
+  const newConversation = await Conversation.create(newConversationData);
   return response.success(newConversation);
 });
 
@@ -94,39 +108,84 @@ router.post("/", async ({ request, response }) => {
  *                   description: Message
  *               
  */
-router.get("/", async ({ response }) => {
+router.get("/", async ({ state, query, response }) => {
   try {
-    let new_conversations = []
-    const conversations = await Conversation.findAll({ order: [['update_at', 'DESC']] });
-    for (let conversation of conversations) {
+    console.time("get conversations");
+    console.log("get conversations", query);
+    const mode_type = query.mode_type || 'task';
+    const agent_id = query.agent_id
+    // 1. 一次性查出所有会话
 
-      if (conversation.model_id) {
-        try {
-          let model = await Model.findOne({ where: { id: conversation.model_id } })
-          let platform = await Platform.findOne({ where: { id: model.platform_id } })
-          conversation.dataValues.platform_name = platform.name
-          conversation.dataValues.model_name = model.model_name
-        } catch (e) {
+    // 构建查询条件
+    const whereClause = {
+      user_id: state.user.id,
+      mode_type,
+      is_from_sub_server: false,
+      deleted_at: null,  // 过滤已删除的记录
+    };
 
-        }
-      }
-
-      const latest_message = await Message.findOne({
-        order: [['create_at', 'DESC']],
-        where: {
-          conversation_id: conversation.conversation_id
-        }
-      });
-      new_conversations.push({
-        ...conversation.toJSON(),
-        latest_message: latest_message
-      })
+    // 如果 mode_type 不是 'chat'，才加上 agent_id 条件
+    if (mode_type !== 'chat') {
+      whereClause.agent_id = agent_id;
     }
+
+    const conversations = await Conversation.findAll({
+      where: whereClause,
+      order: [['update_at', 'DESC']],
+    });
+    console.timeEnd("get conversations");
+    // 2. 拿到所有会话ID
+    const conversationIds = conversations.map(c => c.conversation_id);
+    if (conversationIds.length === 0) {
+      return response.success([]);
+    }
+
+    // 新增：收集所有 model_id
+    const modelIds = [...new Set(conversations.map(c => c.model_id).filter(Boolean))];
+    let modelMap = new Map();
+    if (modelIds.length > 0) {
+      const models = await ModelTable.findAll({
+        where: { id: modelIds },
+        attributes: ['id', 'model_name'],
+      });
+      modelMap = new Map(models.map(m => [m.id, m.model_name]));
+    }
+
+    console.time("get latest messages");
+    // 3. 一次性查出所有会话的最新消息，只查需要的字段
+    const latestMessages = await Message.findAll({
+      attributes: ['conversation_id', 'content', 'user_id'], // 只查主键和content
+      where: {
+        conversation_id: { [Op.in]: conversationIds },
+        user_id: state.user.id
+      },
+      order: [['conversation_id', 'ASC'], ['create_at', 'DESC']],
+    });
+    console.timeEnd("get latest messages");
+
+    // 4. 用 Map 方便查找
+    console.time("build latestMessageMap");
+    const latestMessageMap = new Map();
+    for (const msg of latestMessages) {
+      if (!latestMessageMap.has(msg.conversation_id)) {
+        latestMessageMap.set(msg.conversation_id, msg);
+      }
+    }
+    console.timeEnd("build latestMessageMap");
+
+    // 5. 拼装
+    console.time("assemble conversations");
+    const new_conversations = conversations.map(conversation => ({
+      ...conversation.toJSON(),
+      latest_message: latestMessageMap.get(conversation.conversation_id) || null,
+      model_name: modelMap.get(conversation.model_id) || null, // 新增
+    }));
+    console.timeEnd("assemble conversations");
 
     return response.success(new_conversations);
   } catch (error) {
     console.error(error);
-    return response.error("Failed to get conversation list");
+    return response.fail({}, "Failed to get conversation list");
   }
 });
 
@@ -163,42 +222,37 @@ router.get("/", async ({ response }) => {
  *                   type: string
  *                   description: Message
  */
-router.get("/:conversation_id", async (ctx) => {
-  const { params, response } = ctx
+router.get("/:conversation_id", async ({ state, params, response }) => {
   const { conversation_id } = params;
   try {
     const conversation = await Conversation.findOne({
-      where: { conversation_id: conversation_id },
+      where: { conversation_id: conversation_id, deleted_at: null },
     });
     if (!conversation) {
       return response.fail("Conversation does not exist");
     }
 
-    if (conversation.model_id) {
-      try {
-        let model = await Model.findOne({ where: { id: conversation.model_id } })
-        let platform = await Platform.findOne({ where: { id: model.platform_id } })
-        conversation.dataValues.platform_name = platform.name
-        conversation.dataValues.model_name = model.model_name
-      } catch (e) {
 
-      }
+    const modelIds = [...new Set([conversation.model_id])];
+    console.log("modelIds", modelIds);
+    let modelMap = new Map();
+    if (modelIds.length > 0) {
+      const models = await ModelTable.findAll({
+        where: { id: modelIds },
+        attributes: ['id', 'model_name'],
+      });
+      modelMap = new Map(models.map(m => [m.id, m.model_name]));
     }
+    conversation.dataValues.model_name = modelMap.get(conversation.model_id) || null;
 
-    if (conversation.dataValues.input_tokens === 0) {
-      try {
-        let res = await forwardRequest(ctx, 'GET', `/api/conversation/${conversation_id}`)
-        if (res.data) {
-          conversation.input_tokens = res.data.input_tokens
-          conversation.output_tokens = res.data.output_tokens
-        }
-        console.log(res.data)
-      } catch (e) {
+    // 如果当前用户不是conversation的用户，需要判断是否有权限读
+    const allow_read = await auth_check(state.user.id, conversation.dataValues.user_id, conversation)
 
-      }
-
+    if (allow_read) {
+      return response.success(conversation);
+    } else {
+      return response.fail("no auth");
     }
-    return response.success(conversation);
   } catch (error) {
     console.error(error);
     return response.fail("Failed to get conversation");
@@ -248,14 +302,14 @@ router.get("/:conversation_id", async (ctx) => {
  *                   type: string
  *                   description: Message
  */
-router.put("/:id", async ({ params, request, response }) => {
+router.put("/:id", async ({ state, params, request, response }) => {
   const { id: conversation_id } = params;
   const body = request.body || {};
   let { title } = body;
 
   try {
     const conversation = await Conversation.findOne({
-      where: { conversation_id: conversation_id },
+      where: { conversation_id: conversation_id, user_id: state.user.id, deleted_at: null },
     });
     if (!conversation) {
       return response.error("Conversation does not exist");
@@ -310,16 +364,29 @@ router.put("/:id", async ({ params, request, response }) => {
  *                   type: string
  *                   description: Success message
  */
-router.delete("/:conversation_id", async ({ params, response }) => {
+router.delete("/:conversation_id", async ({ state, params, response }) => {
   const { conversation_id } = params;
   try {
     const conversation = await Conversation.findOne({
-      where: { conversation_id: conversation_id },
+      where: { conversation_id: conversation_id, user_id: state.user.id, deleted_at: null },
     });
     if (!conversation) {
       return response.error("Conversation does not exist");
     }
-    await conversation.destroy();
+
+    // 清理nginx静态文件配置
+    try {
+      await deleteStaticConf(conversation_id);
+      console.log(`Nginx static config cleaned up for conversation ${conversation_id}`);
+    } catch (error) {
+      console.error('Failed to cleanup nginx static config:', error);
+      // 不影响主要的删除流程，只记录错误
+    }
+
+    // 设置deleted_at字段进行假删除
+    conversation.deleted_at = new Date();
+    await conversation.save();
+
     return response.success("Conversation deleted successfully");
   } catch (error) {
     console.error(error);
@@ -366,7 +433,7 @@ router.delete("/:conversation_id", async ({ params, response }) => {
  *                   description: Message
  *                 
  */
-router.post("/query", async ({ request, response }) => {
+router.post("/query", async ({ state, request, response }) => {
   const body = request.body || {};
   const { query } = body
 
@@ -374,11 +441,261 @@ router.post("/query", async ({ request, response }) => {
     where: {
       title: {
         [Op.like]: `%${query}%`
-      }
+      },
+      user_id: state.user.id,
+      deleted_at: null  // 过滤已删除的记录
     }
   });
 
   return response.success(conversations);
+});
+
+
+router.put("/visibility/:id", async ({ state, params, request, response }) => {
+  try {
+    const { id } = params;
+    const { is_public } = request.body;
+
+    // 验证 is_public 参数
+    if (typeof is_public !== 'boolean') {
+      return response.fail({}, "is_public must be a boolean value");
+    }
+
+    // 查找并验证会话是否存在且属于当前用户
+    const conversation = await Conversation.findOne({
+      where: {
+        conversation_id: id,
+        user_id: state.user.id,
+        deleted_at: null
+      }
+    });
+
+    if (!conversation) {
+      return response.fail({}, "Conversation not found or access denied");
+    }
+
+    // 更新 is_public 字段
+    await Conversation.update(
+      { is_public: is_public },
+      {
+        where: {
+          conversation_id: id,
+          user_id: state.user.id
+        }
+      }
+    );
+
+    // 返回更新后的会话信息
+    const updatedConversation = await Conversation.findOne({
+      where: {
+        conversation_id: id,
+        user_id: state.user.id
+      }
+    });
+
+    return response.success({
+      conversation_id: id,
+      is_public: updatedConversation.is_public,
+      message: `Conversation ${is_public ? 'made public' : 'made private'} successfully`
+    });
+
+  } catch (error) {
+    console.error('Error updating conversation public status:', error);
+    return response.fail({}, "Failed to update conversation public status");
+  }
+})
+
+/**
+ * 获取目录中的最终文件（最新文件或 todo.md）
+ * @param {string} dir_path - 目录路径
+ * @returns {Promise<string|null>} 文件路径或 null
+ */
+async function getFinalFile(dir_path) {
+  try {
+    const files = await fs.readdir(dir_path, { withFileTypes: true });
+    let latestFile = null;
+    let latestMtime = 0;
+    let todoFile = null;
+
+    for (const entry of files) {
+      if (entry.isFile()) {
+        if (entry.name === 'todo.md') {
+          todoFile = path.join(dir_path, entry.name);
+          continue;
+        }
+        const filePath = path.join(dir_path, entry.name);
+        const stat = await fs.stat(filePath);
+        if (stat.mtimeMs > latestMtime) {
+          latestMtime = stat.mtimeMs;
+          latestFile = filePath;
+        }
+      }
+    }
+
+    if (latestFile) {
+      return latestFile;
+    } else if (todoFile) {
+      return todoFile;
+    } else {
+      return null;
+    }
+  } catch (error) {
+    console.error('Error reading directory:', error);
+    return null;
+  }
+}
+
+/**
+ * @swagger
+ * /api/conversation/screenshots/batch:
+ *   post:
+ *     summary: Take screenshots for all conversations
+ *     tags:  
+ *       - Conversation
+ *     description: This endpoint takes screenshots for all conversations in the database and updates their screenshot URLs.
+ *     responses:
+ *       200:
+ *         description: Screenshots processed successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 code:
+ *                   type: integer
+ *                   description: Status code
+ *                 msg:
+ *                   type: string
+ *                   description: Success message
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     totalProcessed:
+ *                       type: integer
+ *                       description: Total conversations processed
+ *                     successCount:
+ *                       type: integer
+ *                       description: Successfully processed screenshots
+ *                     failedCount:
+ *                       type: integer
+ *                       description: Failed screenshots
+ */
+router.post("/screenshots/batch", async (ctx) => {
+  const { state, response } = ctx;
+
+  try {
+    // 获取所有未删除的会话
+    const conversations = await Conversation.findAll({
+      where: {
+        deleted_at: null
+      },
+    });
+
+    if (!conversations || conversations.length === 0) {
+      return response.success({
+        message: "No conversations found to process",
+        totalProcessed: 0,
+        successCount: 0,
+        failedCount: 0
+      });
+    }
+
+    console.log(`🚀 Starting batch screenshot processing for ${conversations.length} conversations`);
+
+    let successCount = 0;
+    let failedCount = 0;
+    const results = [];
+
+    // 获取授权token
+    const token = ctx.headers.authorization;
+    const tokenString = token && token.startsWith('Bearer ') ? token.slice(7) : token;
+
+    // 处理每个会话
+    for (const conversation of conversations) {
+      try {
+        const conversation_id = conversation.conversation_id;
+        const user_id = conversation.user_id;
+
+        // 构建工作空间路径
+        const WORKSPACE_DIR = getDirpath(process.env.WORKSPACE_DIR || 'workspace', user_id);
+        const dir_name = 'Conversation_' + conversation_id.slice(0, 6);
+        const dir_path = path.join(WORKSPACE_DIR, dir_name);
+
+        // 获取最终文件路径
+        const final_file_path = await getFinalFile(dir_path);
+
+        if (!final_file_path) {
+          console.log(`⚠️ No files found for conversation ${conversation_id}`);
+          failedCount++;
+          results.push({
+            conversation_id,
+            status: 'failed',
+            error: 'No files found in workspace'
+          });
+          continue;
+        }
+
+        // 构建预览URL
+        const url = `${process.env.SUB_SERVER_DOMAIN}/file/?url=${final_file_path}`;
+
+        // 截图并上传
+        // const screen_result = await takeScreenshotAndUpload(url, { 
+        //   accessToken: tokenString, 
+        //   conversation_id 
+        // });
+        const screen_result = null;
+        if (!screen_result || !screen_result.screenshotUrl) {
+          console.log(`❌ Failed to take screenshot for conversation ${conversation_id}`);
+          failedCount++;
+          results.push({
+            conversation_id,
+            status: 'failed',
+            error: 'Screenshot upload failed'
+          });
+          continue;
+        }
+
+        const screen_url = screen_result.screenshotUrl;
+
+        // 更新 Conversation 的截图URL
+        await Conversation.update(
+          { screen_shot_url: screen_url },
+          { where: { conversation_id } }
+        );
+
+        console.log(`✅ Screenshot updated for conversation ${conversation_id}: ${screen_url}`);
+        successCount++;
+        results.push({
+          conversation_id,
+          status: 'success',
+          screenshotUrl: screen_url
+        });
+
+      } catch (error) {
+        console.error(`❌ Error processing conversation ${conversation.conversation_id}:`, error);
+        failedCount++;
+        results.push({
+          conversation_id: conversation.conversation_id,
+          status: 'failed',
+          error: error.message
+        });
+      }
+    }
+
+    console.log(`🏁 Batch screenshot processing completed. Success: ${successCount}, Failed: ${failedCount}`);
+
+    return response.success({
+      message: "Batch screenshot processing completed",
+      totalProcessed: conversations.length,
+      successCount: successCount,
+      failedCount: failedCount,
+      results: results
+    });
+
+  } catch (error) {
+    console.error('Error in batch screenshot processing:', error);
+    return response.fail(`Failed to process batch screenshots: ${error.message}`);
+  }
 });
 
 

@@ -15,9 +15,9 @@ const write_file = async (filepath, content) => {
   return fs.writeFile(filepath, content);
 }
 
-const write_code = async (action, uuid) => {
+const write_code = async (action, uuid, user_id) => {
   let { path: filepath, content } = action.params;
-  filepath = await restrictFilepath(filepath);
+  filepath = await restrictFilepath(filepath, user_id);
   await write_file(filepath, content);
   // const result = await executeCode(filepath);
   // return result;

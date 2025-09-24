@@ -2,26 +2,7 @@ const fs = require('fs').promises;
 const path = require('path');
 const xlsx = require('node-xlsx');
 
-/**
- * Convert list from an xlsx file to markdown format.
- * 
- * @param {Array} list - The data from the xlsx file.
- * @returns {string} The markdown representation of the xlsx data.
- */
-const xlsxToMarkdown = (list) => {
-  if (!list || list.length === 0) return '';
-  // 1. get headers
-  const headers = list[0];
-  // 2. generate separator
-  const separator = headers.map(() => '---').join('|');
-  // 3. generate table header
-  let markdown = `|${headers.join('|')}|\n|${separator}|\n`;
-  // 4. generate table rows
-  for (let i = 1; i < list.length; i++) {
-    markdown += `|${list[i].join('|')}|\n`;
-  }
-  return markdown;
-};
+const { readXlsxOptimized } = require('./read_xlsx_optimized');
 
 /**
  * Reads the content of a file asynchronously.
@@ -40,16 +21,8 @@ async function read_file(filepath) {
     // xlsx file handling
     if (extension === '.xlsx') {
       // use node-xlsx to parse xlsx file and convert to markdown
-      const sheets = xlsx.parse(absolute_path);
-      const sheetList = []
-      let index = 0;
-      for (const item of sheets) {
-        const { name, data } = item
-        const markdown = xlsxToMarkdown(data)
-        const markdownWithSheetName = `### Sheet ${index++}: ${name}\n${markdown}`
-        sheetList.push(markdownWithSheetName)
-      }
-      return sheetList.join('\n\n');
+      const result = readXlsxOptimized(absolute_path);
+      return result.content;
     } else {
       // try reading as utf8
       const content = await fs.readFile(absolute_path, 'utf8');

@@ -2,6 +2,7 @@ const thinking = require("./thinking");
 const { resolveActions } = require("@src/utils/resolve");
 const Message = require("@src/utils/message");
 const LocalMemory = require("@src/agent/memory/LocalMemory");
+const { isPauseRequiredError } = require("@src/utils/errors");
 
 // Reflection module
 const reflection = require("@src/agent/reflection/index");
@@ -10,7 +11,6 @@ const MAX_TOTAL_RETRIES = 10; // add：max retries times
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 const finish_action = async (action, context, task_id) => {
-
   const { memory, onTokenStream } = context;
   const memorized_content = await memory.getMemorizedContent();
   const result = {
@@ -76,7 +76,11 @@ const MAX_CONTENT_LENGTH = 5 * 1e4;
  */
 const completeCodeAct = async (task = {}, context = {}) => {
   // Initialize parameters and environment
-  const { requirement, id = 1 } = task;
+  const { requirement, id = 1, depth = 1 } = task;
+  if (depth > 1) {
+    // const task_manager = context.task_manager;
+    // process.exit(0);
+  }
   const maxRetries = context.max_retry_times || MAX_RETRY_TIMES;
   const maxTotalRetries = context.max_total_retries || MAX_TOTAL_RETRIES; // use context or default value
 
@@ -90,10 +94,18 @@ const completeCodeAct = async (task = {}, context = {}) => {
   let retryCount = 0;
   let totalRetryAttempts = 0; // add：total retries times counter
 
+  const handleRetry = async () => {
+    retryCount++;
+    totalRetryAttempts++;
+    context.retryCount = retryCount;
+    await delay(500);
+  }
+
   // Main execution loop
   while (true) {
     try {
       // 1. LLM thinking
+      context.depth = depth || 1;
       let content = await thinking(requirement, context);
       // console.log("thinking.result", content);
 
@@ -109,6 +121,22 @@ const completeCodeAct = async (task = {}, context = {}) => {
         action = actions[0];
       }
       console.log("action", action);
+
+      if (action && action.type === 'parse_error') {
+        await memory.addMessage('user', action.params?.message || 'resolve action failed, Please only generate valid xml format content');
+        await handleRetry();
+        continue;
+      }
+
+      /**
+       * 任务处理
+       */
+      if (action && action.type === 'revise_plan') {
+        return {
+          status: 'revise_plan',
+          params: action.params
+        }
+      }
 
       /**
        * 3. Action parse failed
@@ -140,10 +168,7 @@ const completeCodeAct = async (task = {}, context = {}) => {
         // Feedback invalid format
         await memory.addMessage('user', "resolve action failed, Please only generate valid xml format content");
 
-        await delay(500);
-        retryCount++;
-        totalRetryAttempts++;
-        context.retryCount = retryCount;
+        await handleRetry();
         continue;
       }
 
@@ -181,7 +206,7 @@ const completeCodeAct = async (task = {}, context = {}) => {
         continue;
       } else if (status === "failure") {
         // use retryHandle to handle retry logic
-        const { shouldContinue, result } = retryHandle(retryCount, totalRetryAttempts, maxRetries, maxTotalRetries);
+        const { shouldContinue, result } = retryHandle(retryCount, totalRetryAttempts, maxRetries, maxTotalRetries, comments);
         if (!shouldContinue) {
           return result;
         }
@@ -197,6 +222,17 @@ const completeCodeAct = async (task = {}, context = {}) => {
     } catch (error) {
       // 8. Exception handling
       console.error("An error occurred:", error);
+
+      // 检查是否为需要暂停的错误类型: 积分不足 | LLM 调用失败
+      if (isPauseRequiredError(error)) {
+        return {
+          status: "failure",
+          comments: error.message,
+          error: error
+        };
+      }
+
+      // 普通错误处理逻辑
       // use retryHandle to handle retry logic, pass in error message
       await memory.addMessage("user", error.message);
       const { shouldContinue, result } = retryHandle(retryCount, totalRetryAttempts, maxRetries, maxTotalRetries, error.message);

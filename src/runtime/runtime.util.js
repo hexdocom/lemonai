@@ -1,8 +1,8 @@
 const path = require('path');
 
 const { getDirpath } = require('./utils/electron');
-const WORKSPACE_DIR = getDirpath(process.env.WORKSPACE_DIR || 'workspace');
-const resolveWorkspaceDir = async () => {
+const resolveWorkspaceDir = async (user_id) => {
+  const WORKSPACE_DIR = getDirpath(process.env.WORKSPACE_DIR || 'workspace', user_id);
   return WORKSPACE_DIR;
 }
 
@@ -11,8 +11,8 @@ const resolveWorkspaceDir = async () => {
  * @param {string} filepath 
  * @returns {Promise<string>}
  */
-const restrictFilepath = async (filepath) => {
-  const workspace_dir = await resolveWorkspaceDir();
+const restrictFilepath = async (filepath, user_id) => {
+  const workspace_dir = await resolveWorkspaceDir(user_id);
 
   const resolvedPath = path.resolve(filepath);
   const resolvedWorkspace = path.resolve(workspace_dir);

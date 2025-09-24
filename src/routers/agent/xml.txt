@@ -1,0 +1,61 @@
+根据用户要求，我们需要在"最近交易"部分增加一个饼状图。我将使用"扩展替换"策略，在交易列表上方添加饼状图容器。
+
+```xml
+<replace>
+  <find><![CDATA[<!-- 最近交易 - 使用微妙渐变 -->
+          <div class="gradient-card rounded-xl p-4 card-shadow">
+            <div class="flex justify-between items-center mb-4">
+              <h4 class="font-semibold">最近交易</h4>
+              <a href="#" class="text-dream-indigo text-sm hover:text-dream-purple transition-colors">查看全部</a>
+            </div>
+
+            <!-- 交易列表 -->]]></find>
+  <with><![CDATA[<!-- 最近交易 - 使用微妙渐变 -->
+          <div class="gradient-card rounded-xl p-4 card-shadow">
+            <div class="flex justify-between items-center mb-4">
+              <h4 class="font-semibold">最近交易</h4>
+              <a href="#" class="text-dream-indigo text-sm hover:text-dream-purple transition-colors">查看全部</a>
+            </div>
+
+            <!-- 交易饼状图 -->
+            <div class="h-48 mb-4">
+              <canvas id="recentTransactionsChart"></canvas>
+            </div>
+
+            <!-- 交易列表 -->]]></with>
+</replace>
+<replace>
+  <find><![CDATA[// 消费分析页面的月度趋势图表 - 使用渐变色彩
+      const monthlyTrendCtx = document.getElementById('monthlyTrendChart').getContext('2d');]]></find>
+  <with><![CDATA[// 最近交易饼状图
+      const recentTransactionsCtx = document.getElementById('recentTransactionsChart').getContext('2d');
+      new Chart(recentTransactionsCtx, {
+        type: 'pie',
+        data: {
+          labels: ['餐饮', '购物', '交通', '娱乐', '其他'],
+          datasets: [{
+            data: [35, 25, 15, 10, 15],
+            backgroundColor: [
+              '#EF4444',
+              '#3B82F6',
+              '#10B981',
+              '#8B5CF6',
+              '#94A3B8'
+            ],
+            borderWidth: 1
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: 'right'
+            }
+          }
+        }
+      });
+
+      // 消费分析页面的月度趋势图表 - 使用渐变色彩
+      const monthlyTrendCtx = document.getElementById('monthlyTrendChart').getContext('2d');]]></with>
+</replace>

@@ -10,7 +10,7 @@ const sub_server_request = require('@src/utils/sub_server_request')
 const conversation_token_usage = require('@src/utils/get_sub_server_token_usage')
 
 const thinking = async (requirement, context = {}) => {
-  let model_info = await getDefaultModel()
+  let model_info = await getDefaultModel(context.conversation_id)
   if (model_info.is_subscribe) {
     let content = await thinking_server(requirement, context)
     return content
@@ -74,6 +74,8 @@ const thinking_local = async (requirement, context = {}) => {
   let prompt = '';
   if (messages.length == 0) {
     prompt = await resolveThinkingPrompt(requirement, context);
+    global.logging(context, 'thinking', prompt);
+    // global.safeExit && await global.safeExit(0, 'process.exit in thinking_local');
   }
   const options = {
     messages: messages.map(item => {
@@ -81,7 +83,7 @@ const thinking_local = async (requirement, context = {}) => {
     })
   }
   const content = await call(prompt, context.conversation_id, DEVELOP_MODEL, options);
-  // console.log('content', content);
+  global.logging(context, 'thinking', content);
   if (prompt) {
     await memory.addMessage('user', prompt);
   }

@@ -10,6 +10,11 @@ const fields = {
     autoIncrement: true,
     allowNull: false,
   },
+  user_id: {
+    type: DataTypes.BIGINT,
+    allowNull: true,
+    comment: '用户ID'
+  },
   provider_id: {
     type: DataTypes.INTEGER,
     allowNull: false,

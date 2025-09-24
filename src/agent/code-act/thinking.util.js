@@ -39,9 +39,12 @@ const describeUploadFiles = files => {
 }
 
 const describeSystem = () => {
-  return `- Operating System: ${process.platform}
+  return `
+- Role: LemonAI
+- Website: https://lemonai.ai
+- Operating System: ${process.platform}
 - Docker Environment OS (for terminal_run): linux
-- Current Time: ${new Date().toLocaleString()}`
+- Current Date: ${new Date().toLocaleDateString()}`
 }
 
 module.exports = exports = {

@@ -49,26 +49,24 @@ const UserSearchSetting = require('@src/models/UserSearchSetting')
  *                   description: Message
  *                 
  */
-router.put("/", async ({ request, response }) => {
+router.put("/", async ({ state, request, response }) => {
     const body = request.body || {};
-
     const { setting_type, model_id, config } = body
-
-    const existingModelSetting = await DefaultModelSetting.findOne({ where: { setting_type: setting_type } });
+    const existingModelSetting = await DefaultModelSetting.findOne({ where: { setting_type: setting_type, user_id: state.user.id } });
     if (existingModelSetting) {
         await DefaultModelSetting.update(
             { model_id: model_id, config: config },
-            { where: { setting_type: setting_type } }
+            { where: { setting_type: setting_type, user_id: state.user.id } }
         );
     } else {
         await DefaultModelSetting.create({
             setting_type: setting_type,
             model_id: model_id,
             config: config,
+            user_id: state.user.id
         });
     }
     await updateDefaultModel(setting_type)
-
     return response.success();
 });
 
@@ -98,8 +96,8 @@ router.put("/", async ({ request, response }) => {
  *                   type: string
  *                   description: Message
  */
-router.get("/", async ({ response }) => {
-    const defaultModelSetting = await DefaultModelSetting.findAll({ order: [['create_at', 'DESC']] });
+router.get("/", async ({ state, response }) => {
+    const defaultModelSetting = await DefaultModelSetting.findAll({ where: { user_id: state.user.id }, order: [['create_at', 'DESC']] });
     return response.success(defaultModelSetting);
 });
 
@@ -146,11 +144,11 @@ router.get("/check", async ({ response }) => {
     if (!defaultModelSetting) {
         check_map.has_default_platform = false
     } else {
-        const model = await Model.findOne({ where: { id: defaultModelSetting.model_id } });
+        const model = await Model.findOne({ where: { id: defaultModelSetting.model_id } })
 
-        const platform = await Platform.findOne({ where: { id: model.platform_id } });
-        if (!platform || (!platform.is_subscribe && !platform.is_enabled)) {
-            check_map.has_default_platform = false;
+        const platform = await Platform.findOne({ where: { id: model.platform_id } })
+        if (!platform || !platform.is_enabled) {
+            check_map.has_default_platform = false
         }
     }
 

@@ -1,8 +1,22 @@
 const router = require("koa-router")();
 
-const DockerRuntime = require("@src/runtime/DockerRuntime.js");
+const DockerRuntime = require("@src/runtime/DockerRuntime");
+const E2bRuntime = require("@src/runtime/E2bRuntime");
 
+const RUNTIME_TYPE = process.env.RUNTIME_TYPE || 'docker';
+const { closeContainer: dockerCloseContainer } = require('@src/utils/eci_server');
+const { closeContainer: e2bCloseContainer } = require('@src/utils/e2b')
 
+let closeContainer = dockerCloseContainer
+if (RUNTIME_TYPE && RUNTIME_TYPE === 'e2b') {
+  closeContainer = e2bCloseContainer
+}
+const runtimeMap = {
+  'docker': DockerRuntime,
+  'e2b': E2bRuntime
+}
+
+const Runtime = runtimeMap[RUNTIME_TYPE]
 /**
  * @swagger
  * /api/runtime/vscode-url:
@@ -40,21 +54,33 @@ const DockerRuntime = require("@src/runtime/DockerRuntime.js");
  *                   type: string
  *                   description: Message
  */
-router.get('/vscode-url', async ({ query, response }) => {
-    const { conversation_id } = query;
-    let dir_name = ''
-    if (conversation_id) {
-        dir_name = 'Conversation_' + conversation_id.slice(0, 6);
-    }
+router.get('/vscode-url', async ({ state, query, response }) => {
+  const { conversation_id } = query;
+  const user_id = state.user.id
+  let dir_name = ''
+  if (conversation_id) {
+    dir_name = 'Conversation_' + conversation_id.slice(0, 6);
+  }
 
-    const runtime = new DockerRuntime()
-    const container = await runtime.connect_container()
-    const container_info = await container.inspect()
+  const runtime = new Runtime({ user_id, conversation_id })
+  await runtime.connect_container()
+  // 五分钟后关闭
+  setTimeout(() => {
+    closeContainer(user_id);
+  }, 5 * 60 * 1000);
 
-    const vscode_port = Object.keys(container_info.NetworkSettings.Ports)[1].split('/')[0]
+  const vscode_port = 9002
 
-    const vscode_url = `http://localhost:${vscode_port}?folder=/workspace/${dir_name}`;
-    return response.success({ url: vscode_url });
+  const vscode_url = runtime.get_vscode_url(dir_name);
+  return response.success({ url: vscode_url });
 });
+
+router.post('/delete_container', async ({ state, response }) => {
+  const user_id = state.user.id
+
+  let res = await closeContainer(user_id)
+  return response.success(res);
+});
+
 
 module.exports = exports = router.routes();

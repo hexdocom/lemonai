@@ -2,9 +2,12 @@ const { getDefaultModel } = require('@src/utils/default_model')
 
 const createLLMInstance = require("@src/completion/llm.one.js");
 const parseJSON = require("./json.js");
+const { PauseRequiredError } = require("@src/utils/errors");
 
 const calcToken = require('@src/completion/calc.token.js')
 const Conversation = require('@src/models/Conversation.js')
+
+const { deductPoints } = require('@src/utils/point')
 
 const defaultOnTokenStream = (ch) => {
   process.stdout.write(ch);
@@ -14,28 +17,24 @@ const DEFAULT_MODEL_TYPE = "assistant";
 
 const LLM_LOGS = require('@src/models/LLMLogs.js');
 
-const handleOptions = (restOptions, model) => {
-  // Temporary solution
-  // TODO: Allow User set options value in model config | config file
-  if (model.platform_name) {
-    if (/volcengine/i.test(model.platform_name) && /deepseek-v3/i.test(model.model_name)) {
-      restOptions.max_tokens = 16000;
-    }
-  }
-  return restOptions;
-}
-
 /**
  * @param {*} prompt 
  * @param {*} model_type 
  * @param {*} options 
- * @param {*} onTokenStream
- * @returns {Promise<string>}
+ * @param {*} onTokenStream 
+ * @returns {Promise<Object>}
  */
 const call = async (prompt, conversation_id, model_type = DEFAULT_MODEL_TYPE, options = { temperature: 0 }, onTokenStream = defaultOnTokenStream) => {
-  const model_info = await getDefaultModel(model_type)
+  const model_info = await getDefaultModel(conversation_id)
   const model = `provider#${model_info.platform_name}#${model_info.model_name}`;
   const llm = await createLLMInstance(model, onTokenStream, { model_info });
+  // 判断模型
+  if (model_info.model_name === 'deepseek-v3-250324') {
+    options.max_tokens = 16000;
+  } else if (model_info.model_name === 'deepseek-v3-1-250821') {
+    options.max_tokens = 32000;
+  }
+  
   const { response_format, messages = [], ...restOptions } = options;
   const context = { messages };
 
@@ -44,9 +43,13 @@ const call = async (prompt, conversation_id, model_type = DEFAULT_MODEL_TYPE, op
     prompt = '/no_think' + prompt;
   }
 
-  handleOptions(restOptions, model_info);
-
   const content = await llm.completion(prompt, context, restOptions);
+
+  // 处理 ERR_BAD_REQUEST 错误
+  if (typeof content === 'string' && content.startsWith('ERR_BAD_REQUEST')) {
+    throw new PauseRequiredError("LLM Call Failed");
+  }
+
   const inputPrompt = messages.map(item => item.content).join('\n') + '\n' + prompt;
   const input_tokens = calcToken(inputPrompt)
   const output_tokens = calcToken(content)
@@ -58,16 +61,22 @@ const call = async (prompt, conversation_id, model_type = DEFAULT_MODEL_TYPE, op
       // @ts-ignore
       conversation.output_tokens = conversation.output_tokens + output_tokens
       await conversation.save()
+      const { notEnough } = await deductPoints(conversation.dataValues.user_id, { input_tokens, output_tokens }, conversation_id);
+      if (notEnough) {
+        throw new PauseRequiredError('Insufficient credits balance');
+      }
     }
   }
+
   if (response_format === 'json') {
     const json = parseJSON(content);
     // @ts-ignore
-    await LLM_LOGS.create({ model, prompt, messages, content, json });
+    await LLM_LOGS.create({ model, prompt, messages, content, json, conversation_id });
     return json;
   }
   // @ts-ignore
-  await LLM_LOGS.create({ model, prompt, messages, content });
+  await LLM_LOGS.create({ model, prompt, messages, content, conversation_id });
+  //return content
   return content;
 }
 

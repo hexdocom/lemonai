@@ -47,6 +47,7 @@ class McpClient {
     }
 
     const existingClient = this.clients.get(serverKey);
+
     if (existingClient) {
       try {
         const pingResult = await existingClient.ping();
@@ -185,14 +186,28 @@ class McpClient {
           console.error('[MCP] args parse error', args);
         }
       }
+      console.log("====args=====",args)
+
       const client = await this.initClient(server);
       return await client.callTool({ name, arguments: args }, undefined, {
         timeout: server.timeout ? server.timeout * 1000 : 60000, // Default timeout of 1 minute
       });
     } catch (error) {
+      console.error("===!!!===",error)
       console.error(`[MCP] Error calling tool ${name} on ${server.name}:`, error);
       throw error;
     }
+  }
+
+  async getInstallInfo() {
+    const dir = path.join(os.homedir(), '.cherrystudio', 'bin');
+    // In node, we might not have a reliable way to get the exact binary name like in electron,
+    // so we assume standard names.
+    const uvName = os.platform() === 'win32' ? 'uv.exe' : 'uv';
+    const bunName = os.platform() === 'win32' ? 'bun.exe' : 'bun';
+    const uvPath = path.join(dir, uvName);
+    const bunPath = path.join(dir, bunName);
+    return { dir, uvPath, bunPath };
   }
 
   async listPromptsImpl(server) {

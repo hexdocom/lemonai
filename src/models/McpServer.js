@@ -11,6 +11,11 @@ const fields = {
     allowNull: false,
     comment: 'MCP Server ID'
   },
+  user_id: {
+    type: DataTypes.BIGINT,
+    allowNull: false,
+    comment: '用户ID'
+  },
   name: {
     type: DataTypes.STRING(255),
     allowNull: true,
@@ -86,7 +91,7 @@ const fields = {
 McpServerTable.init(fields, {
   sequelize,
   modelName: 'mcp_server',
-  timestamps: true
+  timestamps: false
 });
 
 module.exports = exports = McpServerTable;

@@ -33,7 +33,7 @@ const call = require("@src/utils/llm");
 const evaluate_model = 'assistant';
 
 const evaluate = async (requirement, result, conversation_id) => {
-  let model_info = await getDefaultModel()
+  let model_info = await getDefaultModel(conversation_id)
   if (model_info.is_subscribe) {
     let content = await evaluate_server(requirement, result, conversation_id)
     return content

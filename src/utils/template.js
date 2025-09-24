@@ -50,11 +50,24 @@ const resolveTemplate = async (template, value = {}) => {
 
 const fs = require('fs');
 const path = require('path');
+// 确保临时目录存在
+const { getDirpath } = require('@src/utils/electron');
+const cache_dir = getDirpath('Caches/template');
+fs.mkdirSync(cache_dir, { recursive: true }); // 创建目录，如果已存在则不做任何操作
+
 const loadTemplate = async (filename) => {
-  // TODO: Support user custom template | template in db
-  const filepath = path.resolve(__dirname, '../template', filename);
-  const template = fs.readFileSync(filepath, 'utf8');
-  return template
+  try {
+    const cache_file = path.resolve(cache_dir, filename);
+    console.log('cache_file', cache_file);
+    if (fs.existsSync(cache_file)) {
+      return fs.readFileSync(cache_file, 'utf8');
+    }
+    const filepath = path.resolve(__dirname, '../template', filename);
+    const template = fs.readFileSync(filepath, 'utf8');
+    return template
+  } catch (error) {
+    return ''
+  }
 }
 
 module.exports = exports = {

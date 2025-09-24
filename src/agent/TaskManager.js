@@ -12,73 +12,26 @@ class TaskManager {
     this.conversation_id = conversation_id;
     this.tasks = [];
     this.logFilePath = path.resolve(cache_dir, logFilePath);
-    this._initializeLogFile();
   }
 
-  async _initializeLogFile() {
-    try {
-      // Check if file exists, if not, create it with a header
-      await fs.accessSync(this.logFilePath);
-    } catch (error) {
-      // File does not exist, create it with header
-      await this._writeLog('# Task Execution Log\n\n');
-    }
+  async bulkCreate(tasks) {
+    const tasksToSave = tasks.map(task => ({
+      conversation_id: this.conversation_id,
+      task_id: task.id,
+      requirement: task.requirement,
+      status: task.status,
+      parent_id: task.parent_id,
+    }));
+    await Task.bulkCreate(tasksToSave);
   }
 
-  async _writeLog(content) {
-    try {
-      await fs.appendFileSync(this.logFilePath, content, 'utf-8');
-    } catch (error) {
-      console.error(`Error writing to log file ${this.logFilePath}:`, error);
-      // Handle error appropriately, maybe log to console or another system
-    }
-  }
-
-  _generateMarkdownLog(task, oldStatus = null) {
-    const timestamp = new Date().toISOString();
-    let statusEmoji = '';
-    let statusText = task.status;
-
-    switch (task.status) {
-      case 'pending':
-        statusEmoji = '⏳';
-        break;
-      case 'running':
-        statusEmoji = '🚀';
-        break;
-      case 'completed':
-        statusEmoji = '✅';
-        break;
-      case 'failed':
-        statusEmoji = '❌';
-        statusText += task.error ? `: ${task.error}` : '';
-        break;
-      default:
-        statusEmoji = '❓'; // Unknown status
-    }
-
-    const taskDescription = task.requirement || task.description || `Task ${task.id}`;
-    let logEntry = `- [${task.status === 'completed' ? 'x' : ' '}] ${statusEmoji} **${task.id}**: ${taskDescription} - Status: **${statusText}** (${timestamp})\n`;
-
-    // Optionally add more details for completed tasks
-    if (task.status === 'completed' && task.result) {
-      // Keep result concise or reference it if too long
-      const resultSummary = typeof task.result === 'string' && task.result.length > 100 ? task.result.substring(0, 100) + '...' : JSON.stringify(task.result);
-      logEntry += `  - Result: ${resultSummary}\n`;
-    }
-    if (task.memorized) {
-      logEntry += `  - Memorized: ${task.memorized}\n`;
-    }
-    return logEntry;
-  }
-
-  async setTasks(tasks) {
+  async setTasks(tasks, sync = true) {
     const prefix = (Date.now() / 1000).toFixed(0);
     let index = 1;
     this.tasks = tasks.map(item => {
-      item.requirement = item.description;
+      item.requirement = item.description || item.requirement;
       item.id = item.id || `${prefix}_000${index++}`
-      item.status = item.status || 'pending'; // Default status
+      item.status = item.status || 'pending';
       return item
     })
 
@@ -88,21 +41,95 @@ class TaskManager {
       requirement: task.requirement,
       status: task.status,
     }));
-    await Task.bulkCreate(tasksToSave);
-    // Log initial tasks
-    let initialLog = `## Initial Tasks (${new Date().toISOString()})\n`;
-    this.tasks.forEach(task => {
-      initialLog += this._generateMarkdownLog(task);
-    });
-    await this._writeLog(initialLog + '\n');
+    sync && await Task.bulkCreate(tasksToSave);
   }
 
   getTasks() {
     return this.tasks || [];
   }
 
+  async loadTasks() {
+    if (!this.conversation_id) {
+      console.error("Error: Cannot load tasks without a conversation_id.");
+      return [];
+    }
+
+    try {
+      const tasks = await Task.findAll({
+        where: { conversation_id: this.conversation_id, },
+        order: [['id', 'ASC']]
+      });
+
+      if (!tasks || tasks.length === 0) {
+        this.tasks = [];
+        return [];
+      }
+
+      const taskMap = new Map();
+      const rootTasks = [];
+
+      for (const task of tasks) {
+        const dataValues = task.dataValues;
+        const value = {
+          id: dataValues.task_id,
+          requirement: dataValues.requirement,
+          status: dataValues.status,
+          error: dataValues.error,
+          result: dataValues.result,
+          memorized: dataValues.memorized,
+          parent_id: dataValues.parent_id,
+          children: []
+        };
+        taskMap.set(dataValues.task_id, value);
+      }
+
+      for (const task of taskMap.values()) {
+        if (task.parent_id) {
+          const parent = taskMap.get(task.parent_id);
+          if (parent) {
+            parent.children.push(task);
+          } else {
+            console.warn(`Warning: Task with ID ${task.id} has an invalid parent_id ${task.parent_id}. Treating as a root task.`);
+            rootTasks.push(task);
+          }
+          continue;
+        }
+        rootTasks.push(task);
+      }
+
+      this.tasks = rootTasks;
+      return this.tasks;
+
+    } catch (error) {
+      console.error("Failed to load tasks:", error);
+      return [];
+    }
+  }
+
+  /**
+   * Finds a task or a sub-task by its ID.
+   * The search is performed on top-level tasks and their direct children.
+   *
+   * @param {string | number} taskId The ID of the task or sub-task to find.
+   * @returns {object | undefined} The found task object or undefined if not found.
+   */
   getTaskById(taskId) {
-    return this.tasks.find(t => t.id === taskId);
+    for (const task of this.tasks) {
+      if (task.id === taskId) {
+        return task;
+      }
+      if (task.children) {
+        const subTask = task.children.find(c => c.id === taskId);
+        if (subTask) {
+          return subTask;
+        }
+      }
+    }
+    return undefined;
+  }
+
+  getTaskIndexById(taskId) {
+    return this.tasks.findIndex(t => t.id === taskId);
   }
 
   async updateTaskStatus(taskId, status, details = {}) {
@@ -115,44 +142,159 @@ class TaskManager {
     const oldStatus = task.status;
     task.status = status;
 
-    if (details.error) {
-      task.error = details.error;
+    if (status === 'revise_plan' && details.params) {
+      await this.revisePlan(taskId, details.params || {});
     }
-    if (details.result) {
-      task.result = details.result;
-    }
-    if (details.memorized) {
-      task.memorized = details.memorized;
+
+    const keys = ['content', 'memorized', 'comments'];
+    for (const key of keys) {
+      if (details[key]) {
+        task[key] = details[key];
+      }
     }
 
     await Task.update({
       status: task.status,
-      error: task.error,
-      result: task.result,
+      content: task.content,
       memorized: task.memorized,
     }, {
       where: {
         task_id: taskId
       }
     });
-
-    // Log the status change
-    const logEntry = this._generateMarkdownLog(task, oldStatus);
-    await this._writeLog(logEntry);
   }
 
-  // Method to update the entire log file based on current task states
-  async regenerateFullLog() {
-    let fullLog = `# Task Execution Log (Updated: ${new Date().toISOString()})\n\n`;
-    this.tasks.forEach(task => {
-      fullLog += this._generateMarkdownLog(task);
-    });
-    try {
-      await fs.writeFileSync(this.logFilePath, fullLog, 'utf-8');
-    } catch (error) {
-      console.error(`Error regenerating log file ${this.logFilePath}:`, error);
+  async revisePlan(task_id, options = {}) {
+    const { mode, tasks } = options;
+
+    const resolveRequirement = task => {
+      return `### ${task.title}
+<goal>${task.goal}</goal>
+<context>${task.context}</context>
+<acceptance_criteria>${task.acceptance_criteria}</acceptance_criteria>`
+    }
+    const prefix = (Date.now() / 1000).toFixed(0);
+    let index = 1;
+    tasks.map(task => {
+      task.conversation_id = this.conversation_id;
+      task.id = task.id || `${prefix}_000${index++}`
+      task.requirement = resolveRequirement(task)
+      return task
+    })
+
+    if (mode === 'decompose') {
+      // 将任务分解到指定任务的 children 下
+      const task = this.getTaskById(task_id);
+      if (!task) {
+        console.error(`Task with ID ${task_id} not found.`);
+        return;
+      }
+      task.children = task.children || [];
+      const children = tasks.map(item => {
+        item.status = 'pending';
+        item.depth = (task.depth || 1) + 1;
+        item.parent_id = task_id;
+        return item
+      });
+      task.children.push(...children);
+
+      await this.bulkCreate(children);
+    }
+
+    if (mode === 'overwrite') {
+      // 保存已完成任务的状态
+      const completedTasks = new Map();
+      this.tasks.forEach(task => {
+        if (task.status === 'completed') {
+          completedTasks.set(task.id, task);
+        }
+      });
+
+      // 创建新的任务列表，保持已完成任务的状态
+      const newTasks = tasks.map(newTask => {
+        const completedTask = completedTasks.get(newTask.id);
+        if (completedTask) {
+          // 保持已完成任务的状态，但更新其他属性
+          return { ...newTask, status: completedTask.status };
+        }
+        // 新任务默认为 pending 状态
+        return { ...newTask, status: 'pending' };
+      });
+
+      // 替换任务列表
+      await this.setTasks(newTasks, false);
     }
   }
+
+  async resolvePendingTask() {
+    const getFirstPendingTask = (tasks = []) => {
+      for (const task of tasks) {
+        if (task.status !== 'pending' && task.status !== 'revise_plan') {
+          continue;
+        }
+        if (task.children && task.children.length > 0) {
+          const pendingChild = getFirstPendingTask(task.children);
+          if (pendingChild) {
+            return pendingChild;
+          }
+          continue;
+        }
+        return task;
+      }
+      return null;
+    };
+
+    const tasks = this.getTasks();
+    return getFirstPendingTask(tasks);
+  }
+
+  resolveTasksDescription(current_task_id) {
+    const tasks = this.getTasks();
+    if (!Array.isArray(tasks) || tasks.length === 0) {
+      return '<tasks></tasks>';
+    }
+
+    const resolveTaskStatus = (task = {}) => {
+      const status = task.status;
+      if (task.id === current_task_id) {
+        return 'in_progress';
+      }
+      if (status === 'completed') {
+        return 'completed';
+      }
+      return 'paused';
+    }
+    /**
+     * 递归处理单个任务节点
+     */
+    function formatTask(task = {}, depth = 0) {
+      const indent = '  '.repeat(depth + 1);
+      const isCurrent = task.id === current_task_id;
+      const status = resolveTaskStatus(task);
+      let result = `${indent}<task id="${task.id}" status="${status}"${isCurrent ? ' current="true"' : ''}>\n`;
+      if (task.requirement) {
+        result += `${indent}  <requirement><![CDATA[${task.requirement}]]></requirement>\n`;
+      }
+      // 处理子任务
+      if (task.children && task.children.length > 0) {
+        result += `${indent}  <subtasks>\n`;
+        for (const child of task.children) {
+          result += formatTask(child, depth + 2);
+        }
+        result += `${indent}  </subtasks>\n`;
+      }
+
+      result += `${indent}</task>\n`;
+      return result;
+    }
+    let xml = '<tasks>\n';
+    for (const task of tasks) {
+      xml += formatTask(task);
+    }
+    xml += '</tasks>';
+    return xml;
+  }
+
 }
 
 module.exports = TaskManager;

@@ -11,6 +11,11 @@ const fields = {
     allowNull: false,
     comment: 'Task ID'
   },
+  user_id: {
+    type: DataTypes.BIGINT,
+    allowNull: true,
+    comment: '用户ID'
+  },
   conversation_id: {
     type: DataTypes.STRING,
     allowNull: false,
@@ -20,6 +25,11 @@ const fields = {
     type: DataTypes.STRING,
     allowNull: false,
     comment: 'Task ID'
+  },
+  parent_id: {
+    type: DataTypes.STRING,
+    allowNull: true,
+    comment: '父任务ID'
   },
   requirement: {
     type: DataTypes.TEXT,
@@ -38,7 +48,7 @@ const fields = {
     allowNull: true,
   },
   memorized: {
-    type: DataTypes.TEXT,
+    type: DataTypes.TEXT('long'),
     allowNull: true,
   },
   create_at: {

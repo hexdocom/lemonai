@@ -11,6 +11,11 @@ const fields = {
     allowNull: false,
     comment: 'ID'
   },
+  user_id: {
+    type: DataTypes.BIGINT,
+    allowNull: true,
+    comment: '用户ID'
+  },
   role: {
     type: DataTypes.STRING(255),
     allowNull: false,
@@ -47,13 +52,13 @@ const fields = {
     comment: 'Meta'
   },
   comments: {
-    type: DataTypes.STRING(255),
+    type: DataTypes.TEXT('long'),
     allowNull: true,
     comment: 'Comments'
   },
   memorized: {
-    type: DataTypes.BOOLEAN,
-    defaultValue: false,
+    type: DataTypes.TEXT,
+    defaultValue: '',
     allowNull: true,
     comment: 'Memorized'
   },

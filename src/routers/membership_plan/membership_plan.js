@@ -1,11 +1,15 @@
 const router = require("koa-router")();
-const forwardRequest = require('@src/utils/sub_server_forward_request')
+
+const MembershipPlanTable = require("@src/models/MembershipPlan");
+
+router.get("/list", async ({ response }) => {
+    const list = await MembershipPlanTable.findAll({
+    });
+
+    return response.success(list);
+});
 
 
-router.get("/list", async (ctx) => {
-  let res = await forwardRequest(ctx, "GET", "/api/membership_plan/list")
-  return ctx.body = res;
-})
 
 
 module.exports = exports = router.routes();

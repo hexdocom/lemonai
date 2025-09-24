@@ -1,0 +1,44 @@
+<replace>
+  <find><![CDATA[<div class="grid grid-cols-4 gap-2">
+            <button
+              class="flex flex-col items-center text-transparent bg-clip-text bg-gradient-to-r from-dream-indigo to-dream-purple">
+              <i class="fa fa-dashboard"></i>
+              <span class="text-xs mt-1">仪表盘</span>
+            </button>
+            <button class="flex flex-col items-center text-neutral-light">
+              <i class="fa fa-pie-chart"></i>
+              <span class="text-xs mt-1">分析</span>
+            </button>
+            <button class="flex flex-col items-center text-neutral-light">
+              <i class="fa fa-plus-circle text-2xl"></i>
+              <span class="text-xs mt-1">记账</span>
+            </button>
+            <button class="flex flex-col items-center text-neutral-light">
+              <i class="fa fa-user-o"></i>
+              <span class="text-xs mt-1">我的</span>
+            </button>
+          </div>]]></find>
+  <with><![CDATA[<div class="grid grid-cols-5 gap-2">
+            <button
+              class="flex flex-col items-center text-transparent bg-clip-text bg-gradient-to-r from-dream-indigo to-dream-purple">
+              <i class="fa fa-dashboard"></i>
+              <span class="text-xs mt-1">仪表盘</span>
+            </button>
+            <button class="flex flex-col items-center text-neutral-light">
+              <i class="fa fa-pie-chart"></i>
+              <span class="text-xs mt-1">分析</span>
+            </button>
+            <button class="flex flex-col items-center text-neutral-light">
+              <i class="fa fa-plus-circle text-2xl"></i>
+              <span class="text-xs mt-1">记账</span>
+            </button>
+            <button class="flex flex-col items-center text-neutral-light">
+              <i class="fa fa-history"></i>
+              <span class="text-xs mt-1">历史</span>
+            </button>
+            <button class="flex flex-col items-center text-neutral-light">
+              <i class="fa fa-user-o"></i>
+              <span class="text-xs mt-1">我的</span>
+            </button>
+          </div>]]></with>
+</replace>

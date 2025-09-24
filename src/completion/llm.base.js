@@ -112,6 +112,10 @@ class LLM {
       responseType: "stream"
     };
 
+    if (options.signal) {
+      config.signal = options.signal;
+    }
+
     if (config.url && config.url.indexOf('openrouter.ai') !== -1) {
       Object.assign(config.headers, {
         "HTTP-Referer": 'https://lemonai.cc',
@@ -148,7 +152,7 @@ class LLM {
   async handleSSE(response) {
     if (response.code) {
       const content = response.code;
-      this.onTokenStream(response.code);
+      this.onTokenStream(`${response.code}:${response.status}`);
       return content;
     }
 
@@ -187,6 +191,16 @@ class LLM {
       response.data.on("end", () => {
         resolve(fullContent);
       });
+      response.data.on("error", (err) => {
+        if (err.code === 'ERR_CANCELED' || err.message === 'canceled') {
+          console.log('请求被中断');
+          resolve(fullContent);
+        } else {
+          reject(err)
+        }
+
+      });
+
     });
 
     const content = await fn;

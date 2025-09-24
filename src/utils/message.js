@@ -1,5 +1,6 @@
 // utils/message.js
 const MessageTable = require('@src/models/Message');
+const Conversation = require('@src/models/Conversation')
 class Message {
   /**
    * 构建消息格式
@@ -7,7 +8,7 @@ class Message {
    * @param {('success'|'failure'|'running')} params.status 成功或失败
    * @param {string} [params.content] 文本内容
    * @param {string} [params.task_id]
-   * @param {('plan'|'task'|'auto_reply'|'finish'|'search'|'file'|'terminal'|'todo'|'browser'|'question'|'finish_summery'|'')} [params.action_type]
+   * @param {('plan'|'task'|'auto_reply'|'finish'|'search'|'file'|'terminal'|'todo'|'browser'|'question'|'finish_summery'|'progress')} [params.action_type]
    * @param {string} [params.filepath]
    * @param {string} [params.url]
    * @param {Array} [params.json]
@@ -18,7 +19,7 @@ class Message {
    * @param {string} [params.meta_content]
    * @returns {Object}
    */
-  static format({ status, content = '', task_id = '', action_type = '', filepath = '', url = '', json = [], comments = '', memorized = '', uuid = '', role = 'assistant', meta_content = '' }) {
+  static format({ status, content = '', task_id = '', action_type = '', filepath = '', url = '', json = [], comments = '', memorized = '', uuid = '', role = 'assistant', meta_content = '', pid = '', type = '', is_active = true }) {
     return {
       role,
       uuid,
@@ -27,13 +28,16 @@ class Message {
       comments,
       memorized,
       timestamp: new Date().valueOf(),
+      type,
       meta: {
+        pid,
         task_id,
         action_type,
         filepath,
         url,
         json,
-        content: meta_content
+        content: meta_content,
+        is_active
       }
     };
   }
@@ -45,6 +49,7 @@ class Message {
    */
   static async saveToDB(messageData, conversation_id) {
     try {
+      const conversation = await Conversation.findOne({ where: { conversation_id } })
       return await MessageTable.create({
         role: messageData.role,
         uuid: messageData.uuid,
@@ -55,11 +60,14 @@ class Message {
         meta: JSON.stringify(messageData.meta),
         comments: messageData.comments,
         memorized: messageData.memorized,
+        user_id: conversation.dataValues.user_id,
       });
     } catch (err) {
       console.error('保存消息失败:', err);
       throw err;
     }
+  }
+  static async updateToDB(messageData, conversation_id) {
   }
 }
 

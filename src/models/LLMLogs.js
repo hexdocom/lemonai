@@ -9,7 +9,12 @@ LLMLogs.init({
     type: DataTypes.BIGINT,
     primaryKey: true,
     autoIncrement: true,
-    comment: 'ID' 
+    comment: 'ID'
+  },
+  conversation_id: {
+    type: DataTypes.STRING,
+    allowNull: true,
+    comment: 'Conversation ID'
   },
   model: {
     type: DataTypes.STRING(100),

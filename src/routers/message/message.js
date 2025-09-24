@@ -1,7 +1,9 @@
 const router = require("koa-router")();
 
 const Message = require("@src/models/Message");
+const Conversation = require("@src/models/Conversation")
 
+const { auth_check } = require('@src/utils/share_auth')
 
 // api/message/list?conversation_id=1234567890
 /**
@@ -23,19 +25,25 @@ const Message = require("@src/models/Message");
  *       200:
  *         description: A list of messages.
  */
-router.get("/list", async ({ query, response }) => {
+router.get("/list", async ({ state, query, response }) => {
     const { conversation_id } = query;
     if (!conversation_id) {
-        return response.error("Missing conversation_id");
+        return response.fail({}, "Missing conversation_id");
+    }
+
+    const conversation = await Conversation.findOne({ where: { conversation_id } })
+    const allow_read = await auth_check(state.user.id, conversation.dataValues.user_id, conversation)
+
+    if (!allow_read) {
+        return response.fail('no auth')
     }
     const messages = await Message.findAll({
-        where: { conversation_id: conversation_id }
+        where: { conversation_id: conversation_id },
+        order: [['timestamp', 'ASC']] // 按timestamp升序
     });
-   
+
     return response.success(messages);
 });
-
-
 
 
 module.exports = exports = router.routes();

@@ -1,9 +1,9 @@
+require('dotenv').config()
 require("module-alias/register");
 const DefaultModelSetting = require('@src/models/DefaultModelSetting');
 const Model = require('@src/models/Model');
 const Plantform = require('@src/models/Platform');
-const globals = require('@src/globals');
-const sub_server_request = require('@src/utils/sub_server_request')
+const Conversation = require('@src/models/Conversation')
 
 const _defaultModelCache = {};
 
@@ -24,23 +24,67 @@ const _fetchDefaultModel = async (type = 'assistant') => {
   }
   const platform_name = platform.dataValues.name;
 
-  if (platform.dataValues.is_subscribe) {
-    const token = globals.getToken()
-    // todo 获取线上browser模型
-    const browser_model_name = await getSubServerBrowserModel()
-    return { model_name: browser_model_name, platform_name, api_key: token, api_url: `${process.env.SUB_SERVER_DOMAIN || 'https://app.lemonai.ai'}/api/agent/v1/chat/completions`, base_url: `${process.env.SUB_SERVER_DOMAIN || 'https://app.lemonai.ai'}/api/agent/v1`, is_subscribe: platform.dataValues.is_subscribe, model_id: model.dataValues.id };
-  }
-
-  return { model_name, platform_name, api_key, api_url, base_url: base_url, is_subscribe: platform.dataValues.is_subscribe, model_id: model.dataValues.id };
+  return { model_name, platform_name, api_key, api_url, base_url: base_url, is_subscribe: false };
 };
 
-const getDefaultModel = async (type = 'assistant') => {
-  // For subscribed models, always fetch fresh data
+const getDefaultModel = async (conversation_id) => {
+
+  // return {
+  //   model_name: process.env.MODEL_NAME,
+  //   api_key: process.env.API_KEY,
+  //   api_url: process.env.API_URL,
+  //   base_url: process.env.BASE_URL,
+  //   is_subscribe: false
+  // }
+
+  const conversation = await Conversation.findOne({ where: { conversation_id } })
+  const model = await Model.findOne({ where: { id: conversation.dataValues.model_id } });
+  if (!model) return null;
+  const model_name = model.dataValues.model_id;
+  const platform = await Plantform.findOne({ where: { id: model.dataValues.platform_id } });
+  if (!platform) return null;
+
+  const api_key = platform.dataValues.api_key;
+  const base_url = platform.dataValues.api_url
+  let api_url = platform.dataValues.api_url;
+  api_url = platform.dataValues.api_url + '/chat/completions';
+  const platform_name = platform.dataValues.name;
+
+  return { model_name, platform_name, api_key, api_url, base_url: base_url, is_subscribe: false };
+
+  return {
+    model_name: process.env.MODEL_NAME,
+    api_key: process.env.API_KEY,
+    api_url: process.env.API_URL,
+    base_url: process.env.BASE_URL,
+    is_subscribe: false
+  }
+  if (_defaultModelCache[type]) {
+    return _defaultModelCache[type];
+  }
   const modelInfo = await _fetchDefaultModel(type);
-  if (modelInfo && !modelInfo.is_subscribe) {
+  if (modelInfo) {
     _defaultModelCache[type] = modelInfo;
   }
   return modelInfo;
+};
+
+const getCustomModel = async (model_id) => {
+
+  const model = await Model.findOne({ where: { model_id: model_id } });
+  if (!model) return null;
+  const model_name = model.dataValues.model_id;
+  const platform = await Plantform.findOne({ where: { id: model.dataValues.platform_id } });
+  if (!platform) return null;
+
+  const api_key = platform.dataValues.api_key;
+  const base_url = platform.dataValues.api_url
+  let api_url = platform.dataValues.api_url;
+  api_url = platform.dataValues.api_url + '/chat/completions';
+  const platform_name = platform.dataValues.name;
+
+  return { model_name, platform_name, api_key, api_url, base_url: base_url, is_subscribe: false };
+
 };
 
 const updateDefaultModel = async (type = 'assistant') => {
@@ -51,11 +95,8 @@ const updateDefaultModel = async (type = 'assistant') => {
   return modelInfo;
 };
 
-const getSubServerBrowserModel = async () => {
-  return sub_server_request('/api/sub_server/get_browser_model', {})
-}
-
 module.exports = {
   getDefaultModel,
   updateDefaultModel,
+  getCustomModel,
 };

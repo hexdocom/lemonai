@@ -8,7 +8,7 @@ const resolveAutoReplyPrompt = require('@src/agent/prompt/auto_reply.js');
 const sub_server_request = require('@src/utils/sub_server_request')
 const conversation_token_usage = require('@src/utils/get_sub_server_token_usage')
 const auto_reply = async (goal, conversation_id) => {
-  let model_info = await getDefaultModel()
+  let model_info = await getDefaultModel(conversation_id)
   if (model_info.is_subscribe) {
     let replay = await auto_reply_server(goal, conversation_id)
     return replay
@@ -36,5 +36,7 @@ const auto_reply_local = async (goal, conversation_id) => {
 
   return auto_reply
 }
+
+
 
 module.exports = exports = auto_reply;

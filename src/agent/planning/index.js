@@ -9,18 +9,20 @@ const resolvePlanningPrompt = require("@src/agent/prompt/plan");
 const { getDefaultModel } = require('@src/utils/default_model')
 
 
-const planning = async (goal, files, previousResult, conversation_id) => {
-  let model_info = await getDefaultModel()
+const planning = async (goal, options) => {
+  const { conversation_id } = options;
+  let model_info = await getDefaultModel(conversation_id)
   if (model_info.is_subscribe) {
-    let clean_tasks = await planning_server(goal, files, previousResult, conversation_id)
+    let clean_tasks = await planning_server(goal, options)
     return clean_tasks
   }
 
-  let clean_tasks = await planning_local(goal, files, previousResult, conversation_id)
+  let clean_tasks = await planning_local(goal, options)
   return clean_tasks
 };
 
-const planning_server = async (goal, files, previousResult, conversation_id) => {
+const planning_server = async (goal, options) => {
+  const { conversation_id, files, previousResult } = options;
   // const [res, token_usage] = await sub_server_request('/api/sub_server/planning', {
   const res = await sub_server_request('/api/sub_server/planning', {
     goal,
@@ -33,20 +35,33 @@ const planning_server = async (goal, files, previousResult, conversation_id) => 
   return res
 };
 
-const resolvePlanningPromptBP = require("@src/agent/prompt/plan.bp");
+const resolvePlanningPromptBP = require("@src/agent/prompt/plan");
 const { resolveMarkdown } = require("@src/utils/markdown");
 const resolveThinking = require("@src/utils/thinking");
+const retryWithFormatFix = require("./retry_with_format_fix");
 
-const planning_local = async (goal, files, previousResult, conversation_id) => {
-  const planning_prompt = await resolvePlanningPromptBP(goal, files, previousResult,conversation_id);
-  const markdown = await call(planning_prompt, conversation_id, 'assistant', { temperature: 0 });
-  if (markdown && markdown.startsWith('<think>')) {
-    const { thinking: _, content: output } = resolveThinking(markdown);
-    const tasks = await resolveMarkdown(output);
-    return tasks;
-  }
-  const tasks = await resolveMarkdown(markdown);
-  return tasks;
+const planning_local = async (goal, options = {}) => {
+  const { conversation_id } = options;
+  const prompt = await resolvePlanningPromptBP(goal, options);
+
+  // 结果处理器
+  const processResult = async (markdown) => {
+    // 处理 thinking 标签
+    if (markdown && markdown.startsWith('<think>')) {
+      const { content: output } = resolveThinking(markdown);
+      markdown = output;
+    }
+    console.log("\n==== planning markdown ====");
+    console.log(markdown);
+    const tasks = await resolveMarkdown(markdown);
+    console.log("\n==== planning tasks ====");
+    console.log(tasks);
+    return tasks || [];
+  };
+  // 验证函数
+  const validate = (tasks) => Array.isArray(tasks) && tasks.length > 0;
+
+  return await retryWithFormatFix(prompt, processResult, validate, conversation_id);
 }
 
 const planning_local_v0 = async (goal, files, previousResult, conversation_id) => {

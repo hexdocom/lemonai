@@ -1,7 +1,7 @@
 const Router = require("koa-router");
 const router = new Router();
 
-const resolveConversation = require('./memory');
+const resolveConversation = require('./memory.js');
 
 router.get("/conversation", async ({ request, response }) => {
   const { conversation_id } = request.query;

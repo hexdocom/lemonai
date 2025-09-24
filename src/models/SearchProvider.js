@@ -17,7 +17,7 @@ const fields = {
   },
   logo_url: {
     type: DataTypes.STRING(255),
-    allowNull: false,
+    allowNull: true,
     comment: 'Logo URL'
   },
   base_config_schema: {

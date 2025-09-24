@@ -20,8 +20,11 @@ const getFilepath = (dir = 'database', filename) => {
 
 
 //处理文件夹路径
-const getDirpath = (dir) => {
+const getDirpath = (dir, user_id) => {
   let filepath = resolve(__dirname, '../../', dir);
+  if (user_id) {
+    filepath = resolve(filepath, `user_${user_id}`)
+  }
   if (resourcesPath && resourcesPath.indexOf('node_modules') === -1) {
     filepath = resolve(resourcesPath, dir);
   }

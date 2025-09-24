@@ -46,7 +46,7 @@ app.use(async (ctx, next) => {
 app.use(setGlobalTokenMiddleware);
 
 // routes
-app.use(router)
+app.use(router.routes()).use(router.allowedMethods());
 app.use(swagger.routes());
 app.use(swagger.allowedMethods());
 app.use(koaSwagger({

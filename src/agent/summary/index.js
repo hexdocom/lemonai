@@ -9,30 +9,32 @@ const { getDefaultModel } = require('@src/utils/default_model')
 const resolveResultPrompt = require('@src/agent/prompt/generate_result.js');
 
 
-const summary = async (goal, conversation_id, tasks) => {
-  let model_info = await getDefaultModel()
+const summary = async (goal, conversation_id, tasks, generatedFiles = [], staticUrl = null) => {
+  let model_info = await getDefaultModel(conversation_id)
   if (model_info.is_subscribe) {
-    let replay = await summary_server(goal, conversation_id, tasks)
+    let replay = await summary_server(goal, conversation_id, tasks, generatedFiles, staticUrl)
     return replay
   }
-  let replay = await summary_local(goal, conversation_id, tasks)
+  let replay = await summary_local(goal, conversation_id, tasks, generatedFiles, staticUrl)
   return replay
 }
 
-const summary_server = async (goal, conversation_id, tasks) => {
+const summary_server = async (goal, conversation_id, tasks, generatedFiles = [], staticUrl = null) => {
   // let [res, token_usage] = await sub_server_request('/api/sub_server/summary', {
   let res = await sub_server_request('/api/sub_server/summary', {
     goal,
     conversation_id,
-    tasks
+    tasks,
+    generatedFiles,
+    staticUrl
   })
   // await conversation_token_usage(token_usage, conversation_id)
 
   return res
 };
 
-const summary_local = async (goal, conversation_id, tasks) => {
-  const prompt = await resolveResultPrompt(goal, tasks);
+const summary_local = async (goal, conversation_id, tasks, generatedFiles = [], staticUrl = null) => {
+  const prompt = await resolveResultPrompt(goal, tasks, generatedFiles, staticUrl);
   const result = await call(prompt, conversation_id);
 
   return result

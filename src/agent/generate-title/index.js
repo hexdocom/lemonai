@@ -10,7 +10,7 @@ const resolveGenerateTitlePrompt = require("@src/agent/prompt/generate_title");
 const resolveThinking = require("@src/utils/thinking");
 
 const generate_title = async (question, conversation_id) => {
-    let model_info = await getDefaultModel()
+    let model_info = await getDefaultModel(conversation_id)
     if (model_info.is_subscribe) {
         let title = await generate_title_server(question, conversation_id)
         return title

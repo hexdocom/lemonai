@@ -1,7 +1,5 @@
 const { Sequelize } = require('sequelize');
-const path = require('path')
 
-const config = process.env;
 const { getFilepath } = require('@src/utils/electron');
 const sqliteFilepath = getFilepath('data', 'database.sqlite');
 
@@ -14,5 +12,4 @@ const sequelize = new Sequelize({
   },
   logging: false
 });
-
 module.exports = exports = sequelize;

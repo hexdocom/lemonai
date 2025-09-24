@@ -13,15 +13,18 @@ const deploymentHash = {
 const versionHash = {
   'gpt-35-turbo-16k': '2024-05-01-preview',
   'gpt-4o': '2024-02-15-preview',
-  'gpt-4o-mini': '2024-02-15-preview'
+  'gpt-4o-mini': '2024-02-15-preview',
+  'gpt-5': '2025-04-01-preview',
+  'gpt-5-chat': '2025-04-01-preview',
+  'gpt-5-mini': '2025-04-01-preview'
 }
 
 const resolveAzureConfig = (model) => {
   const deployment = deploymentHash[model];
   const version = versionHash[model]
-  const url = `${OPENAI_AZURE_HOST}/openai/deployments/${deployment}/chat/completions?api-version=${version}`
+  const url = `${OPENAI_AZURE_HOST}/openai/responses?api-version=${version}`
   const headers = {
-    'api-key': OPENAI_AZURE_KEY
+    'Authorization': `Bearer ${OPENAI_AZURE_KEY}`
   }
   return { url, headers }
 }
@@ -31,7 +34,6 @@ const chatCompletion = async (options = {}) => {
   let {
     model = "gpt-4o-mini",
     prompt,
-    temperature = 0.7,
     messages = [],
     streaming,
   } = options;
@@ -44,7 +46,7 @@ const chatCompletion = async (options = {}) => {
 
   // console.log("url", url);
   // console.log("messages all", messages.concat(massageUser));
-  console.log('温度值', temperature);
+  // console.log('温度值', temperature);
   const config = {
     method: "post",
     maxBodyLength: Infinity,
@@ -56,11 +58,13 @@ const chatCompletion = async (options = {}) => {
     },
     data: {
       model: model,
-      temperature,
-      messages: messages.concat(massageUser),
+      // temperature,
+      input: messages.concat(massageUser),
       stream: streaming,
     },
   };
+
+  console.log('config', JSON.stringify(config, null, 2))
   // console.log('OPENAI', config.headers.Authorization)
   if (streaming) {
     config.responseType = "stream"
@@ -72,8 +76,10 @@ const chatCompletion = async (options = {}) => {
 
 class Azure extends BaseLLM {
 
-  constructor(onTokenStream) {
+  constructor(onTokenStream, model, llm_config) {
     super(onTokenStream)
+    this.model = model
+    this.llm_config = llm_config
     this.splitter = '\n\n';
   }
 
@@ -93,6 +99,7 @@ class Azure extends BaseLLM {
   }
 
   async call(prompt, context, options = {}) {
+    context.model = this.model
     context.prompt = prompt
     context.streaming = true
     if (options.temperature != undefined) {
@@ -116,6 +123,7 @@ class Azure extends BaseLLM {
       }
       response.data.on("data", (chunk) => {
         content += chunk;
+        // console.log('content=====', JSON.stringify(content, null, 2))
         const splitter = this.splitter;
         while (content.indexOf(splitter) !== -1) {
           const index = content.indexOf(splitter);
@@ -145,25 +153,62 @@ class Azure extends BaseLLM {
     if (message == "data: [DONE]") {
       return { type: "done" };
     }
+    
+    // Handle Azure OpenAI format
+    if (message.includes("event: response.output_text.delta")) {
+      const dataMatch = message.match(/data: (.+)/);
+      if (dataMatch) {
+        try {
+          const value = JSON.parse(dataMatch[1]);
+          if (value.error) {
+            console.log(value.error.message);
+            let errorMessage = JSON.stringify(value.error)
+            return { type: "text", text: errorMessage }
+          }
+          
+          // Azure format: delta is a string directly
+          if (value.delta && typeof value.delta === 'string') {
+            return { type: "text", text: value.delta };
+          }
+          
+          // Check for finish reason
+          if (value.finish_reason === "stop") {
+            return { type: "stop" };
+          }
+          
+          return { type: "text", text: "" };
+        } catch (e) {
+          console.log("Error parsing Azure SSE data:", e);
+          return { type: "text", text: "" };
+        }
+      }
+    }
+    
+    // Handle standard OpenAI format (fallback)
     const data = message.split("data:")[1];
-    const value = JSON.parse(data);
-    // console.log(JSON.stringify(value, null, 2));
-    if (value.error) {
-      console.log(value.error.message);
-      let errorMessage = JSON.stringify(value.error)
-      return { type: "text", text: errorMessage }
-      // return { type: "text", text: '很抱歉给您带来不便，由于当前访问量过大，我们的系统无法满足所有用户的请求，建议您稍后重新提问。' }
+    if (!data) return { type: "text", text: "" };
+    
+    try {
+      const value = JSON.parse(data);
+      if (value.error) {
+        console.log(value.error.message);
+        let errorMessage = JSON.stringify(value.error)
+        return { type: "text", text: errorMessage }
+      }
+      const choices = value.choices || [];
+      if (choices.length == 0) return { type: "text", text: "" };
+      const choice = choices[0] || {};
+      if (choice.finish_reason === "stop") {
+        return { type: "stop" };
+      }
+      if (choice.delta && choice.delta.role == "assistant") {
+        return { type: "assistant" };
+      }
+      return { type: "text", text: choice.delta?.content || "" };
+    } catch (e) {
+      console.log("Error parsing SSE data:", e);
+      return { type: "text", text: "" };
     }
-    const choices = value.choices || [];
-    if (choices.length == 0) return { type: "text", text: "" };
-    const choice = choices[0] || {};
-    if (choice.finish_reason === "stop") {
-      return { type: "stop" };
-    }
-    if (choice.delta.role == "assistant") {
-      return { type: "assistant" };
-    }
-    return { type: "text", text: choice.delta.content };
   }
 }
 

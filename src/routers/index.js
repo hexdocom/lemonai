@@ -17,16 +17,14 @@ const modules = [
   'search_provider_setting',
   'runtime',
   'message',
-  'experience',
+  'sub_server',
   'user',
-  'membership_plan',
-  'payment',
-  'points_transaction',
-  'recharge_product',
   'version',
-  'order',
   'mcp_server',
-  'dev'
+  'knowledge',
+  'dev',
+  'agent_store',
+  'conversation_case'
 ];
 
 for (const module of modules) {
@@ -38,4 +36,4 @@ for (const module of modules) {
   }
 }
 
-module.exports = exports = router.routes();
+module.exports = exports = router;

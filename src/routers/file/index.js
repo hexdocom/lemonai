@@ -4,6 +4,7 @@ router.prefix("/api/file");
 
 const modules = [
   "file",
+  "editor"
 ]
 
 for (const module of modules) {
