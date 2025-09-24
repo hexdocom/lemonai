@@ -17,7 +17,6 @@ const modules = [
   'search_provider_setting',
   'runtime',
   'message',
-  'sub_server',
   'user',
   'version',
   'mcp_server',
