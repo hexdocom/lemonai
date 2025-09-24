@@ -6,8 +6,6 @@ const SearchProvider = require('@src/models/SearchProvider');
 const UserSearchSetting = require('@src/models/UserSearchSetting');
 const sub_server_request = require('@src/utils/sub_server_request')
 
-const doLemonSearch = require('@src/utils/do_lemon_search')
-
 /** @type {import('types/Tool').Tool} */
 const WebSearchTool = {
     name: "web_search", // Snake_case is common for LLM function names
@@ -123,13 +121,13 @@ async function doTalivySearch(query, num_results) {
     return { json, content }
 }
 
-// async function doLemonSearch(query, num_results, conversation_id) {
-//     return sub_server_request('/api/sub_server/search', {
-//         query,
-//         num_results,
-//         conversation_id
-//     })
-// }
+async function doLemonSearch(query, num_results, conversation_id) {
+    return sub_server_request('/api/sub_server/search', {
+        query,
+        num_results,
+        conversation_id
+    })
+}
 
 async function doCloudswaySearch(query, num_results) {
     let userSearchSetting = await UserSearchSetting.findOne()
