@@ -55,17 +55,12 @@ const { Op } = require("sequelize");
 router.post("/", async ({ state, request, response }) => {
     const body = request.body || {};
     const { platform_id, model_id, model_name, group_name,model_types } = body
-    const existingModel = await Model.findOne({ where: { model_id: model_id, user_id: state.user.id } });
-    if (existingModel) {
-        return response.error("Model ID already exists");
-    }
     const model = await Model.create({
         platform_id: platform_id,
         model_id: model_id,
         model_name: model_name,
         group_name: group_name,
         model_types: model_types,
-        user_id: state.user.id
     });
     return response.success(model);
 });
@@ -111,10 +106,6 @@ router.get("/list/:platform_id", async ({ state, params, response }) => {
     const models = await Model.findAll({
         where: {
             platform_id: platform_id,
-            [Op.or]: [
-                { user_id: state.user.id },
-                { user_id: null }
-            ]
         }
     });
     return response.success(models);
@@ -161,11 +152,7 @@ router.put("/:id", async ({ state, params, request, response }) => {
     const { model_name, group_name,model_types } = body
     const model = await Model.findOne({
         where: {
-            id: id,
-            [Op.or]: [
-                { user_id: state.user.id },
-                { user_id: null }
-            ]
+            id: id
         }
     });
     if (!model) {
@@ -217,10 +204,6 @@ router.delete("/:id", async ({ state, params, response }) => {
     const model = await Model.findOne({
         where: {
             id: id,
-            [Op.or]: [
-                { user_id: state.user.id },
-                { user_id: null }
-            ]
         }
     });
     if (!model) {

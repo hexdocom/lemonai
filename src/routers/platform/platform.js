@@ -50,14 +50,12 @@ const checkLlmApiAvailability = require("@src/utils/check_llm_api_availability")
  */
 router.post("/", async ({ state, request, response }) => {
   const body = request.body || {};
-  const user_id = state.user.id
   const { name, logo_url, source_type } = body
 
   const platform = await Platform.create({
     name: name,
     logo_url: logo_url,
     source_type: source_type,
-    user_id
   });
 
   return response.success(platform);
@@ -135,12 +133,11 @@ router.get("/", async ({ response }) => {
 router.put("/:platform_id", async ({ state, params, request, response }) => {
   const { platform_id } = params;
   const body = request.body || {};
-  const user_id = state.user.id
 
   const { api_key, api_url, name, is_enabled } = body
 
   const platform = await Platform.findOne({
-    where: { id: platform_id, user_id }
+    where: { id: platform_id }
   });
   if (!platform) {
     return response.fail({}, "Platform does not exist");
@@ -174,11 +171,10 @@ router.put("/:platform_id", async ({ state, params, request, response }) => {
  *           type: string
  */
 router.delete("/:platform_id", async ({ state, params, response }) => {
-  const user_id = state.user.id
   const { platform_id } = params;
 
   const platform = await Platform.findOne({
-    where: { id: platform_id, user_id }
+    where: { id: platform_id }
   });
   if (!platform) {
     return response.fail({}, "Platform does not exist");

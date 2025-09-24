@@ -14,6 +14,7 @@ const { koaSwagger } = require('koa2-swagger-ui')
 const router = require("@src/routers/index");
 const wrapContext = require("@src/middlewares/wrap.context");
 const setGlobalTokenMiddleware = require('@src/middlewares/setGlobalToken');
+const authMiddleware = require('@src/middlewares/auth');
 
 app.use(wrapContext);
 // error handler 
@@ -44,6 +45,7 @@ app.use(async (ctx, next) => {
 })
 
 app.use(setGlobalTokenMiddleware);
+app.use(authMiddleware());
 
 // routes
 app.use(router.routes()).use(router.allowedMethods());
