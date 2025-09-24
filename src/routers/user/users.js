@@ -1,73 +1,99 @@
 const router = require("koa-router")();
 
+const forwardRequest = require('@src/utils/sub_server_forward_request')
 
-// Google OAuth callback
+router.get("/userinfo",async (ctx) => {
+  let res =  await forwardRequest(ctx, "GET", "/api/users/userinfo")
+  return ctx.body = res;
+})
+
 router.post("/google-auth", async (ctx) => {
-
-  ctx.status = 500;
-  ctx.body = {
-    error: "Unexpected authentication error",
-    message: "Unknown error",
-  }
+  let res =  await forwardRequest(ctx, "POST", "/api/users/google-auth")
+  return ctx.body = res;
 });
 
 
-//判断邮箱是否已经注册
-router.post("/checkEmail", async (ctx) => {
-  ctx.status = 200;
-  ctx.body = {
-    success: true,
-    code: 0
-  }
-  return;
+
+//loginSMSCode
+router.post("/login-sms-code", async (ctx) => {
+  let res =  await forwardRequest(ctx, "POST", "/api/users/login-sms-code")
+  return ctx.body = res;
+});
+
+//send-sms-code
+router.post("/send-sms-code", async (ctx) => {
+  let res =  await forwardRequest(ctx, "POST", "/api/users/send-sms-code")
+  return ctx.body = res;
+});
+//verifySmsVerifyCode
+router.post("/verifySmsVerifyCode", async (ctx) => {
+  let res =  await forwardRequest(ctx, "POST", "/api/users/verifySmsVerifyCode")
+  return ctx.body = res;
+});
+///api/users/updateUsername
+router.post("/updateUsername", async (ctx) => {
+  let res =  await forwardRequest(ctx, "POST", "/api/users/updateUsername")
+  return ctx.body = res;
+});
+
+router.post("/sendEmailVerifyCode", async (ctx) => {
+  let res =  await forwardRequest(ctx, "POST", "/api/users/sendEmailVerifyCode")
+  return ctx.body = res;
+});
+
+router.post("/verifyEmailVerifyCode", async (ctx) => {
+  return ctx.body =  await forwardRequest(ctx, "POST", "/api/users/verifyEmailVerifyCode")
 });
 
 router.post("/register", async (ctx) => {
-  const { email, password, name, phone, invitationCode } = ctx.request.body;
-  console.error('Registration error:');
-  ctx.status = 500;
-  ctx.body = { code: 500, message: "Registration failed" };
+  return ctx.body =  await forwardRequest(ctx, "POST", "/api/users/register")
 });
 
-// 登录
+//login
 router.post("/login", async (ctx) => {
-
-  ctx.body = {
-    code: 500,
-    message: "login failed",
-    access_token: '',
-    token_type: "bearer",
-    userInfo: {},
-  };
+  return ctx.body = await forwardRequest(ctx, "POST", "/api/users/login")
 });
 
-// 重置密码
+//resetPassword
 router.post("/resetPassword", async (ctx) => {
-  const { email, password, phone } = ctx.request.body;
-
-  ctx.body = { code: 404, message: "user not found" };
+  return ctx.body =  await forwardRequest(ctx, "POST", "/api/users/resetPassword")
 });
 
-function generateVerifyCode(length = 7) {
-  const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
-  const digits = '0123456789';
-  const getRandom = (pool, n) => Array.from({ length: n }, () => pool[Math.floor(Math.random() * pool.length)]);
+router.get('/auth/google', async (ctx) => {
+  const query = ctx.query;
+  const queryString = new URLSearchParams(query).toString();
 
-  const result = [...getRandom(letters, length - 1), ...getRandom(digits, 1)];
-  return result.sort(() => Math.random() - 0.5).join('');
-}
+  // 读取环境变量，判断是不是客户端
+  // 注意：这里服务端要能读取 import.meta.env 需要相应配置，或者通过 process.env 传递
+  // 如果你用的是 Vite + SSR，可能要从 ctx.env 或者其他地方拿
+  // 这里假设你用 process.env.VITE_IS_CLIENT 替代
+  const isClient = process.env.VITE_IS_CLIENT === 'true';
+  console.log("isClient === ",isClient);
+  if (isClient) {
+    // 是客户端，返回 HTML 页面
+    const clientRedirectUrl = `http://localhost:51789/?${queryString}`;
 
-
-// 获取用户信息、用户会员信息、用户剩余积分
-router.get('/userinfo', async ({ state, request, response }) => {
-  return response.success({
-    userInfo: {},
-    membership: {},
-    points: {}
-  });
+    ctx.set('Content-Type', 'text/html; charset=utf-8');
+    ctx.body = `
+      <html>
+        <head><title>登录成功</title></head>
+        <body>
+          <h2>登录成功，正在通知客户端，请稍候...</h2>
+          <script>
+            fetch("${clientRedirectUrl}", {
+              method: "GET",
+              mode: "no-cors"
+            }).catch(() => {});
+          </script>
+        </body>
+      </html>
+    `;
+  } else {
+    // 不是客户端，直接重定向到前端页面
+    const redirectUrl = `http://localhost:5005/#/auth/google${queryString ? '?' + queryString : ''}`;
+    ctx.redirect(redirectUrl);
+  }
 });
-
-
 
 
 module.exports = router.routes();

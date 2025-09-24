@@ -24,7 +24,12 @@ const modules = [
   'knowledge',
   'dev',
   'agent_store',
-  'conversation_case'
+  'conversation_case',
+  'order',
+  'points_transaction',
+  'payment',
+  'membership_plan',
+  'recharge_product',
 ];
 
 for (const module of modules) {
