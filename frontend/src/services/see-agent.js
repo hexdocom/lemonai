@@ -29,7 +29,7 @@ async function getUserInfo() {
 }
 
 const chatStore = useChatStore();
-
+const { chatInfo, messages, mode, model_id, agent } = storeToRefs(chatStore)
 //处理files 的 conversation_id
 const fileConversationId = async (files, conversation_id) => {
   //putFile

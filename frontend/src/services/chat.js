@@ -6,10 +6,13 @@ const service = {
     const res = await http.get(uri);
     return res || {};
   },
-  async create(message) {
+  async create(message, modeType = 'task', agent_id = null, model_id = null) {
     const uri = "/api/conversation";
     const response = await http.post(uri, {
-      content: message
+      content: message,
+      mode_type: modeType,
+      agent_id: agent_id,
+      model_id: model_id
     });
     return response || {};
   },
