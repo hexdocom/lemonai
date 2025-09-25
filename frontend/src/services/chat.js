@@ -1,8 +1,9 @@
 import http from "@/utils/http.js";
 
 const service = {
-  async list() {
-    const uri = "/api/conversation";
+  async list(modeType = 'task', agent_id = null) {
+    const params = new URLSearchParams({ mode_type: modeType, agent_id: agent_id });
+    const uri = `/api/conversation?${params.toString()}`;
     const res = await http.get(uri);
     return res || {};
   },
