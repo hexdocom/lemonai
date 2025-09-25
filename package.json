@@ -24,6 +24,7 @@
     "debug": "^4.1.1",
     "dockerode": "^4.0.6",
     "dotenv": "^16.5.0",
+    "e2b": "^2.1.5",
     "fast-xml-parser": "^4.5.3",
     "jsonwebtoken": "^9.0.2",
     "koa": "^2.7.0",
