@@ -17,15 +17,12 @@ const path = require('path')
 const fs = require('fs').promises
 const { getDirpath } = require('@src/utils/electron');
 const { ArynDocsetManager, ArynDocumentUploader } = require('@src/utils/docset');
-const RUNTIME_TYPE = process.env.RUNTIME_TYPE
+const RUNTIME_TYPE = process.env.RUNTIME_TYPE || 'local-docker'
 const { closeContainer: dockerCloseContainer } = require('@src/utils/eci_server');
-const { closeContainer: e2bCloseContainer } = require('@src/utils/e2b')
 
 
 let closeContainer = dockerCloseContainer
-if (RUNTIME_TYPE && RUNTIME_TYPE === 'e2b') {
-  closeContainer = e2bCloseContainer
-} else if (RUNTIME_TYPE && RUNTIME_TYPE === 'local-docker') {
+if (RUNTIME_TYPE && RUNTIME_TYPE === 'local-docker') {
   closeContainer = async () => {
     console.log('本地不执行')
   }
@@ -334,18 +331,8 @@ router.post("/run", async (ctx, next) => {
     stream.on('close', async () => {
       console.log('Agent stream closed');
       await closeContainer(ctx.state.user.id)
-      const final_file_path = await getFinalFile(dir_path)
-      const url = `${process.env.SUB_SERVER_DOMAIN}/file/?url=${final_file_path}`
-      const token = ctx.headers.authorization
-      const tokenString = token.startsWith('Bearer ') ? token.slice(7) : token;
       // todo 实现新的takeScreenshotAndUpload
-      const screen_url = ''
       // 如果agent有制定的replay_conversation_id,则不更新screen_shot_url
-      const agent = await Agent.findOne({ where: { id: agent_id } })
-      if (agent.replay_conversation_id == null) {
-        console.log('update screen_shot_url', screen_url)
-        await Agent.update({ screen_shot_url: screen_url }, { where: { id: agent_id } })
-      }
 
       //更新 Conversation 的截图
       // await Conversation.update({ screen_shot_url: screen_url }, { where: { conversation_id } })

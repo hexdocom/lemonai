@@ -274,11 +274,9 @@ const updateAgentSettings = async (agent_id, mcp_server_ids) => {
 }
 
 const getContainerCloseHandler = () => {
-  const RUNTIME_TYPE = process.env.RUNTIME_TYPE;
+  const RUNTIME_TYPE = process.env.RUNTIME_TYPE || 'local-docker';
 
-  if (RUNTIME_TYPE === 'e2b') {
-    return require('@src/utils/e2b').closeContainer;
-  } else if (RUNTIME_TYPE === 'local-docker') {
+  if (RUNTIME_TYPE === 'local-docker') {
     return async () => console.log('Local environment - skip container close');
   } else {
     return require('@src/utils/eci_server').closeContainer;

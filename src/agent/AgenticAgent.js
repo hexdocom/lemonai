@@ -17,14 +17,12 @@ const { getDirpath } = require('@src/utils/electron');
 const LocalRuntime = require("@src/runtime/LocalRuntime")
 const DockerRuntime = require("@src/runtime/DockerRuntime");
 const LocalDockerRuntime = require("@src/runtime/DockerRuntime.local");
-const E2bRuntime = require("@src/runtime/E2bRuntime");
 
 
-const RUNTIME_TYPE = process.env.RUNTIME_TYPE || 'docker';
+const RUNTIME_TYPE = process.env.RUNTIME_TYPE || 'local-docker';
 const runtimeMap = {
   'local': LocalRuntime,
   'docker': DockerRuntime,
-  'e2b': E2bRuntime,
   'local-docker': LocalDockerRuntime
 }
 
