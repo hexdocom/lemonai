@@ -25,7 +25,7 @@ const LLM_LOGS = require('@src/models/LLMLogs.js');
  * @returns {Promise<Object>}
  */
 const call = async (prompt, conversation_id, model_type = DEFAULT_MODEL_TYPE, options = { temperature: 0 }, onTokenStream = defaultOnTokenStream) => {
-  const model_info = await getDefaultModel(model_type)
+  const model_info = await getDefaultModel(conversation_id)
   const model = `provider#${model_info.platform_name}#${model_info.model_name}`;
   const llm = await createLLMInstance(model, onTokenStream, { model_info });
   // 判断模型
