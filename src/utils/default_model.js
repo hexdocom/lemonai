@@ -28,15 +28,6 @@ const _fetchDefaultModel = async (type = 'assistant') => {
 };
 
 const getDefaultModel = async (conversation_id) => {
-
-  // return {
-  //   model_name: process.env.MODEL_NAME,
-  //   api_key: process.env.API_KEY,
-  //   api_url: process.env.API_URL,
-  //   base_url: process.env.BASE_URL,
-  //   is_subscribe: false
-  // }
-
   const conversation = await Conversation.findOne({ where: { conversation_id } })
   const model = await Model.findOne({ where: { id: conversation.dataValues.model_id } });
   if (!model) return null;
@@ -51,22 +42,6 @@ const getDefaultModel = async (conversation_id) => {
   const platform_name = platform.dataValues.name;
 
   return { model_name, platform_name, api_key, api_url, base_url: base_url, is_subscribe: false };
-
-  return {
-    model_name: process.env.MODEL_NAME,
-    api_key: process.env.API_KEY,
-    api_url: process.env.API_URL,
-    base_url: process.env.BASE_URL,
-    is_subscribe: false
-  }
-  if (_defaultModelCache[type]) {
-    return _defaultModelCache[type];
-  }
-  const modelInfo = await _fetchDefaultModel(type);
-  if (modelInfo) {
-    _defaultModelCache[type] = modelInfo;
-  }
-  return modelInfo;
 };
 
 const getCustomModel = async (model_id) => {

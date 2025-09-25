@@ -29,7 +29,7 @@ router.post("/", async ({ state, request, response }) => {
 
 router.post("/generate", async ({ state, request, response }) => {
   const body = request.body || {};
-  const { question, conversation_id, is_public } = body;
+  const { question, conversation_id } = body;
 
   try {
     const { name, describe } = await generate_agent(question, conversation_id);
