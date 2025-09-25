@@ -48,8 +48,8 @@ const WebSearchTool = {
     execute: async ({ query, num_results = 3, conversation_id = "" }) => {
         try {
             // 如果设置了，默认走设置
-            // let userSearchSetting = await UserSearchSetting.findOne()
-            // num_results = userSearchSetting.dataValues.result_count || 3
+            let userSearchSetting = await UserSearchSetting.findOne()
+            num_results = userSearchSetting.dataValues.result_count || 3
 
             console.log(`[WebSearchTool] Searching for: "${query}" (max ${num_results} results)`);
             if (!query || typeof query !== 'string' || query.trim() === '') {
@@ -61,8 +61,7 @@ const WebSearchTool = {
             }
 
             // 判断当前设置
-            // const searchProvider = await SearchProvider.findOne({ where: { id: userSearchSetting.provider_id } })
-            const searchProvider = { name: 'Lemon' }
+            const searchProvider = await SearchProvider.findOne({ where: { id: userSearchSetting.provider_id } })
             let json = {}
             let content = ''
             let obj
