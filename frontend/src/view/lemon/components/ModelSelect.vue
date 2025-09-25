@@ -30,18 +30,6 @@
           />
           <span>{{ label }}</span>
         </div>
-        <div style="display: flex; align-items: center; gap: 6px;">
-          <a-tag 
-            size="small" 
-            class="model-price-tag"
-            :style="{ color: priceColor, borderColor: 'unset' }"
-          >
-            {{ priceLabel }}
-          </a-tag>
-          <a-tag  v-if="requires_membership" size="small" :class="requires_membership ? 'model-tag-pro' : 'model-tag-free'">
-            {{ requires_membership ? 'Pro+' : '' }}
-          </a-tag>
-        </div>
       </div>
     </template>
   </a-select>
@@ -71,15 +59,6 @@
             <CloseOutlined />
           </a-button>
         </div>
-        
-        <!-- 升级按钮（仅非会员显示） -->
-        <div v-if="!isMember" class="upgrade-section">
-          <a-button type="primary" block @click="handleMobileUpgrade">
-            Upgrade to Pro+
-          </a-button>
-        </div>
-
-        <!-- 模型列表 -->
         <div class="model-list">
           <div 
             v-for="option in flatOptions" 
@@ -234,7 +213,7 @@ const initModel = async () => {
       modelList.value = JSON.parse(cachedData)
 
       // 如果 model_id 还没设置，默认设置为第一个模型的 ID
-      if (modelList.value.length > 0 && !model_id.value) {
+      if (modelList.value.length > 0) {
         const defaultId = modelList.value[0].id * 1
         model_id.value = defaultId
         selectedModelValue.value = defaultId
@@ -367,23 +346,6 @@ const dropdownRender = ({ menuNode }) => {
     }, 'Models')
   ]
   
-  // 只有非会员才显示升级按钮
-  if (!isMember.value) {
-    headerElements.push(
-      h('button', {
-        style: {
-          color: "#fff",
-          backgroundColor: "#1a1a19",
-          paddingLeft: ".75rem",
-          paddingRight: ".75rem",
-          borderRadius: "99999px",
-          border:"1px solid #1a1a19",
-          cursor: "pointer"
-        },
-        onClick: handleUpgrade
-      }, 'Upgrade')
-    )
-  }
   
   return h('div', [
     // 标题栏 - 始终显示
