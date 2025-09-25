@@ -213,11 +213,10 @@ const initModel = async () => {
       modelList.value = JSON.parse(cachedData)
 
       // 如果 model_id 还没设置，默认设置为第一个模型的 ID
-      if (modelList.value.length > 0) {
+      if (modelList.value.length > 0 && !model_id.value) {
         const defaultId = modelList.value[0].id * 1
         model_id.value = defaultId
         selectedModelValue.value = defaultId
-        console.log('defaultId', defaultId)
       }
     } catch (e) {
       console.error('Failed to parse cached modelList', e)

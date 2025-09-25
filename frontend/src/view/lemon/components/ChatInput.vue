@@ -426,12 +426,6 @@ const updateAgent = async () => {
   }
 };
 
-const updateChat = async () => {
-  if (chat.value) {
-    chatStore.updateConversationVisibilityById(chat.value.is_public, chat.value.conversation_id);
-  }
-};
-
 // -------------- 函数定义 ------------------
 
 const closeModal = () => {
@@ -458,17 +452,16 @@ const handleVisibilityChange = (value) => {
       return;
     }
   }
-  chat.value.is_public = value;
-  // updateAgent();
-  updateChat();
+  agent.value.is_public = value;
+  updateAgent();
 };
 
 //监听 agent.value
 watch(
-  () => chat.value,
+  () => agent.value,
   (newValue) => {
-    if (chat.value && chat.value.is_public !== undefined) {
-      isPublic.value = chat.value?.is_public;
+    if (agent.value && agent.value.is_public !== undefined) {
+      isPublic.value = agent.value?.is_public;
     } else {
       isPublic.value = true;
     }
@@ -533,14 +526,15 @@ const handleSend = () => {
   const text = messageText.value.trim();
   if (!text && fileList.value.length === 0) return;
 
-  if (points.value.total <= 100) {
-    // handleNotification("/setting/usage", t("auth.insufficientPoints"), t("auth.insufficientPointsPleaseGoToUpgradeOrPurchase"));
-    upgradeDes.value = "You don’t have enough credits, and the prediction can’t complete the task. ";
-    upgradeDes1.value = "Please upgrade or purchase more credits.";
-    upgradeTitle.value = "";
-    showUpgradeModal.value = true;
-    return;
-  }
+  // if (points.value.total <= 100) {
+  //   // handleNotification("/setting/usage", t("auth.insufficientPoints"), t("auth.insufficientPointsPleaseGoToUpgradeOrPurchase"));
+  //   upgradeDes.value = "You don’t have enough credits, and the prediction can’t complete the task. ";
+  //   upgradeDes1.value = "Please upgrade or purchase more credits.";
+  //   upgradeTitle.value = "";
+  //   showUpgradeModal.value = true;
+  //   return;
+  // }
+  // 判断选择的模型 是不是付费模型
 
   emit("send", {
     text,
