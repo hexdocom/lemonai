@@ -1,5 +1,7 @@
 require("module-alias/register");
 require('dotenv').config();
+const { logging } = require("@src/logger/index");
+global.logging = logging;
 
 const Koa = require('koa')
 const app = new Koa()

@@ -1,19 +1,13 @@
 const router = require("koa-router")();
 
 const DockerRuntime = require("@src/runtime/DockerRuntime");
-const E2bRuntime = require("@src/runtime/E2bRuntime");
 
-const RUNTIME_TYPE = process.env.RUNTIME_TYPE || 'docker';
+const RUNTIME_TYPE = process.env.RUNTIME_TYPE || 'local-docker';
 const { closeContainer: dockerCloseContainer } = require('@src/utils/eci_server');
-const { closeContainer: e2bCloseContainer } = require('@src/utils/e2b')
 
 let closeContainer = dockerCloseContainer
-if (RUNTIME_TYPE && RUNTIME_TYPE === 'e2b') {
-  closeContainer = e2bCloseContainer
-}
 const runtimeMap = {
   'docker': DockerRuntime,
-  'e2b': E2bRuntime
 }
 
 const Runtime = runtimeMap[RUNTIME_TYPE]
