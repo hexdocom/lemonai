@@ -4,20 +4,22 @@ import { createRouter, createWebHashHistory, createWebHistory } from 'vue-router
 const routes = [
   {
     path: "/",
-    name: "app",
     component: () => import(/* webpackChunkName: "lemon" */ "@/view/lemon/index.vue"),
-    meta: { verify: true }
+    meta: { verify: true },
+    redirect: { name: "lemon" },
+    children: [
+      {
+        path: "lemon/:agentId?/:id?",
+        name: "lemon",
+        component: () => import(/* webpackChunkName: "lemon" */ "@/view/lemon/components/ChatPanel.vue"),
+        meta: { verify: true }
+      }
+    ]
   },
   {
     path:"/share/:id?",
     name: "share",
     component: () => import(/* webpackChunkName: "lemon" */ "@/view/share/index.vue"),
-    meta: { verify: true }
-  },
-  {
-    path: "/lemon/:id?",
-    name: "lemon",
-    component: () => import(/* webpackChunkName: "lemon" */ "@/view/lemon/index.vue"),
     meta: { verify: true }
   },
   {
