@@ -8,6 +8,7 @@ const call = require("@src/utils/llm");
 const DEVELOP_MODEL = 'assistant';
 const sub_server_request = require('@src/utils/sub_server_request')
 const conversation_token_usage = require('@src/utils/get_sub_server_token_usage')
+const chat_completion = require('@src/agent/chat-completion/index')
 
 const thinking = async (requirement, context = {}) => {
   let model_info = await getDefaultModel(context.conversation_id)
@@ -36,18 +37,30 @@ const thinking_server = async (requirement, context = {}) => {
     // return message.content;
   }
 
-  // let [{ prompt, content }, token_usage] = await sub_server_request('/api/sub_server/thinking', {
-  let { prompt, content } = await sub_server_request('/api/sub_server/thinking', {
-    messages,
-    requirement,
-    context,
-    conversation_id: context.conversation_id
-  })
-  // await conversation_token_usage(token_usage, context.conversation_id)
-
+  // Use LLM thinking to instruct next action
+  let prompt = '';
+  if (messages.length == 0) {
+    prompt = await resolveThinkingPrompt(requirement, context);
+    global.logging(context, 'thinking', prompt);
+    // global.safeExit && await global.safeExit(0, 'process.exit in thinking_local')
+  }
+  const options = {
+    messages: messages.map(item => {
+      return { role: item.role, content: item.content }
+    })
+  }
+  
+  const content = await chat_completion(prompt,options,context.conversation_id);
+  global.logging(context, 'thinking', content);
   if (prompt) {
     await memory.addMessage('user', prompt);
   }
+  if (content && content.startsWith('<think>')) {
+    const { thinking: _, content: output } = resolveThinking(content);
+    await memory.addMessage('assistant', output);
+    return output;
+  }
+
   await memory.addMessage('assistant', content);
 
   return content;

@@ -10,7 +10,6 @@ const detect_intent = require("@src/agent/intent-detection");
 const chat_completion = require('@src/agent/chat-completion/index')
 const Message = require("@src/utils/message");
 const Agent = require('@src/models/Agent')
-const call = require("@src/utils/llm");
 const calcToken = require('@src/completion/calc.token.js');
 const File = require('@src/models/File')
 const Model = require('@src/models/Model')
@@ -704,7 +703,7 @@ async function runChatPhase(params, isTwinsMode) {
     signal: abortController.signal
   }
 
-  chat_completion(question, conversation_id, options, onTokenStream).then(async (content) => {
+  chat_completion(question, options, conversation_id, onTokenStream).then(async (content) => {
     const assistant_msg = Message.format({
       role: 'assistant',
       status: 'success',
