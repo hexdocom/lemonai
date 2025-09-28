@@ -26,9 +26,7 @@ const planning_server = async (goal, options) => {
   // const [res, token_usage] = await sub_server_request('/api/sub_server/planning', {
   const res = await sub_server_request('/api/sub_server/planning', {
     goal,
-    files,
-    previousResult,
-    conversation_id
+    options
   })
 
   // await conversation_token_usage(token_usage, conversation_id)
