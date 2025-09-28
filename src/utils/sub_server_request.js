@@ -1,7 +1,7 @@
 require('dotenv').config()
 const globals = require('@src/globals');
 const axios = require('axios')
-const SUB_SERVER_DOMAIN = process.env.SUB_SERVER_DOMAIN || 'https://sub-server.lemonai.cc';
+const SUB_SERVER_DOMAIN = process.env.SUB_SERVER_DOMAIN || 'https://app.lemonai.ai';
 async function sub_server_request(url, data) {
   const full_url = `${SUB_SERVER_DOMAIN}${url}`
   const token = globals.getToken()
@@ -11,6 +11,7 @@ async function sub_server_request(url, data) {
     url:full_url,
     data,
     headers: {
+      'Content-Type': 'application/json',
       'Authorization': `Bearer ${token}` // 使用传入的 token
     },
   };

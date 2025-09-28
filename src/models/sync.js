@@ -175,7 +175,8 @@ const dataUpdate = async () => {
       api_url: lemonPlatform.api_url,
       api_version: lemonPlatform.api_version,
       key_obtain_url: lemonPlatform.key_obtain_url,
-      is_subscribe: true
+      is_subscribe: true,
+      is_enabled: true
     };
     const platform = await Platform.create(platformData);
     const modelsData = lemonPlatform.models.map(model => ({
@@ -189,6 +190,9 @@ const dataUpdate = async () => {
     }));
     await Model.bulkCreate(modelsData);
   }
+
+  // v0.1.3 => v0.1.4
+  await Platform.update({ is_enabled: true }, { where: { name: 'Lemon' } })
 }
 
 const sync = async () => {

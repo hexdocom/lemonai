@@ -41,7 +41,7 @@ const getDefaultModel = async (conversation_id) => {
   api_url = platform.dataValues.api_url + '/chat/completions';
   const platform_name = platform.dataValues.name;
 
-  return { model_name, platform_name, api_key, api_url, base_url: base_url, is_subscribe: false };
+  return { model_name, platform_name, api_key, api_url, base_url: base_url, is_subscribe: platform.is_subscribe };
 };
 
 const getCustomModel = async (model_id) => {
