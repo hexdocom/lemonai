@@ -193,6 +193,8 @@ const dataUpdate = async () => {
 
   // v0.1.3 => v0.1.4
   await Platform.update({ is_enabled: true }, { where: { name: 'Lemon' } })
+  SearchProviderTable.destroy({ where: { name: 'Baidu' } });
+  SearchProviderTable.destroy({ where: { name: 'Bing' } });
 }
 
 const sync = async () => {
