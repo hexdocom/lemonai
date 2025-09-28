@@ -698,7 +698,13 @@ async function runChatPhase(params, isTwinsMode) {
   };
 
   // 调用大模型
-  chat_completion(question, messagesContext, conversation_id, abortController.signal, onTokenStream).then(async (content) => {
+  const options = {
+    temperature: 0.7,
+    messages: messagesContext,
+    signal: abortController.signal
+  }
+
+  chat_completion(question, conversation_id, options, onTokenStream).then(async (content) => {
     const assistant_msg = Message.format({
       role: 'assistant',
       status: 'success',

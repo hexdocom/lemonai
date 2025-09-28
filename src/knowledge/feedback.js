@@ -4,6 +4,8 @@ require('dotenv').config();
 const Agent = require('@src/models/Agent')
 
 const { resolveUsedKnowledge, handleKnowledgeReflection } = require('./knowledge.util');
+const chat_completion = require('@src/agent/chat-completion/index')
+
 const handleReflection = async (reflection = {}, agent_id) => {
   try {
     const { reasoning, operations = [] } = reflection || {};
@@ -40,7 +42,7 @@ const handle_feedback = async (options = {}) => {
       interaction: JSON.stringify(interaction, null, 2)
     })
 
-    const reflection = await call(knowledge_prompt, conversation_id, 'assistant', { response_format: 'json' });
+    const reflection = await chat_completion(knowledge_prompt, { response_format: 'json' }, conversation_id);
     console.log(JSON.stringify(reflection, null, 2));
     await handleReflection(reflection, agent_id)
   } catch (error) {
