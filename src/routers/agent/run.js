@@ -7,6 +7,7 @@ const { Op } = require('sequelize');
 const Conversation = require("@src/models/Conversation");
 const AgenticAgent = require("@src/agent/AgenticAgent");
 const detect_intent = require("@src/agent/intent-detection");
+const chat_completion = require('@src/agent/chat-completion/index')
 const Message = require("@src/utils/message");
 const Agent = require('@src/models/Agent')
 const call = require("@src/utils/llm");
@@ -697,11 +698,7 @@ async function runChatPhase(params, isTwinsMode) {
   };
 
   // 调用大模型
-  call(question, conversation_id, 'assistant', {
-    temperature: 0.7,
-    messages: messagesContext,
-    signal: abortController.signal
-  }, onTokenStream).then(async (content) => {
+  chat_completion(question, messagesContext, conversation_id, abortController.signal, onTokenStream).then(async (content) => {
     const assistant_msg = Message.format({
       role: 'assistant',
       status: 'success',
