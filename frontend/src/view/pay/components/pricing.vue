@@ -11,10 +11,10 @@
     <div v-if="isDowngradeStatus" class="downgrade-notice">
       <div class="downgrade-notice-content">
         <span class="downgrade-text">
-          Your {{ membership?.planName }} membership will be downgraded to {{ downgradeTargetPlan }} on {{ formatPeriodEndDate }}.
+          {{ $t('member.downgradeNotice').replace('{planName}', membership?.planName).replace('{targetPlan}', downgradeTargetPlan).replace('{date}', formatPeriodEndDate) }}
         </span>
         <a-button type="primary" @click="cancelDowngrade" :loading="cancelDowngradeLoading">
-          Cancel Downgrade
+          {{ $t('member.cancelDowngrade') }}
         </a-button>
       </div>
     </div>
@@ -26,19 +26,19 @@
             <div class="info">
               <h3 class="plan-name">{{ plan.plan_name }}</h3>
               <div class="price" v-if="billingType === 'month' ">
-                {{ currency }}{{ formatPrice(displayedPrices[plan.id] ?? plan.price) }} / Month
+                {{ currency }}{{ formatPrice(displayedPrices[plan.id] ?? plan.price) }} {{ $t('member.monthlyBilling') }}
               </div>
               <div class="price" v-else>
                 <div style="display: flex;flex-direction: column;">
                   <span>
-                    {{ currency }}{{ formatPrice(displayedPrices[plan.id]) }} / Month
+                    {{ currency }}{{ formatPrice(displayedPrices[plan.id]) }} {{ $t('member.monthlyBilling') }}
                   </span>
                   <span class="save-text" v-if="calculateYearlySavings(plan) > 0">
-                    save {{ currency }}{{ calculateYearlySavings(plan) }}
+                    {{ $t('member.save') }} {{ currency }}{{ calculateYearlySavings(plan) }}
                   </span>
                 </div>
                 <div class="monthly-equivalent" v-if="calculateYearlySavings(plan) > 0">
-                  {{ currency }}{{ plan.price }} / Year
+                  {{ currency }}{{ plan.price }} {{ $t('member.yearlyBilling') }}
                 </div>
               </div>
 
@@ -107,7 +107,7 @@
 </a-modal>
   <div  class="cancel-btn">
     <a-button type="text" @click="openCancelMembership" v-if="membership && membership.subscription_id && !isDowngradeStatus && !cancelStatus">
-      {{ $t('member.cancelMembership') || 'Cancel subscription' }}
+      {{ $t('member.cancelMembership') }}
     </a-button>
     
     <!-- 调试按钮，仅在开发环境显示 -->
@@ -126,46 +126,46 @@
     </a-button> -->
   </div>
 
-  <a-modal v-model:open="showCancelConfirm" :title="$t('member.confirmCancelTitle') || 'Confirm Cancellation'"
+  <a-modal v-model:open="showCancelConfirm" :title="$t('member.confirmCancelTitle')"
     @ok="handleConfirmCancel" @cancel="showCancelConfirm = false" :ok-button-props="{ loading: confirmLoading }"
-    ok-text="Confirm" cancel-text="Cancel">
-    <p>Are you sure you want to cancel your subscription?</p>
+    :ok-text="$t('member.confirm')" :cancel-text="$t('member.cancel')">
+    <p>{{ $t('member.confirmCancelMessage') }}</p>
   </a-modal>
 
-  <a-modal v-model:open="showDowngradeConfirm" title="Confirm Downgrade"
+  <a-modal v-model:open="showDowngradeConfirm" :title="$t('member.confirmDowngrade')"
     @ok="handleConfirmDowngrade" @cancel="showDowngradeConfirm = false" :ok-button-props="{ loading: confirmLoading }"
-    ok-text="Confirm Downgrade" cancel-text="Cancel">
+    :ok-text="$t('member.confirmDowngrade')" :cancel-text="$t('member.cancel')">
     <p v-if="pendingDowngradePlan">
-      Are you sure you want to downgrade from {{ membership?.planName }} to {{ pendingDowngradePlan.plan_name }}?
+      {{ $t('member.confirmDowngradeMessage') }} {{ membership?.planName }} {{ $t('member.to') }} {{ pendingDowngradePlan.plan_name }}?
       <br><br>
-      This change will take effect at the end of your current billing period ({{ formatPeriodEndDate }}).
+      {{ $t('member.effectAtPeriodEnd') }} ({{ formatPeriodEndDate }}).
     </p>
   </a-modal>
 
   <!-- 升级预览确认弹窗 -->
-  <a-modal v-model:open="showUpgradeConfirm" title="Upgrade Preview" width="520px" centered
+  <a-modal v-model:open="showUpgradeConfirm" :title="$t('member.upgradePreviewTitle')" width="520px" centered
     @ok="handleConfirmUpgrade" @cancel="cancelUpgradePreview" :ok-button-props="{ loading: confirmLoading }"
-    ok-text="Confirm Upgrade" cancel-text="Cancel">
+    :ok-text="$t('member.confirmUpgrade')" :cancel-text="$t('member.cancel')">
     <div v-if="upgradePreview" class="upgrade-preview-content">
       <div class="upgrade-info">
-        <h4>Upgrade Summary</h4>
+        <h4>{{ $t('member.upgradeSummary') }}</h4>
         <div class="upgrade-details">
           <div class="upgrade-row">
-            <span>From:</span>
-            <strong>{{ membership?.planName }} - {{ currency }}{{ formatPrice(getCurrentPlanPrice()) }}/{{ membership?.durationDays === 365 ? 'Year' : 'Month' }}</strong>
+            <span>{{ $t('member.from') }}</span>
+            <strong>{{ membership?.planName }} - {{ currency }}{{ formatPrice(getCurrentPlanPrice()) }}/{{ membership?.durationDays === 365 ? $t('member.year') : $t('member.month') }}</strong>
           </div>
           <div class="upgrade-row">
-            <span>To:</span>
-            <strong>{{ pendingUpgradePlan?.plan_name }} - {{ currency }}{{ formatPrice(pendingUpgradePlan?.price) }}/{{ pendingUpgradePlan?.duration_days === 365 ? 'Year' : 'Month' }}</strong>
+            <span>{{ $t('member.to') }}</span>
+            <strong>{{ pendingUpgradePlan?.plan_name }} - {{ currency }}{{ formatPrice(pendingUpgradePlan?.price) }}/{{ pendingUpgradePlan?.duration_days === 365 ? $t('member.year') : $t('member.month') }}</strong>
           </div>
         </div>
       </div>
       
       <div class="pricing-info">
-        <h4>Payment Required</h4>
+        <h4>{{ $t('member.paymentRequired') }}</h4>
         <div class="pricing-details">
           <div class="pricing-row">
-            <span>Upgrade Price:</span>
+            <span>{{ $t('member.upgradePrice') }}</span>
             <span class="amount">{{ upgradePreview.currency === 'USD' ? '$' : upgradePreview.currency }}{{ formatPrice(upgradePreview.upgrade_price) }}</span>
           </div>
         </div>
@@ -342,16 +342,16 @@ const planActionLabelsMap = computed(() => {
     const isCurrentUserMember = !!membership.value?.planName;
 
     if (isCurrentUserMember && plan.plan_name === 'Free') {
-      labelsMap[plan.id] = 'Unavailable';
+      labelsMap[plan.id] = t('member.unavailable');
       return;
     }
 
     if (isMember(plan)) {
       // 当前用户是该 plan 的会员
       if (plan.plan_name === 'Free') {
-        labelsMap[plan.id] = 'Unavailable';
+        labelsMap[plan.id] = t('member.unavailable');
       } else {
-        labelsMap[plan.id] = isTrueCancelStatus.value ? 'Reactivate Plan' : t('member.alreadyCurrentMember');
+        labelsMap[plan.id] = isTrueCancelStatus.value ? t('member.reactivatePlan') : t('member.alreadyCurrentMember');
       }
     } else {
       // 当前用户不是该 plan 的会员
@@ -362,17 +362,17 @@ const planActionLabelsMap = computed(() => {
         // 如果是年会员 需要在 后面 增加 year
         let plan_name = plan.plan_name;
         if(plan.duration_days === 365){
-          plan_name = plan_name + ' Year';
+          plan_name = plan_name + ' ' + t('member.year');
         }else{
-          plan_name = plan_name + ' Month';
+          plan_name = plan_name + ' ' + t('member.month');
         }
         const label = isUpgradeOrDowngrade(plan);
         if (label === 'upgrade') {
-          labelsMap[plan.id] = 'Upgrade to ' + plan_name;
+          labelsMap[plan.id] = t('member.upgradeTo') + ' ' + plan_name;
         } else if (label === 'downgrade') {
-          labelsMap[plan.id] = 'Downgrade to ' + plan_name;
+          labelsMap[plan.id] = t('member.downgradeTo') + ' ' + plan_name;
         } else {
-          labelsMap[plan.id] = 'Upgrade to ' + plan_name;
+          labelsMap[plan.id] = t('member.upgradeTo') + ' ' + plan_name;
         }
       }
     }
@@ -453,7 +453,7 @@ const handleConfirmCancel = async () => {
   try {
     await cancelMembership()
     showCancelConfirm.value = false
-    message.success('Subscription cancelled successfully')
+    message.success(t('member.cancelMembershipSuccess'))
   } finally {
     confirmLoading.value = false
   }
@@ -472,19 +472,19 @@ const handleConfirmDowngrade = async () => {
         subscription_id: membership.value.subscription_id,
         new_price_id: pendingDowngradePlan.value.stripe_price_id
       })
-      message.success('Downgrade scheduled successfully!')
+      message.success(t('member.downgradeScheduledSuccess'))
       // 刷新订阅信息
       await getSubscriptionInfo()
       await getUserInfo()
     } else {
-      message.info("Sorry, downgrading from WeChat payment is not supported at the moment.")
+      message.info(t('member.downgradeNotSupported'))
     }
     
     showDowngradeConfirm.value = false
     pendingDowngradePlan.value = null
   } catch (error) {
     console.error('降级失败:', error)
-    message.error('Downgrade failed. Please try again.')
+    message.error(t('member.downgradeFailed'))
   } finally {
     confirmLoading.value = false
   }
@@ -498,13 +498,13 @@ const cancelDowngrade = async () => {
     await membershipService.cancelDowngrade({
       subscription_id: subscriptionInfo.value.id
     })
-    message.success('Downgrade cancelled successfully')
+    message.success(t('member.cancelDowngradeSuccess'))
     // 刷新订阅信息
     await getSubscriptionInfo()
     await getUserInfo()
   } catch (error) {
     console.error('取消降级失败:', error)
-    message.error('Failed to cancel downgrade. Please try again.')
+    message.error(t('member.cancelDowngradeFailed'))
   } finally {
     cancelDowngradeLoading.value = false
   }
@@ -549,35 +549,35 @@ const filteredPlans = computed(() => {
 
 const back = () => router.push({ name: 'lemon' })
 
-const membershipBenefitsMap = {
+const membershipBenefitsMap = computed(() => ({
   'Free': [
-    { title: '1,000 Credits for new register user', iconType: "GiftOutlined" },
-    { title: '0 daily credits'},
-    { title: 'Public Agents only' },
-    { title: 'System Experience invisible' },
-    { title: 'Limited access to advanced models in Chat' },
-    { title: 'Limited access to advanced models in Agent' },
+    { title: t('member.benefits.free.newUserCredits'), iconType: "GiftOutlined" },
+    { title: t('member.benefits.free.dailyCredits')},
+    { title: t('member.benefits.free.publicAgentsOnly') },
+    { title: t('member.benefits.free.systemExperienceInvisible') },
+    { title: t('member.benefits.free.limitedChat') },
+    { title: t('member.benefits.free.limitedAgent') },
   ],
   'Pro': [
-    { title: '19,000 Credits per Month', iconType: "GiftOutlined" },
-    { title: '1,000 daily credits (up to 30,000/month)' },
-    { title: 'Private Agents' },
-    { title: 'System Experience editable' },
-    { title: 'Unlimited access to advanced models in Chat' },
-    { title: 'Unlimited access to advanced models in Agent' },
+    { title: t('member.benefits.pro.monthlyCredits'), iconType: "GiftOutlined" },
+    { title: t('member.benefits.pro.dailyCredits') },
+    { title: t('member.benefits.pro.privateAgents') },
+    { title: t('member.benefits.pro.systemExperienceEditable') },
+    { title: t('member.benefits.pro.unlimitedChat') },
+    { title: t('member.benefits.pro.unlimitedAgent') },
   ],
   'Business': [
-    { title: '99,000 Credits per Month', iconType: "GiftOutlined" },
-    { title: '1,000 daily credits (up to 30,000/month)' },
-    { title: 'Private Agents' },
-    { title: 'System Experience edit' },
-    { title: 'Unlimited access to advanced models in Chat' },
-    { title: 'Unlimited access to advanced models in Agent' },
-    { title: 'Early access to beta features' },
-    { title: 'Custom domains' },
-    { title: 'Team Share Agents' },
+    { title: t('member.benefits.business.monthlyCredits'), iconType: "GiftOutlined" },
+    { title: t('member.benefits.business.dailyCredits') },
+    { title: t('member.benefits.business.privateAgents') },
+    { title: t('member.benefits.business.systemExperienceEdit') },
+    { title: t('member.benefits.business.unlimitedChat') },
+    { title: t('member.benefits.business.unlimitedAgent') },
+    { title: t('member.benefits.business.earlyAccess') },
+    { title: t('member.benefits.business.customDomains') },
+    { title: t('member.benefits.business.teamShare') },
   ]
-}
+}))
 
 
 const getMembershipPlan = async () => {
@@ -596,7 +596,7 @@ const getMembershipPlan = async () => {
       duration_days: 365,
     })
     res.forEach(plan => {
-      plan.benefits = membershipBenefitsMap[plan.plan_name] || []
+      plan.benefits = membershipBenefitsMap.value[plan.plan_name] || []
     })
     pricingPlans.value = res
 
@@ -681,7 +681,7 @@ const pay = async (plan) => {
     const upgradeOrDowngrade = isUpgradeOrDowngrade(plan);
     // 如果是降级操作，阻止执行
     if (upgradeOrDowngrade === 'downgrade') {
-      message.info("Please cancel your downgrade first before making any changes to your subscription.")
+      message.info(t('member.cancelPleaseFirst'))
       return
     }
     // 如果是升级操作，允许执行（继续下面的逻辑）
@@ -700,7 +700,7 @@ const pay = async (plan) => {
       await membershipService.reactivateSubscription({
           subscription_id: subscriptionInfo.value.id
       })
-      message.success('reactivateSubscription success')
+      message.success(t('member.reactivateSuccess'))
         //刷新
       loadingMap.value = { ...loadingMap.value, [plan.id]: false }
       getSubscriptionInfo();
@@ -726,7 +726,7 @@ const pay = async (plan) => {
     if (upgradeOrDowngrade === 'upgrade') {
       // 检查升级功能是否开启（免费用户始终可以升级）
       if (!upgradeDowngradeEnabled.value && membership.value?.planName && membership.value.planName !== 'Free') {
-        message.info("Platform does not currently support upgrade/downgrade operations.")
+        message.info(t('member.platformNotSupported'))
         return
       }
     
@@ -749,7 +749,7 @@ const pay = async (plan) => {
           
           return;
         } catch (error) {
-          message.error('Failed to load upgrade preview. Please try again.');
+          message.error(t('member.upgradePreviewFailed'));
           loadingMap.value = { ...loadingMap.value, [plan.id]: false };
           return;
         }
@@ -770,13 +770,13 @@ const pay = async (plan) => {
           
           return;
         } catch (error) {
-          message.error('Failed to load upgrade preview. Please try again.');
+          message.error(t('member.upgradePreviewFailed'));
           loadingMap.value = { ...loadingMap.value, [plan.id]: false };
           return;
         }
       }
     }else if( upgradeOrDowngrade === 'none' ){
-      message.error('Switching from an annual plan to a monthly plan is not supported at the moment.');
+      message.error(t('member.switchNotSupported'));
       return
     }else if (upgradeOrDowngrade === null) {
       // 免费用户首次购买，直接打开支付选择弹窗
@@ -787,14 +787,14 @@ const pay = async (plan) => {
     } else if (upgradeOrDowngrade === 'downgrade') {
       // 检查降级功能是否开启
       if (!upgradeDowngradeEnabled.value) {
-        message.info("Platform does not currently support upgrade/downgrade operations.")
+        message.info(t('member.platformNotSupported'))
         return
       }
       
       // 检查支付方式，微信支付不支持降级
       const previousPaymentMethod = getPreviousPaymentMethod();
       if (previousPaymentMethod === 'wechat') {
-        message.info("WeChat payment purchased memberships do not support downgrading.")
+        message.info(t('member.wechatDowngradeNotSupported'))
         return
       }
       
@@ -846,7 +846,7 @@ const handleConfirmUpgrade = async () => {
       // 检查是否为支付失败的响应
       if (upgradeResult.data?.payment_failed === true || upgradeResult.data?.success === false) {
         // 支付失败，直接显示错误信息，不进入订单轮询
-        let errorMessage = upgradeResult.data?.message || 'Upgrade payment failed. Please try again.';
+        let errorMessage = upgradeResult.data?.message || t('member.upgradeFailed');
         let suggestions = []
         
         // 构建弹窗内容
@@ -858,7 +858,7 @@ const handleConfirmUpgrade = async () => {
         if (suggestions.length > 0) {
           modalContent.push(
             h('div', { style: 'margin-top: 16px;' }, [
-              h('p', { style: 'margin-bottom: 8px; font-weight: 500; color: #1890ff;' }, 'What you can do:'),
+              h('p', { style: 'margin-bottom: 8px; font-weight: 500; color: #1890ff;' }, t('member.whatYouCanDo')),
               h('ul', { style: 'margin: 0; padding-left: 20px; color: #666;' }, 
                 suggestions.map(suggestion => 
                   h('li', { style: 'margin-bottom: 4px; line-height: 1.4;' }, suggestion)
@@ -879,10 +879,10 @@ const handleConfirmUpgrade = async () => {
         
         // 使用与 handleUpgradeFailure 相同的 Modal 显示样式
         Modal.error({
-          title: 'Upgrade Payment Failed',
+          title: t('member.upgradePaymentFailed'),
           width: 480,
           content: h('div', modalContent),
-          okText: 'I Understand',
+          okText: t('member.iUnderstand'),
           okType: 'primary'
         })
         
@@ -896,13 +896,13 @@ const handleConfirmUpgrade = async () => {
       
       // 如果返回了订单ID，则开始轮询订单状态
       if (upgradeResult?.order?.order_sn) {
-        message.info('Processing upgrade payment...');
+        message.info(t('member.processingUpgrade'));
         checkUpgradeOrderStatus(upgradeResult.order.order_sn);
         // 不在这里关闭弹窗，让轮询函数处理
         // 注意：不要在这里return，因为finally块会重置loading状态
       } else {
         // 兼容旧的处理方式
-        message.success('Upgrade successful!');
+        message.success(t('member.upgradeSuccessful'));
         // 延迟后刷新用户信息
         await new Promise(resolve => setTimeout(resolve, 2000));
         await getSubscriptionInfo();
@@ -931,7 +931,7 @@ const handleConfirmUpgrade = async () => {
     
   } catch (error) {
     console.error('升级失败:', error)
-    message.error('Upgrade failed. Please try again.');
+    message.error(t('member.upgradeFailed'));
     
     // 出错时关闭弹窗
     showUpgradeConfirm.value = false;
@@ -974,7 +974,7 @@ const handlePayment = async (method, planId) => {
     }
   } catch (error) {
     console.error("paymentFailed", error)
-    message.error("paymentFailed")
+    message.error(t('member.paymentFailed'))
   } finally {
     loadingMap.value = { ...loadingMap.value, [planId]: false }
   }
@@ -1032,7 +1032,7 @@ const checkUpgradeOrderStatus = async (orderSn) => {
         pendingUpgradePlan.value = null
         upgradePreview.value = null
         
-        message.success('Upgrade successful!')
+        message.success(t('member.upgradeSuccessful'))
         
         // 刷新用户信息
         await getSubscriptionInfo()
@@ -1060,7 +1060,7 @@ const checkUpgradeOrderStatus = async (orderSn) => {
       } else if (attempts >= maxRetries) {
         clearInterval(pollingTimer.value)
         confirmLoading.value = false
-        message.warning('Upgrade payment timeout. Please check your payment status.')
+        message.warning(t('member.upgradeTimeoutWarning'))
         
         // 超时时也关闭弹窗
         showUpgradeConfirm.value = false
@@ -1078,7 +1078,7 @@ const checkUpgradeOrderStatus = async (orderSn) => {
         pendingUpgradePlan.value = null
         upgradePreview.value = null
         
-        message.error('Failed to check upgrade status.')
+        message.error(t('member.upgradeStatusCheckFailed'))
       }
     }
   }, 3000)
@@ -1094,7 +1094,7 @@ const handleUpgradeFailure = async () => {
     
     if (!subscriptionId) {
       console.log('没有找到 subscriptionId')
-      message.error('Upgrade failed. Unable to get subscription information.')
+      message.error(t('member.getSubscriptionFailed'))
       return
     }
     
@@ -1108,25 +1108,25 @@ const handleUpgradeFailure = async () => {
     const failureInfo = failureResult.success ? failureResult.data : failureResult
     
     if (failureInfo && (failureInfo.failure_reason || failureInfo.failure_code || failureInfo.failure_message)) {
-      let errorMessage = 'Upgrade payment failed.'
+      let errorMessage = t('member.upgradeFailed')
       let suggestions = []
       
       // 根据不同的失败原因给出相应的提示
       if (failureInfo.failure_code === 'insufficient_funds') {
-        errorMessage = 'Upgrade failed: Insufficient funds. Please check your card balance and try again.'
+        errorMessage = t('member.insufficientFunds')
       } else if (failureInfo.failure_code === 'card_declined') {
-        errorMessage = 'Upgrade failed: Card declined. Please contact your bank or try a different payment method.'
+        errorMessage = t('member.cardDeclined')
       } else if (failureInfo.failure_code === 'authentication_required') {
-        errorMessage = 'Upgrade failed: Authentication required. Please complete 3D Secure verification.'
+        errorMessage = t('member.authenticationRequired')
       } else if (failureInfo.failure_code === 'expired_card') {
-        errorMessage = 'Upgrade failed: Card expired. Please update your payment method.'
+        errorMessage = t('member.expiredCard')
       } else if (failureInfo.failure_code === 'no_payment_method_or_failed') {
         // 处理新的支付方式问题
-        errorMessage = failureInfo.failure_message || 'Upgrade failed: Payment method issue detected.'
+        errorMessage = failureInfo.failure_message || t('member.paymentMethodIssue')
         suggestions = failureInfo.suggestions || []
       } else if (failureInfo.failure_code === 'invoice_open') {
         // 处理未支付发票的情况
-        errorMessage = failureInfo.failure_message || 'Upgrade failed: Invoice is unpaid.'
+        errorMessage = failureInfo.failure_message || t('member.invoiceUnpaid')
         suggestions = failureInfo.suggestions || []
       } else if (failureInfo.failure_message) {
         errorMessage = failureInfo.failure_message
@@ -1142,7 +1142,7 @@ const handleUpgradeFailure = async () => {
       if (suggestions.length > 0) {
         modalContent.push(
           h('div', { style: 'margin-top: 16px;' }, [
-            h('p', { style: 'margin-bottom: 8px; font-weight: 500; color: #1890ff;' }, 'What you can do:'),
+            h('p', { style: 'margin-bottom: 8px; font-weight: 500; color: #1890ff;' }, t('member.whatYouCanDo')),
             h('ul', { style: 'margin: 0; padding-left: 20px; color: #666;' }, 
               suggestions.map(suggestion => 
                 h('li', { style: 'margin-bottom: 4px; line-height: 1.4;' }, suggestion)
@@ -1168,16 +1168,16 @@ const handleUpgradeFailure = async () => {
       
       // 使用 Modal 显示详细的错误信息
       Modal.error({
-        title: 'Upgrade Payment Failed',
+        title: t('member.upgradePaymentFailed'),
         width: 480,
         content: h('div', modalContent),
-        okText: 'I Understand',
+        okText: t('member.iUnderstand'),
         okType: 'primary'
       })
       
       console.log('Modal.error 已调用')
     } else {
-      message.error('Upgrade failed. Please try again or contact support.')
+      message.error(t('member.contactSupport'))
     }
   } catch (error) {
     console.error('查询升级失败原因出错:', error)

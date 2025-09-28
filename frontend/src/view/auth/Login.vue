@@ -181,13 +181,15 @@ const handleLogin = async (values) => {
   try {
     loading.value = true;
     const res = await auth.login(values.email, values.password,values.phone);
+    console.log('res', res);
     if (res.code === 200) {
       message.success(t('auth.loginSuccessful'));
-      router.push({ name: 'app' });
+      router.push({ name: 'lemon' });
     } else {
       message.error(res.message);
     }
   } catch (error) {
+    console.log('error', error);
     message.error(t('auth.loginFailed'));
   } finally {
     loading.value = false;
@@ -199,7 +201,7 @@ const handleLoginSMSCode = async (values) => {
   const res = await auth.loginSMSCode(values.phone, values.smsCode);
   if (res.code === 200) {
     message.success(t('auth.loginSuccessful'));
-    router.push({ name: 'app' });
+    router.push({ name: 'lemon' });
   }else{
     message.error(res.message);
     return;

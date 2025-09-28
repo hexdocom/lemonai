@@ -32,21 +32,22 @@ module.exports = {
       "./.env",
       "./resources/browser" // copy browser to resources
     ],
-    // osxSign: {
-    //   "hardenedRuntime": true,
-    //   'entitlements': './entitlements.plist',
-    //   "entitlementsInherit": "./entitlements.plist",
-    //   "gatekeeper-assess": false,
-    //   optionsForFile: (filePath) => {
-    //     return { entitlements: './entitlements.plist' };
-    //   }
-    // },
-    // osxNotarize: {
-    //   tool: "notarytool",
-    //   appleId: process.env.APPLE_ID,
-    //   appleIdPassword: process.env.APPLE_PASSWORD,
-    //   teamId: process.env.APPLE_TEAM_ID
-    // }
+    osxSign: {
+      identity: "Developer ID Application: Beijing Yichuang Technology Co.,Ltd. (6P6VT3LT4F)",
+      "hardenedRuntime": true,
+      'entitlements': './entitlements.plist',
+      "entitlementsInherit": "./entitlements.plist",
+      "gatekeeper-assess": false,
+      optionsForFile: (filePath) => {
+        return { entitlements: './entitlements.plist' };
+      }
+    },
+    osxNotarize: {
+      tool: "notarytool",
+      appleId: process.env.APPLE_ID,
+      appleIdPassword: process.env.APPLE_PASSWORD,
+      teamId: process.env.APPLE_TEAM_ID
+    }
   },
   rebuildConfig: {},
   makers: [

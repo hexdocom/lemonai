@@ -1,107 +1,127 @@
 <template>
   <div class="chat-messages">
     <div class="message-list">
-      <div v-for="message in messages" :key="message.id" class="message-item" :class="message.role">
-        <div class="message-options" v-if="!isPlanOrUpdateStatus(message)">
-          <div v-if="message.role === 'assistant'" class="message-title">
-            <img src="@/assets/image/lemon.jpg" alt="" />
-            LemonAI
+      <!-- 自动判断是否显示骨架屏 -->
+      <div v-if="isLoading">
+        <a-skeleton v-for="n in 5" :key="n" active title paragraph="{ rows: 10 }" class="skeleton-message" />
+      </div>
+
+      <!-- 正常消息渲染 -->
+      <template v-else-if="mode === 'task'">
+        <div v-for="message in messages" :key="message.id" class="message-item" :class="message.role">
+          <div style="display: flex; align-items: center; justify-content: flex-end" v-if="message?.meta?.screenshot || message?.meta?.json?.screenshot">
+            <ChatReference :meta="message?.meta?.json || message?.meta" />
           </div>
-          <div v-else></div>
-          <div style="display: flex; align-items: center; justify-content: flex-end">
-            <div class="message-time display-none">{{ formatTime(message.timestamp, t) }}</div>
-            <div class="copy-button display-none" @click="copyMessage(message)" v-if="message.role === 'user'">
-              <CopyOutlined />
+          <div class="message-options" v-if="!isPlanOrUpdateStatus(message)">
+            <div v-if="message.role === 'assistant'" class="message-title">
+              <img src="@/assets/image/lemon.jpg" alt="" />
+              <!-- LemonAI -->
+            </div>
+            <div v-else></div>
+
+            <div style="display: flex; align-items: center; justify-content: flex-end">
+              <div class="message-time display-none">
+                {{ formatTimeWithHMS(message.timestamp, t) }}
+              </div>
+              <div class="copy-button display-none" @click="copyMessage(message)" v-if="message.role === 'user'">
+                <CopyOutlined />
+              </div>
             </div>
           </div>
-
+          <Message :message="message" />
         </div>
-        <!-- 根据 message 种类渲染 -->
-        <Message :message="message" />
+      </template>
+
+      <!-- chat 模式 -->
+      <div v-else-if="mode === 'chat'">
+        <ChatTree :messages="messages" />
       </div>
     </div>
+
     <!-- Token consumption display -->
     <div v-if="tokenCount && tokenCount.total > 0" class="token-consumption">
       <a-tag>
+        <span v-if="chatStore.chat.model_name">Model: {{ chatStore.chat.model_name }}</span>
         <span>Tokens: {{ tokenCount.total }}</span>
-        <span>
-          <ArrowUpOutlined /> {{ tokenCount.input_tokens }}
-        </span>
-        <span>
-          <ArrowDownOutlined /> {{ tokenCount.output_tokens }}
-        </span>
+        <span><ArrowUpOutlined /> {{ tokenCount.input_tokens }}</span>
+        <span><ArrowDownOutlined /> {{ tokenCount.output_tokens }}</span>
       </a-tag>
     </div>
   </div>
 </template>
 
 <script setup>
-import Message from '../message/index.vue';
-import { useChatStore } from '@/store/modules/chat';
-import { CopyOutlined, ArrowUpOutlined, ArrowDownOutlined } from '@ant-design/icons-vue';
-import { message as messageUtil } from 'ant-design-vue';
-import { useI18n } from 'vue-i18n';
-import { onMounted, computed, ref } from 'vue';
-import { formatTime } from '@/utils/time';
-import Down from '@/assets/svg/down.svg';
-
+import Message from "../message/index.vue";
+import ChatTree from "./ChatTree.vue";
+import { CopyOutlined, ArrowUpOutlined, ArrowDownOutlined } from "@ant-design/icons-vue";
+import { message as messageUtil } from "ant-design-vue";
+import { useChatStore } from "@/store/modules/chat";
+import { useI18n } from "vue-i18n";
+import { onMounted, computed, ref } from "vue";
+import { formatTimeWithHMS } from "@/utils/time";
+import ChatReference from "./ChatReference.vue";
 
 const { t } = useI18n();
 const chatStore = useChatStore();
 
+const props = defineProps({
+  messages: {
+    type: Array,
+    default: () => [],
+  },
+  mode: {
+    type: String,
+    default: "task",
+  },
+});
+const isTimedOut = ref(false);
+// 自动判断是否加载中
+const isLoading = computed(() => {
+  return props.mode === "task" && props.messages.length === 0 && !isTimedOut.value;
+});
+
 const tokenCount = computed(() => {
-  const { input_tokens = 0, output_tokens = 0 } = chatStore.chat || {}
+  const { input_tokens = 0, output_tokens = 0 } = chatStore.chat || {};
   return {
     input_tokens,
     output_tokens,
-    total: input_tokens + output_tokens
-  }
+    total: input_tokens + output_tokens,
+  };
 });
 
-const isShowScrollToBottom = ref(false);
-
 const isPlanOrUpdateStatus = (message) => {
-  return ['plan', 'update_status', 'stop', 'error'].includes(message.meta?.action_type);
-}
+  return ["plan", "update_status", "stop", "error", "coding", "progress"].includes(message.meta?.action_type);
+};
+
+const copyMessage = (message) => {
+  navigator.clipboard
+    .writeText(message.content)
+    .then(() => {
+      messageUtil.success(t("lemon.message.copySuccess"));
+    })
+    .catch((err) => {
+      console.error("Failed to copy:", err);
+      messageUtil.error(t("lemon.message.copyError"));
+    });
+};
 
 onMounted(() => {
-  const chatMessages = document.querySelector('.chat-messages');
+  const chatMessages = document.querySelector(".chat-messages");
   if (!chatMessages) return;
-
-  // 防抖函数，避免 scroll 事件过于频繁触发
+  setTimeout(() => {
+    isTimedOut.value = true;
+  }, 5000); // 5秒
   let debounceTimer;
   const handleScroll = () => {
     clearTimeout(debounceTimer);
     debounceTimer = setTimeout(() => {
-      const isNearBottom =
-        chatMessages.scrollHeight - chatMessages.scrollTop - chatMessages.clientHeight <= 5; // 允许误差范围
+      const isNearBottom = chatMessages.scrollHeight - chatMessages.scrollTop - chatMessages.clientHeight <= 5;
       chatStore.isScrolledToBottom = isNearBottom;
-    }, 100); // 防抖时间设置为 100ms
+    }, 100);
   };
 
-  // 添加滚动事件监听器
-  chatMessages.addEventListener('scroll', handleScroll);
+  chatMessages.addEventListener("scroll", handleScroll);
 });
-
-const props = defineProps({
-  messages: {
-    type: Array,
-    default: () => []
-  }
-});
-
-// 时间格式化函数
-
-// 复制消息
-const copyMessage = (message) => {
-  console.log("=== message ====", message);
-  navigator.clipboard.writeText(message.content).then(() => {
-    messageUtil.success(t('lemon.message.copySuccess'));
-  }).catch(err => {
-    console.error('Failed to copy:', err);
-    messageUtil.error(t('lemon.message.copyError'));
-  });
-};
 </script>
 
 <style lang="scss" scoped>
@@ -121,23 +141,18 @@ const copyMessage = (message) => {
   flex: 1;
   overflow-y: auto;
   height: 100%;
-  // background: #f7f8fa;
   scrollbar-width: none;
-  /* Firefox */
   -ms-overflow-style: none;
-  /* IE 和 Edge */
   padding-bottom: 174px;
 }
 
 .chat-messages::-webkit-scrollbar {
   display: none;
-  /* 针对 Chrome、Safari 和 Opera */
 }
 
 .message-list {
   display: flex;
   flex-direction: column;
-  // gap: 24px;
 }
 
 .message-item {
@@ -153,14 +168,15 @@ const copyMessage = (message) => {
   &.user {
     width: 100%;
     align-self: flex-end;
-    // flex-direction: row-reverse;
-
+    align-items: flex-end;
     .message-content {
       background: #fff;
       border: 1px solid #0000000f;
       border-radius: 12px;
       color: #34322d;
       font-size: 16px;
+      width: fit-content;
+      max-width: 100%;
     }
   }
 
@@ -180,6 +196,7 @@ const copyMessage = (message) => {
   font-size: 12px;
   align-items: center;
   gap: 2px;
+  padding: 0px 12px;
   justify-content: space-between;
   height: 24px;
 
@@ -188,11 +205,9 @@ const copyMessage = (message) => {
   }
 
   .copy-button {
-    // position: absolute;
     right: 8px;
     bottom: 8px;
     width: 24px;
-
     align-items: center;
     justify-content: center;
     cursor: pointer;
@@ -207,49 +222,35 @@ const copyMessage = (message) => {
       font-size: 16px;
     }
   }
-
-}
-
-
-.message-avatar {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  overflow: hidden;
-  flex-shrink: 0;
-
-  img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-  }
-
-  .avatar-placeholder {
-    width: 100%;
-    height: 100%;
-    background: #e6e6e6;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #666;
-    font-weight: 500;
-  }
 }
 
 .token-consumption {
   display: flex;
   justify-content: flex-end;
-  gap: 8px; // 控制各项之间的间距
+  gap: 8px;
   font-size: 12px;
-  color: #858481; // 与 message-options 颜色一致
-  background-color: #f9f9f9; // 添加浅灰色背景
-  margin: 8px 0; // 添加一些垂直边距
+  color: #858481;
+  background-color: #f9f9f9;
+  margin: 8px 0;
 }
 
 :deep(.token-consumption .ant-tag) {
   display: flex;
   gap: 8px;
   padding: 4px 8px;
-  font-family: 'Courier New', Courier, monospace;
+  font-family: "Courier New", Courier, monospace;
+}
+
+.skeleton-message {
+  margin-bottom: 16px;
+}
+
+.reference {
+  border: 1px solid #0000000f;
+  border-radius: 8px;
+  padding: 10px;
+  display: inline-block;
+  margin-bottom: 8px;
+  max-width: 80%;
 }
 </style>

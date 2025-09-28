@@ -686,7 +686,7 @@
     "api_url": "",
     "api_version": "",
     "key_obtain_url": "",
-    "is_enabled": "False",
+    "is_enabled": "true",
     "activate_time": "-1",
     "is_subscribe": "true",
     "models": [

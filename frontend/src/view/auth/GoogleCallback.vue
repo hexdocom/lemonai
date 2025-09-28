@@ -68,7 +68,7 @@ onMounted(async () => {
       await auth.googleAuth(urlParams.get('code'),redirectUri);
       percent.value = 100;
       message.success(t('auth.loginSuccessful'));
-      setTimeout(() => router.push({ name: 'app' }), 500);
+      setTimeout(() => router.push({ name: 'lemon' }), 500);
     } catch (error) {
       message.error(t('auth.loginFailed') + ': ' + error.message);
       setTimeout(() => router.push({ name: 'login' }), 1000);

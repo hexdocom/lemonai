@@ -46,8 +46,7 @@
                   </div>
                 </div>
 
-                <div class="visibility-toggle">
-                  <!-- 桌面端下拉框 -->
+                <!-- <div class="visibility-toggle">
                   <a-select
                     v-if="!isMobile"
                     v-model:value="isPublic"
@@ -72,13 +71,11 @@
                       </div>
                     </template>
                   </a-select>
-
-                  <!-- 移动端触发器 -->
                   <div v-else class="mobile-visibility-trigger" @click="openVisibilityModal">
                     <span class="visibility-name">{{ visibilityOptions.find((opt) => opt.value === isPublic)?.label || "Public" }}</span>
                     <DownOutlined class="dropdown-icon" />
                   </div>
-                </div>
+                </div> -->
                 <div class="mcp-button-container">
                   <!-- MCP服务器 -->
                   <a-dropdown :trigger="['click']" placement="top" class="mcp-dropdown">
@@ -526,15 +523,23 @@ const handleSend = () => {
   const text = messageText.value.trim();
   if (!text && fileList.value.length === 0) return;
 
-  // if (points.value.total <= 100) {
-  //   // handleNotification("/setting/usage", t("auth.insufficientPoints"), t("auth.insufficientPointsPleaseGoToUpgradeOrPurchase"));
-  //   upgradeDes.value = "You don’t have enough credits, and the prediction can’t complete the task. ";
-  //   upgradeDes1.value = "Please upgrade or purchase more credits.";
-  //   upgradeTitle.value = "";
-  //   showUpgradeModal.value = true;
-  //   return;
-  // }
   // 判断选择的模型 是不是付费模型
+
+  console.log("selectedModelValue.value", model_id.value);
+  //获取模型详情
+  //浏览器缓存 modelList
+  let modelList = JSON.parse(localStorage.getItem("modelList"));
+  let modelDetail = modelList.find((item) => item.id === model_id.value);
+  console.log("modelDetail", modelDetail);
+
+  //is_subscribe
+  if (points.value.total <= 100 && modelDetail.is_subscribe) {
+    upgradeDes.value = "You don't have enough credits to use this subscription model. ";
+    upgradeDes1.value = "Please subscribe or purchase more credits to continue.";
+    upgradeTitle.value = "";
+    showUpgradeModal.value = true;
+    return;
+  }
 
   emit("send", {
     text,
