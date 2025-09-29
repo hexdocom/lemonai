@@ -281,8 +281,8 @@ function closeOtherWindows() {
 const chatList = computed(() => chatStore.list)
 
 const versionInfo = ref({
-  localVersion: '0.3.0',
-  latestVersion: '0.3.0',
+  localVersion: '0.4.0',
+  latestVersion: '0.4.0',
   isLatest: true,
   updateUrl: 'https://github.com/yu-mengyun/vue-admin-template',
   message: 'the current version is the latest version',

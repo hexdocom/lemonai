@@ -7,7 +7,7 @@
           {{ $t("lemon.preview.title") }}
         </div>
         <div class="icon-ct">
-          <div class="sandbox-content">
+          <!-- <div class="sandbox-content">
             <a-button
               type="primary"
               @click="OpenVsCode"
@@ -16,7 +16,7 @@
               <vscodeSvg class="icon" />
               {{ $t("lemon.preview.openVsCode") }}
             </a-button>
-          </div>
+          </div> -->
           <div class="close-btn" @click="handleClose">
             <CloseOutlined />
           </div>
