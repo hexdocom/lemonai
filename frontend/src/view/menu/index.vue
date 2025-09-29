@@ -20,7 +20,7 @@
 
       <div class="menu-bottom">
         <div style="display: flex;align-items: flex-end; justify-content: space-between;">
-          <div class="user-profile-container" @mouseenter="showProfile = true" @mouseleave="showProfile = false">
+          <div class="user-profile-container" @mouseenter="handleMouseEnter" @mouseleave="handleMouseLeave">
             <div class="user-info-bar">
               <userSvg style="height: 20px;width: 20px;" />
               <div class="user-info-text">
@@ -69,7 +69,7 @@
          
 
           <a-tooltip title="Documentation">
-            <a href="https://lemon-11.gitbook.io/lemon-ai-docs" target="_blank" rel="noopener noreferrer" class="footer-social-link">
+            <a href="https://lemon-11.gitbook.io/lemonai" target="_blank" rel="noopener noreferrer" class="footer-social-link">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="footer-social-icon" xmlns="http://www.w3.org/2000/svg">
                 <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
                 <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
@@ -91,7 +91,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
 
@@ -109,7 +109,9 @@ import Case from '@/assets/svg/case.svg'
 import { useChatStore } from '@/store/modules/chat'
 import { useUserStore } from '@/store/modules/user.js'
 import emitter from '@/utils/emitter'
+import { useI18n } from 'vue-i18n'
 
+import service from '@/services/default-model-setting'
 
 const router = useRouter()
 const chatStore = useChatStore()
@@ -117,11 +119,83 @@ const userStore = useUserStore()
 const { agent, mode } = storeToRefs(chatStore)
 const { user, membership } = storeToRefs(userStore)
 
+
+const { t } = useI18n()
+import { driver } from "driver.js";
+import "driver.js/dist/driver.css";
+const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
+let tourDriver = null;
+
+const tour = async () => {
+  tourDriver = driver({
+    animate: true,
+    showProgress: false,
+    prevBtnText: t('setting.prevStep'),
+    nextBtnText: t('setting.nextStep'),
+    doneBtnText: t('setting.doneStep'),
+    steps: [
+      {
+        element: '.user-profile-container',
+        popover: {
+          side: 'top',
+          title: t('setting.settingModel'),
+          description: t('setting.tourHoverDescription'),
+          showButtons: ['next'],
+          nextBtnText: t('setting.tourUnderstood'),
+          onNextClick: () => {
+            // 结束引导并跳转到设置页面
+            localStorage.setItem('tour_end', 'true');
+            router.push({ path: '/setting/basic' });
+            tourDriver.destroy();
+          }
+        }
+      }
+    ]
+  });
+
+  tourDriver.drive();
+}
+
+// 处理鼠标进入事件
+const handleMouseEnter = () => {
+  showProfile.value = true;
+  
+  // 如果第一步引导正在进行中，关闭它
+  if (tourDriver && tourDriver.isActive()) {
+    tourDriver.destroy();
+  }
+}
+
+// 处理鼠标离开事件
+const handleMouseLeave = () => {
+  showProfile.value = false;
+}
+
+
+
 const selectedMenu = ref('task')
 const visible = ref(false)
 const isShowMenu = ref(false)
 const chats = ref([])
 const showProfile = ref(false)
+
+
+
+//检查是否配置模型
+async function checkModel() {
+  //判断有没有 localStorage.setItem('tour_end', 'true');
+  if (localStorage.getItem('tour_end') == 'true') {
+    localStorage.setItem('tour', 'false');
+    return;
+  }
+  let res = await service.checkModel();
+  if (res.has_default_platform && res.has_enabled_platform && res.has_search_setting) {
+    localStorage.setItem('tour', 'false');
+  } else {
+    localStorage.setItem('tour', 'true');
+    tour();
+  }
+}
 
 const isMobile = ref(window.innerWidth <= 768)
 const handleResize = () => {
@@ -132,6 +206,7 @@ const handleResize = () => {
   isMobile.value = newIsMobile
 }
 onMounted(() => {
+  checkModel();
   selectedMenu.value = localStorage.getItem('mode') || 'task'
   window.addEventListener('resize', handleResize)
   
@@ -150,6 +225,7 @@ function changeMode(modeType) {
   closeOtherWindows()
   selectedMenu.value = modeType
   mode.value = modeType
+  console.log("changeMode",modeType)
   const oldMode = localStorage.getItem('mode')
   if (oldMode !== modeType) {
     localStorage.setItem('mode', modeType)
@@ -205,15 +281,16 @@ function closeOtherWindows() {
 const chatList = computed(() => chatStore.list)
 
 const versionInfo = ref({
-  localVersion: '0.4.0',
-  latestVersion: '0.4.0',
+  localVersion: '0.3.0',
+  latestVersion: '0.3.0',
   isLatest: true,
   updateUrl: 'https://github.com/yu-mengyun/vue-admin-template',
   message: 'the current version is the latest version',
 })
 
 const handleVersionClick = () => {
-  window.open('https://lemon-11.gitbook.io/lemon-ai-docs/version-update', '_blank')
+  //https://lemon-11.gitbook.io/lemonai/version-update
+  window.open('https://lemon-11.gitbook.io/lemonai/version-update', '_blank')
 }
 </script>
 
@@ -361,7 +438,7 @@ const handleVersionClick = () => {
   box-shadow:
     0 4px 12px rgba(0, 0, 0, 0.08),
     0 8px 24px rgba(0, 0, 0, 0.04);
-  z-index: 9999;
+  z-index: 1000000;
   
   &::before {
     content: '';

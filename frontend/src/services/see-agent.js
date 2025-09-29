@@ -186,7 +186,9 @@ async function sendMessage(question, conversationId, files, mcp_server_ids = [],
         return '';
     }).finally(() => {
         chatStore.list.find((c) => c.conversation_id == conversationId).status = 'done';
-        getUserInfo();
+        if (localStorage.getItem('access_token')) {
+            getUserInfo();
+        }
     });
 
 }

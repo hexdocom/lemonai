@@ -53,17 +53,6 @@
           <a-input-password v-model:value="registerForm.password" :placeholder="$t('auth.pleaseInputPassword')" />
         </a-form-item>
   
-        <!-- Confirm Password -->
-        <a-form-item name="confirmPassword" :rules="[
-          { required: true, message: $t('auth.pleaseConfirmPassword') },
-          { validator: validateConfirmPassword }
-        ]">
-          <div class="form-label">
-            {{ $t('auth.confirmPassword') }}<span class="required-mark">*</span>
-          </div>
-          <a-input-password v-model:value="registerForm.confirmPassword" :placeholder="$t('auth.confirmPassword')" />
-        </a-form-item>
-  
         <!-- SMS Code (only for domestic users) -->
         <a-form-item v-if="!isAbroad" name="smsCode" :rules="[{ required: true, message: $t('auth.pleaseInputSMSCode') }]">
           <div class="form-label">
@@ -115,7 +104,6 @@ const registerForm = ref({
   email: '',
   phone: '',
   password: '',
-  confirmPassword: '',
   smsCode: ''
 })
 const smsCountdown = ref(0)
@@ -125,7 +113,6 @@ const isRegisterValid = computed(() => {
   return registerForm.value.fullname &&
     (isAbroad.value ? registerForm.value.email : registerForm.value.phone) &&
     registerForm.value.password &&
-    registerForm.value.confirmPassword === registerForm.value.password &&
     (!isAbroad.value ? registerForm.value.smsCode : true)
 })
 
@@ -158,13 +145,6 @@ function sendSMSCode() {
       smsTimer = null
     }
   }, 1000)
-}
-
-function validateConfirmPassword(_, value) {
-  if (value !== registerForm.value.password) {
-    return Promise.reject(new Error(t('auth.passwordsDoNotMatch')))
-  }
-  return Promise.resolve()
 }
 
 

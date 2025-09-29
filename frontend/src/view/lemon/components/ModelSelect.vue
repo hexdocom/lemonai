@@ -8,7 +8,7 @@
     :value="selectedModel"
     :placeholder="$t('lemon.input.chooseModel')"
     style="max-width: 200px; width: 100%"
-    :options="flatOptions"
+    :options="groupedOptions"
     optionLabelProp="label"
     :fieldNames="{ label: 'label', value: 'value' }"
     :dropdownMatchSelectWidth="false"
@@ -16,7 +16,7 @@
     :open="dropdownOpen"
     @dropdownVisibleChange="onDropdownVisibleChange"
   >
-    <template #option="{ label, logo_url, requires_membership, disabled, priceLabel, priceColor }">
+    <template #option="{ label, logo_url, requires_membership, disabled, priceLabel, priceColor, requiresLogin, is_subscribe }">
       <div 
         style="display: flex; align-items: center; justify-content: space-between; width: 100%"
         :style="{ opacity: disabled ? 0.5 : 1 }"
@@ -29,6 +29,11 @@
             style="max-width: 20px; height: 20px; margin-right: 8px"
           />
           <span>{{ label }}</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 6px;">
+          <a-tag v-if="requiresLogin" size="small" class="model-tag-login">
+            {{ $t('lemon.model.requiresLogin') }}
+          </a-tag>
         </div>
       </div>
     </template>
@@ -60,36 +65,37 @@
           </a-button>
         </div>
         <div class="model-list">
-          <div 
-            v-for="option in flatOptions" 
-            :key="option.value"
-            class="model-item"
-            :class="{ 
-              'selected': option.value === selectedModel,
-              'disabled': option.requires_membership && !isMember
-            }"
-            @click="handleMobileModelSelect(option)"
-          >
-            <div class="model-info">
-              <img
-                v-if="option.logo_url"
-                :src="option.logo_url"
-                alt="logo"
-                class="model-logo"
-              />
-              <span class="model-name">{{ option.label || option.model_name || 'Unknown Model' }}</span>
+          <div v-for="group in groupedOptions" :key="group.label" class="platform-group">
+            <div class="platform-header">
+              <span class="platform-name">{{ group.label }}</span>
             </div>
-            <div class="model-tags">
-              <a-tag 
-                size="small" 
-                class="model-price-tag"
-                :style="{ color: option.priceColor, borderColor: 'unset' }"
-              >
-                {{ option.priceLabel }}
-              </a-tag>
-              <a-tag v-if="option.requires_membership" size="small" class="model-tag-pro">
-                Pro+
-              </a-tag>
+            <div 
+              v-for="option in group.options" 
+              :key="option.value"
+              class="model-item"
+              :class="{ 
+                'selected': option.value === selectedModel,
+                'disabled': option.disabled
+              }"
+              @click="handleMobileModelSelect(option)"
+            >
+              <div class="model-info">
+                <img
+                  v-if="option.logo_url"
+                  :src="option.logo_url"
+                  alt="logo"
+                  class="model-logo"
+                />
+                <span class="model-name">{{ option.label || option.model_name || 'Unknown Model' }}</span>
+              </div>
+              <div class="model-tags">
+                <a-tag v-if="option.requiresLogin" size="small" class="model-tag-login">
+                  {{ $t('lemon.model.requiresLogin') }}
+                </a-tag>
+                <a-tag v-if="option.requires_membership" size="small" class="model-tag-pro">
+                  Pro+
+                </a-tag>
+              </div>
             </div>
           </div>
         </div>
@@ -107,6 +113,27 @@
   >
   <Pricing  isWindow="true"  showTitle="false" @close_window="closeModal" />
   </a-modal>
+
+  <!-- 登录提示弹窗 -->
+  <a-modal
+    v-model:open="showLoginPrompt"
+    :title="$t('lemon.model.loginRequired')"
+    centered
+    width="400px"
+    :footer="null"
+    @cancel="closeLoginPrompt"
+  >
+    <div style="text-align: center; padding: 20px 0;">
+      <p style="margin-bottom: 20px; font-size: 16px;">{{ $t('lemon.model.loginRequiredDescription') }}</p>
+      <p style="margin-bottom: 20px; color: #666;">{{ $t('lemon.model.pleaseLoginFirst') }}</p>
+      <a-button type="primary" @click="handleGoToLogin" style="margin-right: 12px;">
+        {{ $t('lemon.model.goToLogin') }}
+      </a-button>
+      <a-button @click="closeLoginPrompt">
+        {{ $t('lemon.common.cancel') }}
+      </a-button>
+    </div>
+  </a-modal>
 </template>
 
 <script setup>
@@ -118,6 +145,7 @@ import { DownOutlined, CloseOutlined } from '@ant-design/icons-vue'
 import { useUserStore } from '@/store/modules/user';
 import modelService from '@/services/default-model-setting'
 import Pricing from '@/view/pay/components/pricing.vue';
+import i18n from '@/locals';
 
 const userStore = useUserStore();
 const { membership } = storeToRefs(userStore);
@@ -133,10 +161,19 @@ const dropdownOpen = ref(false)
 
 const showUpgradeModal = ref(false);
 const upgradeTitle = ref("Upgrade")
+const showLoginPrompt = ref(false)
 
 // 移动端相关状态
 const showMobileModal = ref(false)
 const isMobile = ref(false)
+
+// 登录状态检查
+const isLoggedIn = computed(() => {
+  return !!localStorage.getItem('access_token')
+})
+
+// 登录提示弹窗
+const showLoginModal = ref(false)
 
 // 移动端检测
 const checkMobile = () => {
@@ -159,8 +196,28 @@ const closeModal = () => {
   showUpgradeModal.value = false;
 };
 
+// 关闭登录提示弹窗
+const closeLoginPrompt = () => {
+  showLoginPrompt.value = false;
+};
+
+// 跳转到登录页面
+const handleGoToLogin = () => {
+  closeLoginPrompt();
+  // 这里可以根据项目的路由配置跳转到登录页面
+  // 例如: router.push('/login') 或者其他登录逻辑
+  console.log('跳转到登录页面');
+};
+
 // 移动端模型选择处理
 const handleMobileModelSelect = (option) => {
+  // 如果需要登录但未登录，显示登录提示
+  if (option.requiresLogin) {
+    closeMobileModal()
+    showLoginPrompt.value = true
+    return
+  }
+  
   // 如果选择的是 Pro+ 模型且用户不是会员，弹出升级弹窗
   if (option.requires_membership && !isMember.value) {
     closeMobileModal()
@@ -248,6 +305,12 @@ const changeModel = (modelId) => {
   const id = modelId * 1
   const selectedModelData = modelList.value.find(model => model.id === id)
   
+  // 如果需要登录但未登录，显示登录提示
+  if (selectedModelData && selectedModelData.is_subscribe && !isLoggedIn.value) {
+    showLoginPrompt.value = true
+    return // 不切换模型
+  }
+  
   // 如果选择的是 Pro+ 模型且用户不是会员，弹出升级弹窗
   if (selectedModelData && selectedModelData.requires_membership && !isMember.value) {
     showUpgradeModal.value = true
@@ -271,9 +334,15 @@ const selectedModel = computed(() => {
   if (currentModelId && modelList.value.length > 0) {
     const currentModel = modelList.value.find(model => model.id === currentModelId)
     
+    // 如果当前模型需要登录但用户未登录，则选择第一个不需要登录的模型
+    if (currentModel && currentModel.is_subscribe && !isLoggedIn.value) {
+      const availableModel = modelList.value.find(model => !model.is_subscribe)
+      return availableModel ? availableModel.id : null
+    }
+    
     // 如果当前模型需要会员权限但用户不是会员，则选择第一个可用的模型
     if (currentModel && currentModel.requires_membership && !isMember.value) {
-      const availableModel = modelList.value.find(model => !model.requires_membership)
+      const availableModel = modelList.value.find(model => !model.requires_membership && (!model.is_subscribe || isLoggedIn.value))
       return availableModel ? availableModel.id : null
     }
   }
@@ -302,27 +371,50 @@ const getPriceLevel = (price_level_description) => {
   return map[price_level_description] || { label: "Unknown", color: "#d9d9d9" };
 };
 
-// 取消分组，扁平的 options 列表
-const flatOptions = computed(() => {
+// 分组的 options 列表
+const groupedOptions = computed(() => {
   const modelsWithPrice = modelList.value.map(model => {
     const priceInfo = getPriceLevel(model.price_level_description)
+    const requiresLogin = model.is_subscribe && !isLoggedIn.value
     return {
       label: model.model_name,
       requires_membership: model.requires_membership,
       value: model.id,
       logo_url: model.logo_url,
-      disabled: false, // 允许所有用户选择所有模型
+      disabled: requiresLogin, // 需要登录但未登录的模型设为禁用
       priceLevel: priceInfo.level,
       priceLabel: priceInfo.label,
-      priceColor: priceInfo.color
+      priceColor: priceInfo.color,
+      platform_name: model.platform_name,
+      platform_id: model.platform_id,
+      is_subscribe: model.is_subscribe,
+      requiresLogin: requiresLogin
     }
   })
   
-  // 调试日志
-  console.log('flatOptions:', modelsWithPrice)
+  // 按平台分组
+  const groupedByPlatform = modelsWithPrice.reduce((groups, model) => {
+    const platformName = model.platform_name || 'Other'
+    if (!groups[platformName]) {
+      groups[platformName] = []
+    }
+    groups[platformName].push(model)
+    return groups
+  }, {})
   
-  // 按价格等级从低到高排序
-  return modelsWithPrice.sort((a, b) => a.priceLevel - b.priceLevel)
+  // 转换为 Ant Design Select 的分组格式
+  const result = Object.keys(groupedByPlatform).map(platformName => ({
+    label: platformName,
+    options: groupedByPlatform[platformName].sort((a, b) => a.priceLevel - b.priceLevel)
+  }))
+  
+  console.log('groupedOptions:', result)
+  return result
+})
+
+// 扁平的 options 列表（用于移动端和其他需要扁平列表的地方）
+const flatOptions = computed(() => {
+  return groupedOptions.value.flatMap(group => group.options)
 })
 
 // 处理升级按钮点击
@@ -342,7 +434,7 @@ const dropdownRender = ({ menuNode }) => {
         fontWeight: '500',
         color: '#333'
       }
-    }, 'Models')
+    }, i18n.global.t('lemon.model.models'))
   ]
   
   
@@ -435,6 +527,21 @@ watchEffect(() => {
   justify-content: center !important;
 }
 
+.model-tag-login {
+  margin-left: 8px;
+  font-size: 12px !important;
+  padding: 0 6px !important;
+  height: 18px !important;
+  line-height: 1 !important;
+  border-radius: 4px !important;
+  background-color: #ff7875 !important;
+  color: #fff !important;
+  border: 1px solid #ff7875 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
 .model-price-tag {
   font-size: 12px !important;
   padding: 0 6px !important;
@@ -455,6 +562,26 @@ watchEffect(() => {
 
 ::v-deep(.ant-select-dropdown .ant-select-item-option) {
   padding: 8px 12px !important;
+}
+
+::v-deep(.ant-select-dropdown .ant-select-item-group) {
+  padding: 0 !important;
+}
+
+::v-deep(.ant-select-dropdown .ant-select-item-group-list) {
+  margin: 0 !important;
+}
+
+::v-deep(.ant-select-dropdown .ant-select-item-group .ant-select-item-group-list .ant-select-item-option) {
+  padding-left: 20px !important;
+}
+
+::v-deep(.ant-select-dropdown .ant-select-item-group .ant-select-item-group-list .ant-select-item-option:first-child) {
+  margin-top: 4px !important;
+}
+
+::v-deep(.ant-select-dropdown .ant-select-item-group .ant-select-item-group-list .ant-select-item-option:last-child) {
+  margin-bottom: 8px !important;
 }
 
 .model-dropdown-header {
@@ -608,6 +735,27 @@ watchEffect(() => {
   display: flex;
   align-items: center;
   gap: 6px;
+}
+
+.platform-group {
+  margin-bottom: 8px;
+}
+
+.platform-header {
+  padding: 8px 20px;
+  background-color: #f5f5f5;
+  border-bottom: 1px solid #f0f0f0;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.platform-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 /* 移动端样式优化 - 保留原有桌面端样式 */

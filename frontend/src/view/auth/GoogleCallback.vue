@@ -51,11 +51,18 @@ onMounted(async () => {
   };
   animateProgress();
 
-  const hash = window.location.hash; // "#/auth/google?code=4%2F0AUJR-x6"
-
-  // 用 URL 对象临时解析 hash 中的 query 参数
-  const queryString = hash.split('?')[1];
-  const urlParams = new URLSearchParams(queryString);
+  // 获取URL参数，优先从search中获取，如果没有再从hash中获取
+  let urlParams;
+  if (window.location.search) {
+    // 如果有search参数，直接使用
+    urlParams = new URLSearchParams(window.location.search);
+  } else {
+    // 否则从hash中获取
+    const hash = window.location.hash; // "#/auth/google?code=4%2F0AUJR-x6"
+    const queryString = hash.split('?')[1];
+    urlParams = new URLSearchParams(queryString);
+  }
+  console.log('urlParams:', urlParams.has('code')); 
   if (urlParams.has('code')) {
     try {
       const isClient = import.meta.env.VITE_IS_CLIENT === 'true';
@@ -71,10 +78,10 @@ onMounted(async () => {
       setTimeout(() => router.push({ name: 'lemon' }), 500);
     } catch (error) {
       message.error(t('auth.loginFailed') + ': ' + error.message);
-      setTimeout(() => router.push({ name: 'login' }), 1000);
+      // setTimeout(() => router.push({ name: 'login' }), 1000);
     }
   } else {
-    setTimeout(() => router.push({ name: 'login' }), 1000);
+    // setTimeout(() => router.push({ name: 'login' }), 1000);
   }
 });
 </script>

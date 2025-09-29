@@ -9,7 +9,7 @@
                 <a-textarea v-model:value="form.describe" rows="4" placeholder="Please enter describe" />
             </a-form-item>
 
-            <a-form-item label="Visibility">
+            <!-- <a-form-item label="Visibility">
                 <a-radio-group style="width: 100%;display: flex;justify-content: space-between;" v-model:value="form.is_public">
                     <a-radio v-for="option in visibilityOptions" :key="option.value" :value="option.value" 
                              :disabled="!option.value && isPersonalDisabled">
@@ -24,7 +24,7 @@
                         <a @click="upgradeToPro()" style="color: #1890ff; text-decoration: underline; cursor: pointer;">Upgrade to Pro+</a>
                     </span>
                 </div>
-            </a-form-item>
+            </a-form-item> -->
             
             <a-collapse>
                 <a-collapse-panel key="1" header="Select MCP Services">

@@ -90,7 +90,7 @@ router.get('/auth/google', async (ctx) => {
     `;
   } else {
     // 不是客户端，直接重定向到前端页面
-    const redirectUrl = `http://localhost:5005/#/auth/google${queryString ? '?' + queryString : ''}`;
+    const redirectUrl = `http://localhost:5005/auth/google${queryString ? '?' + queryString : ''}`;
     ctx.redirect(redirectUrl);
   }
 });

@@ -1,4 +1,8 @@
 export default {
+  // 通用
+  common: {
+    cancel: "取消",
+  },
   //登录界面
   account: {
     usernameLabel: '用户名：',
@@ -281,6 +285,31 @@ export default {
     input: {
       chooseModel: "选择模型",
     },
+    // 模型
+    model: {
+      requiresLogin: "需要登录",
+      loginRequired: "需要登录",
+      loginRequiredDescription: "此模型需要登录后才能使用",
+      pleaseLoginFirst: "请先登录您的账户以使用该功能",
+      goToLogin: "去登录",
+      models: "模型",
+    },
+    // 工作模式
+    workMode: {
+      title: "模式",
+      auto: {
+        label: "自动",
+        description: "自动选择对话模式"
+      },
+      agent: {
+        label: "任务",
+        description: "使用智能体模式进行对话"
+      },
+      chat: {
+        label: "聊天",
+        description: "使用会话模式进行对话"
+      }
+    },
     //消息对话列表页
     message: {
       runCommand: "执行 bash 命令",
@@ -397,8 +426,12 @@ export default {
     doneStep: "结束",
     prevStep: "上一步",
     nextStep: "下一步",
-    settingModel: "设置模型",
+    settingModel: "设置",
     settingModelTips: "点击设置, 跳转到设置页面",
+    tourHoverDescription: "鼠标悬浮此处查看菜单，点击设置前往设置页面",
+    tourClickSettingTitle: "进入设置",
+    tourClickSettingDescription: "点击\"设置\"按钮进入设置页面进行模型配置",
+    tourUnderstood: "前往设置",
     menu: {
       basic: "基本设置",
       defaultModel: "默认模型",

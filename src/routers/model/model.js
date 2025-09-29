@@ -258,6 +258,7 @@ router.get("/enabled", async ({ response }) => {
             allModels.push({
                 ...model.dataValues,
                 platform_name: platform.name,
+                is_subscribe: platform.is_subscribe,
                 requires_membership: model.requires_membership,
                 membership_level: model.membership_level,
             });

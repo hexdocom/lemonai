@@ -134,7 +134,7 @@
     <div v-if="showModeModal" class="mobile-modal-overlay" @click="closeModeModal">
       <div class="mobile-mode-selector" @click.stop>
         <div class="modal-header">
-          <h3>Mode</h3>
+          <h3>{{ t('lemon.workMode.title') }}</h3>
           <a-button type="text" @click="closeModeModal" class="close-btn">
             <CloseOutlined />
           </a-button>
@@ -263,12 +263,12 @@ const showRechargeModal = ref(false);
 
 // 工作模式选项
 const workMode = ref(localStorage.getItem("workMode") || "auto"); // 从缓存读取，默认Auto模式
-const workModeOptions = [
-  { value: "auto", label: "Auto", description: "Automated multi-step chat" },
-  { value: "agent", label: "Task", description: "Task-oriented chat with tools" },
-  { value: "chat", label: "Chat", description: "Simple conversation chat" },
+const workModeOptions = computed(() => [
+  { value: "auto", label: t('lemon.workMode.auto.label'), description: t('lemon.workMode.auto.description') },
+  { value: "agent", label: t('lemon.workMode.agent.label'), description: t('lemon.workMode.agent.description') },
+  { value: "chat", label: t('lemon.workMode.chat.label'), description: t('lemon.workMode.chat.description') },
   // { value: 'twins', label: 'Twins', description: 'Dual-agent collaborative chat' }
-];
+]);
 
 const mcpServers = ref([]);
 const selectedMcpServerIds = ref([]);
@@ -576,70 +576,6 @@ const handleNotification = (path, title, text) => {
       router.push(path);
     },
   });
-};
-
-// 自定义模式图标组件 - 使用对话气泡+右下角图标的组合模式
-const ModeIcon = ({ type }) => {
-  // 创建复合图标的通用函数
-  const createCompositeIcon = (overlayIcon) => {
-    return h(
-      "div",
-      {
-        style: {
-          position: "relative",
-          display: "inline-flex",
-          alignItems: "center",
-          justifyContent: "center",
-          width: "16px",
-          height: "16px",
-        },
-      },
-      [
-        // 背景对话气泡 - 黑色
-        h(MessageOutlined, {
-          style: {
-            fontSize: "16px",
-            color: "#000",
-          },
-        }),
-        // 右下角叠加图标 - 灰色
-        h(overlayIcon, {
-          style: {
-            position: "absolute",
-            bottom: "-2px",
-            right: "-2px",
-            fontSize: "8px",
-            color: "#999",
-            background: "#fff",
-            borderRadius: "50%",
-            padding: "1px",
-          },
-        }),
-      ]
-    );
-  };
-
-  // 根据类型返回对应的复合图标
-  switch (type) {
-    case "chat":
-      // Chat保持简单的对话气泡 - 黑色
-      return h(MessageOutlined, { style: { fontSize: "16px", color: "#000" } });
-
-    case "task":
-      // Task: 对话气泡 + 右下角灯泡图标（表示智能想法和解决方案）
-      return createCompositeIcon(BulbOutlined);
-
-    case "auto":
-      // Auto: 对话气泡 + 右下角同步图标
-      return createCompositeIcon(SyncOutlined);
-
-    case "twins":
-      // Twins: 对话气泡 + 右下角分叉图标（表示分支协作）
-      return createCompositeIcon(ForkOutlined);
-
-    default:
-      return h(MessageOutlined, { style: { fontSize: "16px", color: "#000" } });
-  }
 };
 
 // ---------------- 输入框按键事件 ------------------

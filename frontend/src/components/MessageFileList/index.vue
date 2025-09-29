@@ -49,6 +49,9 @@ const isModalVisible = ref(false);
 const imageUrl = ref("");
 const list = computed(() => {
   const json = props?.message?.meta?.json;
+  if (!json) {
+    return [];
+  }
   let files = JSON.parse(JSON.stringify(json));
   if (files && Array.isArray(files)) {
     for (const file of files) {

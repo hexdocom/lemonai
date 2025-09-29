@@ -1,4 +1,8 @@
 export default {
+  // Common
+  common: {
+    cancel: "Cancel",
+  },
   //登录界面
   account: {
     usernameLabel: 'Username:',
@@ -298,6 +302,31 @@ export default {
     input: {
       chooseModel: "choose model",
     },
+    // Model
+    model: {
+      requiresLogin: "Login Required",
+      loginRequired: "Login Required",
+      loginRequiredDescription: "This model requires login to use",
+      pleaseLoginFirst: "Please login to your account first to use this feature",
+      goToLogin: "Go to Login",
+      models: "Models",
+    },
+    // Work Mode
+    workMode: {
+      title: "Mode",
+      auto: {
+        label: "Auto",
+        description: "Automated multi-step chat"
+      },
+      agent: {
+        label: "Task", 
+        description: "Task-oriented chat with tools"
+      },
+      chat: {
+        label: "Chat",
+        description: "Simple conversation chat"
+      }
+    },
     //侧边栏
     sidebar: {
       newTask: "New task",
@@ -396,8 +425,12 @@ export default {
     doneStep: "Done",
     prevStep: "Previous step",
     nextStep: "Next step",
-    settingModel: "Setting model",
+    settingModel: "Settings",
     settingModelTips: "Click to set, jump to the setting page",
+    tourHoverDescription: "Hover here to view menu, click Settings to go to settings page",
+    tourClickSettingTitle: "Enter Settings",
+    tourClickSettingDescription: "Click the \"Settings\" button to enter the settings page for model configuration",
+    tourUnderstood: "Go to Settings",
     menu: {
       basic: "Basic settings",
       defaultModel: "Default model",

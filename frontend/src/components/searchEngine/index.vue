@@ -8,8 +8,10 @@
         <a-select v-model:value="selectedTemplate" :loading="loading" style="width:100%;height: 100%"
                   id="searchTemplates" @change="handleTemplateChange">
           <a-select-option v-for="item in searchTemplates" :key="item.id" :value="item.name">
-            <img :src="item.logo_url" alt="" class="logo"/>
-            <span>{{ displayName(item.name) }}</span>
+            <div class="select-option-content">
+              <img :src="item.logo_url" alt="" class="logo"/>
+              <span>{{ displayName(item.name) }}</span>
+            </div>
           </a-select-option>
         </a-select>
         <div class="search-choose-api-config" v-if="selectedTemplate === 'Tavily'">
@@ -404,6 +406,18 @@ const handleSave = async () => {
   align-items: center;
 }
 
+:deep(.ant-select-selection-item) {
+  display: flex;
+  align-items: center;
+  height: 100%;
+}
+
+:deep(.ant-select-selection-item .select-option-content) {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .search-choose-header {
   margin-bottom: 12px;
 }
@@ -539,9 +553,14 @@ p {
   }
 }
 
+.select-option-content {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .logo {
   width: 18px;
   height: 18px;
-  margin-right: 10px;
 }
 </style>
