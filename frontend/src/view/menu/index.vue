@@ -91,7 +91,7 @@ import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
 
-import Logo from '@/components/Logo.vue'
+import Logo from '@/components/logo.vue'
 import AgentList from '@/view/agents/index.vue'
 import AgentsEdit from '@/view/agents/components/agentsEdit.vue'
 import UserProFile from '@/view/auth/components/user-profile.vue'
