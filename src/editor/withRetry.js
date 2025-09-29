@@ -116,7 +116,7 @@ const enhancedCoding = (originalCoding) => {
     // 包装 LLM 调用部分
     const callLLMWithRetry = withLLMRetry(
       async () => {
-        const call = require("@src/utils/llm");
+        const chat_completion = require('@src/agent/chat-completion/index')
         const { resolveTemplate } = require("@src/utils/template");
         const fs = require('fs');
         const path = require('path');
@@ -132,7 +132,7 @@ const enhancedCoding = (originalCoding) => {
         };
         const prompt = await resolveTemplate(template, template_options);
 
-        const content = await call(prompt, conversation_id, '', {});
+        const content = await chat_completion(prompt, {}, conversation_id)
 
         return content;
       },

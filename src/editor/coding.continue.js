@@ -1,11 +1,9 @@
 const { resolveAction } = require('./resolve');
 const { execute: execute_action } = require('./execute.js');
 const { withLLMRetry } = require('./withRetry');
-
+const chat_completion = require('@src/agent/chat-completion/index')
 const fs = require('fs');
 const path = require('path');
-
-const call = require("@src/utils/llm");
 
 const { resolveTemplate } = require("@src/utils/template");
 
@@ -36,7 +34,7 @@ const coding = async (params = {}, context = {}) => {
         requirement: params.requirement,
       });
 
-      const content = await call(prompt, conversation_id, '', {});
+      const content = await chat_completion(prompt,{},conversation_id)
 
       return content;
     },

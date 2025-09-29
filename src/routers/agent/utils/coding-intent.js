@@ -1,4 +1,4 @@
-const call = require("@src/utils/llm");
+const chat_completion = require('@src/agent/chat-completion/index')
 
 /**
  * Analyze requirement to determine if agent is needed for information gathering
@@ -77,10 +77,10 @@ Result:
 `;
 
   try {
-    let response = await call(prompt, conversation_id, '', {
+    let response = await chat_completion(prompt, {
       temperature: 0.1,  // Low temperature for stable results
       response_format: 'json'
-    });
+    }, conversation_id)
 
     // Parse JSON response with fallback
     try {

@@ -7,7 +7,7 @@ const { sendProgressMessage, sendCodingMessage } = require("@src/routers/agent/u
 const fs = require('fs');
 const path = require('path');
 
-const call = require("@src/utils/llm");
+const chat_completion = require('@src/agent/chat-completion/index')
 
 const { resolveTemplate } = require("@src/utils/template");
 
@@ -39,7 +39,7 @@ const coding = async (params = {}, context = {}) => {
         information: params.information,
       });
 
-      const content = await call(prompt, conversation_id, '', {});
+      const content = await chat_completion(prompt,{},conversation_id)
       return content;
     },
     {
