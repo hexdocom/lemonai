@@ -18,17 +18,17 @@ const resolveResultPrompt = (goal, tasks, generatedFiles = [], staticUrl = null)
     filesInfo = `\n3. Generated files: ${JSON.stringify(fileNames)}`;
     
     // 检查是否有HTML文件
-    const htmlFiles = generatedFiles.filter(file => 
-      file.filename && file.filename.toLowerCase().endsWith('.html')
-    );
+    // const htmlFiles = generatedFiles.filter(file => 
+    //   file.filename && file.filename.toLowerCase().endsWith('.html')
+    // );
     
-    if (htmlFiles.length > 0 && staticUrl) {
-      // 获取最后一个HTML文件（最终交付的）
-      const finalHtmlFile = htmlFiles[htmlFiles.length - 1];
-      const finalUrl = `${staticUrl}/${finalHtmlFile.filename}`;
-      filesInfo += `\n\n**Important**: The final deliverable HTML file can be accessed via this link: **[Click here to view the result](${finalUrl})**`;
-      filesInfo += `\nPlease inform the user they can click this link to open in a new tab and view the final results.`;
-    }
+    // if (htmlFiles.length > 0 && staticUrl) {
+    //   // 获取最后一个HTML文件（最终交付的）
+    //   const finalHtmlFile = htmlFiles[htmlFiles.length - 1];
+    //   const finalUrl = `${staticUrl}/${finalHtmlFile.filename}`;
+    //   filesInfo += `\n\n**Important**: The final deliverable HTML file can be accessed via this link: **[Click here to view the result](${finalUrl})**`;
+    //   filesInfo += `\nPlease inform the user they can click this link to open in a new tab and view the final results.`;
+    // }
   }
 
   const prompt = `
@@ -41,8 +41,6 @@ I will provide you with:
 Please analyze the goal and the results of the sub-tasks in the JSON array, and then tell me how well the overall goal has been achieved. 
 **Crucially, please detect the language of the 'goal' you receive and ensure your entire summary is provided in that same language.**
 Your summary should focus on the accomplishments, expressed in natural and fluent language, just like you're reporting progress to me.
-
-${generatedFiles && generatedFiles.length > 0 ? 'If HTML files were generated, please inform the user that they can access the results through the provided web link.' : ''}
 
 Please wait for me to provide the goal and the task information.
   

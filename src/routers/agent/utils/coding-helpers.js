@@ -8,7 +8,6 @@ const File = require('@src/models/File');
 const Model = require('@src/models/Model');
 const Agent = require('@src/models/Agent');
 const MessageModel = require("@src/models/Message");
-const { ArynDocsetManager, ArynDocumentUploader } = require('@src/utils/docset');
 const handle_feedback = require("@src/knowledge/feedback");
 const Knowledge = require("@src/models/Knowledge");
 
@@ -92,49 +91,6 @@ const processFileUploads = async (fileIds, conversation_id, dir_path, WORKSPACE_
     })),
     docsetId
   };
-}
-
-// Upload single file to docset
-async function uploadToDocset(file, destPath, conversation, conversation_id, user_id, docsetId, apiKey) {
-  try {
-    const supportedExtensions = ['.pdf', '.docx', '.doc', '.pptx', '.ppt', '.txt', '.jpg', '.png'];
-    const fileExt = path.extname(file.name).toLowerCase();
-
-    if (!supportedExtensions.includes(fileExt)) {
-      return docsetId;
-    }
-
-    // Create docset if needed
-    if (!docsetId && conversation) {
-      const docsetManager = new ArynDocsetManager(apiKey);
-      const docsetResult = await docsetManager.createDocset({
-        name: `Conversation_${conversation_id.slice(0, 8)}`,
-        description: `Document collection for coding conversation ${conversation_id}`,
-        metadata: { conversation_id, user_id, type: 'coding' }
-      });
-
-      docsetId = docsetResult.docset_id;
-      await Conversation.update({ docset_id: docsetId }, { where: { conversation_id } });
-    }
-
-    // Upload document
-    if (docsetId) {
-      const uploader = new ArynDocumentUploader(apiKey);
-      await uploader.addDocument({
-        docsetId,
-        filePath: destPath,
-        fileName: file.name,
-        userId: user_id,
-        conversationId: conversation_id,
-        metadata: { conversation_id, user_id, file_id: file.id, type: 'coding' }
-      });
-      console.log(`Document ${file.name} uploaded to docset ${docsetId}`);
-    }
-  } catch (error) {
-    console.warn(`Failed to upload document ${file.name}:`, error.message);
-  }
-
-  return docsetId;
 }
 
 // Process knowledge feedback

@@ -6,7 +6,7 @@ const DOCKER_HOST_ADDR = process.env.DOCKER_HOST_ADDR;
 const ECI_SERVER_HOST = process.env.ECI_SERVER_HOST
 const { write_code: util_write_code } = require('./utils/tools');
 const { getDefaultModel } = require('@src/utils/default_model')
-const { createConf } = require('@src/utils/nginx')
+// const { createConf } = require('@src/utils/nginx')
 
 
 const Message = require('@src/utils/message');
@@ -102,7 +102,7 @@ class DockerRuntime {
     try {
       const response = await axios(request);
       this.docker_host = response.data.IntranetIp
-      await createConf(this.docker_host, this.user_id)
+      // await createConf(this.docker_host, this.user_id)
     } catch (e) {
       throw e
     }

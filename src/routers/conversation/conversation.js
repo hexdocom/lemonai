@@ -5,9 +5,7 @@ const Conversation = require("@src/models/Conversation");
 const Message = require("@src/models/Message");
 const ModelTable = require('@src/models/Model')
 const auto_generate_title = require('@src/agent/generate-title')
-const { deleteStaticConf } = require('@src/utils/nginx-static')
 
-const { auth_check } = require('@src/utils/share_auth')
 const { getDirpath } = require('@src/utils/electron');
 
 const uuid = require("uuid");
@@ -110,6 +108,7 @@ router.post("/", async ({ state, request, response }) => {
  */
 router.get("/", async ({ state, query, response }) => {
   try {
+
     console.time("get conversations");
     console.log("get conversations", query);
     const mode_type = query.mode_type || 'task';
@@ -244,15 +243,7 @@ router.get("/:conversation_id", async ({ state, params, response }) => {
       modelMap = new Map(models.map(m => [m.id, m.model_name]));
     }
     conversation.dataValues.model_name = modelMap.get(conversation.model_id) || null;
-
-    // 如果当前用户不是conversation的用户，需要判断是否有权限读
-    const allow_read = await auth_check(state.user.id, conversation.dataValues.user_id, conversation)
-
-    if (allow_read) {
-      return response.success(conversation);
-    } else {
-      return response.fail("no auth");
-    }
+    
   } catch (error) {
     console.error(error);
     return response.fail("Failed to get conversation");
@@ -372,15 +363,6 @@ router.delete("/:conversation_id", async ({ state, params, response }) => {
     });
     if (!conversation) {
       return response.error("Conversation does not exist");
-    }
-
-    // 清理nginx静态文件配置
-    try {
-      await deleteStaticConf(conversation_id);
-      console.log(`Nginx static config cleaned up for conversation ${conversation_id}`);
-    } catch (error) {
-      console.error('Failed to cleanup nginx static config:', error);
-      // 不影响主要的删除流程，只记录错误
     }
 
     // 设置deleted_at字段进行假删除

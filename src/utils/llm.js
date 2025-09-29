@@ -7,7 +7,6 @@ const { PauseRequiredError } = require("@src/utils/errors");
 const calcToken = require('@src/completion/calc.token.js')
 const Conversation = require('@src/models/Conversation.js')
 
-const { deductPoints } = require('@src/utils/point')
 
 const defaultOnTokenStream = (ch) => {
   process.stdout.write(ch);
@@ -61,10 +60,6 @@ const call = async (prompt, conversation_id, model_type = DEFAULT_MODEL_TYPE, op
       // @ts-ignore
       conversation.output_tokens = conversation.output_tokens + output_tokens
       await conversation.save()
-      const { notEnough } = await deductPoints(conversation.dataValues.user_id, { input_tokens, output_tokens }, conversation_id);
-      if (notEnough) {
-        throw new PauseRequiredError('Insufficient credits balance');
-      }
     }
   }
 

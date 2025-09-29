@@ -338,7 +338,7 @@
   },
   {
     "name": "LM Studio",
-    "logo_url": "https://lmstudio.ai/_next/image?url=%2F_next%2Fstatic%2Fmedia%2Flmstudio-app-logo.61cb7d80.webp&w=3840&q=75",
+    "logo_url": "https://lmstudio.ai/_next/image?url=%2F_next%2Fstatic%2Fmedia%2Flmstudio-app-logo.11b4d746.webp&w=64&q=75",
     "provider_type": "OpenAI",
     "source_type": "system",
     "user_id": "",
