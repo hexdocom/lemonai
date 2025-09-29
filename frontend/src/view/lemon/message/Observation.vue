@@ -1,13 +1,14 @@
 <template>
   <div>
+    <!-- {{ action }} -->
     <div class="think" v-if="action.status == 'running'">
       <LoadingOutlined />
-      <span style="margin-left: 5px;">{{ command }} {{ information }}</span>
+      <span style="margin-left: 5px">{{ command }} {{ information }}</span>
     </div>
     <div class="observation" :class="status" @click="togglePreview" v-else>
       <div class="observation-details" v-if="information">
         <div class="command-output">
-          <component :is="svgHash[action.meta.action_type]" />
+          <component :is="iconComponent" />
           <div class="command-output-text">{{ command }} {{ information }}</div>
         </div>
       </div>
@@ -16,16 +17,17 @@
 </template>
 
 <script setup>
-import { computed } from 'vue';
-import { useI18n } from 'vue-i18n';
-import Message from './Message.vue';
-import emitter from '@/utils/emitter';
-import Browse from '@/assets/message/browse.svg';
-import Edit from '@/assets/message/edit.svg';
-import Bash from '@/assets/message/bash.svg';
-import Think from '@/assets/message/think.svg';
-import { LoadingOutlined } from '@ant-design/icons-vue';
-import { message } from 'ant-design-vue';
+import { computed } from "vue";
+import { useI18n } from "vue-i18n";
+import Message from "./Message.vue";
+import emitter from "@/utils/emitter";
+import Browse from "@/assets/message/browse.svg";
+import Edit from "@/assets/message/edit.svg";
+import Bash from "@/assets/message/bash.svg";
+import Think from "@/assets/message/think.svg";
+import Tools from "@/assets/message/tools.svg";
+import { LoadingOutlined } from "@ant-design/icons-vue";
+import { message } from "ant-design-vue";
 
 const { t } = useI18n();
 
@@ -37,13 +39,13 @@ const props = defineProps({
 });
 
 const actionTypeDescriptions = {
-  terminal_run: t('lemon.message.runCommand'),
-  read_code: t('lemon.message.readFile'),
-  write_code: t('lemon.message.editFile'),
-  browser: t('lemon.message.browsing'),
-  web_search: t('lemon.message.searching'),
-  read_file: t('lemon.message.readFile'),
-  mcp_tool: 'MCP'
+  terminal_run: t("lemon.message.runCommand"),
+  read_code: t("lemon.message.readFile"),
+  write_code: t("lemon.message.editFile"),
+  browser: t("lemon.message.browsing"),
+  web_search: t("lemon.message.searching"),
+  read_file: t("lemon.message.readFile"),
+  mcp_tool: "MCP",
 };
 const svgHash = {
   browse: Browse,
@@ -53,22 +55,28 @@ const svgHash = {
   read_file: Edit,
   web_search: Browse,
   browser: Browse,
+  mcp_tool: Bash,
 };
 
 const command = computed(() => {
-  return `${actionTypeDescriptions[props.action.meta.action_type]}` || '';
+  const actionType = props.action.meta.action_type;
+  return actionTypeDescriptions[actionType] || "";
+});
+
+const iconComponent = computed(() => {
+  const actionType = props.action.meta.action_type;
+  return svgHash[actionType] || Tools; // 使用Tools作为默认的工具调用图标
 });
 
 const information = computed(() => {
-  if (props.action.meta.action_type == 'terminal_run') {
-    return props.action.content[0]
+  if (props.action.meta.action_type == "terminal_run") {
+    return props.action.content[0];
   }
-  return props.action.content
+  return props.action.content;
 });
 
 const togglePreview = () => {
-  console.log('preview.props', props);
-  emitter.emit('preview', { message: props.action });
+  emitter.emit("preview", { message: props.action });
 };
 </script>
 
@@ -76,7 +84,7 @@ const togglePreview = () => {
 .observation {
   max-width: calc(100% - 16px);
   margin: 8px 0;
-  padding: 3px 10px;
+  padding: 4px 12px;
   cursor: pointer;
   background-color: #37352f0a;
   border: 1px solid #0000000a;

@@ -1,12 +1,13 @@
 <template>
     <div class="planing">
         <div class="planing-item" v-for="(item, index) in planing" :key="item.id">
+            <!-- {{ item }} -->
             <div class="planing-item-content" v-if="item.status && item.status != 'pending' ">
                 <div class="planing-item-content-icon" :class="{
                     running: item.status === 'pending' || item.status === 'running',
                     error: item.status === 'failure'
                 }">
-                    <Success v-if="item.status == 'success'" />
+                    <Success v-if="item.status == 'success' || item.status == 'completed' " />
                     <Failure v-if="item.status == 'failure'" />
 
                 </div>
@@ -50,7 +51,7 @@
                     <div></div>
                 </div>
                 <div>
-                    <a-alert :message="item.meta.json.comments" type="error" />
+                    <a-alert v-if="item.meta.json.comments.indexOf('Insufficient credits balance') == -1" :message="item.meta.json.comments" type="error" />
                 </div>
             </div>
 
@@ -87,6 +88,7 @@ onMounted(() => {
         item.is_collapse = true
     })
 })
+
 
 const toggleCollapse = (item) => {
     console.log(item)

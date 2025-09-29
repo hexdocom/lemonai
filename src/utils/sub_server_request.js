@@ -15,7 +15,7 @@ async function sub_server_request(url, data) {
       'Authorization': `Bearer ${token}` // 使用传入的 token
     },
   };
-
+  console.log("======== config =========",config)
   try {
     const result = await axios.request(config);
     return result.data.data;
