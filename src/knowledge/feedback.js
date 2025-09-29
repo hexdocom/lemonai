@@ -23,7 +23,6 @@ const handleReflection = async (reflection = {}, agent_id) => {
 }
 
 const { resolveTemplate, loadTemplate } = require("@src/utils/template");
-const call = require("@src/utils/llm");
 
 const handle_feedback = async (options = {}) => {
   try {
