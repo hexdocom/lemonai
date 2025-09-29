@@ -139,7 +139,7 @@ async function uploadToDocset(file, destPath, conversation, conversation_id, use
 
 // Process knowledge feedback
 async function processKnowledgeFeedback(requirement, conversation_id, agent_id) {
-  const ENABLE_KNOWLEDGE = process.env.ENABLE_KNOWLEDGE || "OFF";
+  const ENABLE_KNOWLEDGE = process.env.ENABLE_KNOWLEDGE || "ON";
 
   if (ENABLE_KNOWLEDGE !== "ON" || !agent_id) {
     return;

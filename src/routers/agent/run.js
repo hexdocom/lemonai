@@ -94,7 +94,7 @@ async function uploadDocumentToDocset(file, destPath, conversation, conversation
 
 const handle_feedback = require("@src/knowledge/feedback");
 const Knowledge = require("@src/models/Knowledge");
-const ENABLE_KNOWLEDGE = process.env.ENABLE_KNOWLEDGE || "OFF"
+const ENABLE_KNOWLEDGE = process.env.ENABLE_KNOWLEDGE || "ON"
 
 /**
  * @swagger
