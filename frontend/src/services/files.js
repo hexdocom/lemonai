@@ -8,17 +8,35 @@ const service = {
     return http.post(uri, formData);
   },
   ///api/file put
-  async putFile(id,conversation_id){
+  async putFile(id, conversation_id) {
     const uri = `/api/file`;
-    return http.put(uri,{
-      id:id,
-      conversation_id:conversation_id
+    return http.put(uri, {
+      id: id,
+      conversation_id: conversation_id
     });
   },
   // delete
-  async deleteFile(id) {
-    const uri = `/api/file/delete/${id}`;
+  async deleteFile(id, conversation_id) {
+    let uri = `/api/file/delete/${id}`;
+    if (conversation_id != null) {  // 判断不为 null 或 undefined
+      uri += `?conversation_id=${conversation_id}`;
+    }
     return http.del(uri);
+  },
+
+  async getFileByPath(path) {
+    const uri = `/api/file/editor/read`;
+    return http.post(uri, {
+      path: path
+    });
+  },
+  async saveFileByPath(path, content, conversation_id) {
+    const uri = `/api/file/editor`;
+    return http.put(uri, {
+      path: path,
+      content: content,
+      conversation_id: conversation_id
+    });
   },
   async getFile(conversationId, file) {
     const uri = `/api/conversations/${conversationId}/files_manager/select-file?file=${file}`;
@@ -41,7 +59,7 @@ const service = {
 
     return fileContent; // 返回文件内容
   },
-  
+
   parseFileContent(blob, fileName) {
     return new Promise((resolve, reject) => {
       const fileType = blob.type;
