@@ -12,7 +12,6 @@ const { ArynDocsetManager, ArynDocumentUploader } = require('@src/utils/docset')
 const handle_feedback = require("@src/knowledge/feedback");
 const Knowledge = require("@src/models/Knowledge");
 
-
 const ensureConversation = async (conversation_id, requirement, user_id, agent_id) => {
   if (!conversation_id) {
     conversation_id = uuid.v4();
@@ -155,6 +154,14 @@ async function processKnowledgeFeedback(requirement, conversation_id, agent_id) 
 
     const knowledge_count = await Knowledge.count({ where: { agent_id } });
     await Agent.update({ knowledge_count }, { where: { id: agent_id } });
+
+    // 更新 system knowledge_count
+    const currentAgent = await Agent.findOne({ where: { id: agent_id } });
+    if (currentAgent && currentAgent.role_id) {
+      const systemKnowledgeCount = await Knowledge.count({ where: { agent_id: currentAgent.role_id } });
+      await Agent.update({ knowledge_count: systemKnowledgeCount }, { where: { id: currentAgent.role_id } });
+    }
+
     console.log('Knowledge feedback processed');
   } catch (error) {
     console.error('Knowledge feedback failed:', error);
@@ -191,6 +198,21 @@ const captureScreenshot = async (dir_path, filepath, conversation_id, agent_id, 
 
     if (!tokenString) return;
 
+    // const result = await takeScreenshotAndUpload(url, {
+    //   accessToken: tokenString,
+    //   conversation_id
+    // });
+
+    // if (result?.screenshotUrl) {
+    //   const agent = await Agent.findOne({ where: { id: agent_id } });
+    //   if (agent && !agent.replay_conversation_id) {
+    //     await Agent.update(
+    //       { screen_shot_url: result.screenshotUrl },
+    //       { where: { id: agent_id } }
+    //     );
+    //     console.log('Screenshot updated:', result.screenshotUrl);
+    //   }
+    // }
   } catch (error) {
     console.error('Screenshot capture failed:', error);
   }
@@ -274,9 +296,11 @@ const updateAgentSettings = async (agent_id, mcp_server_ids) => {
 }
 
 const getContainerCloseHandler = () => {
-  const RUNTIME_TYPE = process.env.RUNTIME_TYPE || 'local-docker';
+  const RUNTIME_TYPE = process.env.RUNTIME_TYPE;
 
-  if (RUNTIME_TYPE === 'local-docker') {
+  if (RUNTIME_TYPE === 'e2b') {
+    return require('@src/utils/e2b').closeContainer;
+  } else if (RUNTIME_TYPE === 'local-docker') {
     return async () => console.log('Local environment - skip container close');
   } else {
     return require('@src/utils/eci_server').closeContainer;

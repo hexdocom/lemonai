@@ -65,7 +65,7 @@ async function setupCodingTask(ctx) {
   } = body;
 
   // Validate permissions
-  await validateModelPermissions(model_id, userId);
+  // await validateModelPermissions(model_id, userId);
 
   // Ensure conversation exists
   conversation_id = await ensureConversation(conversation_id, requirement, userId, agent_id);
