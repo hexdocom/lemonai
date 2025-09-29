@@ -10,6 +10,10 @@
             <Edit />
             <span class="truncate">New Agent</span>
           </div>
+          <div class="menu-button store-button" :class="{ active: isStorePage }" @click="toStore">
+            <Store />
+            <span class="truncate">Agent Store</span>
+          </div>
         </div>
         <AgentList />
       </div>
@@ -173,15 +177,7 @@ function toStore() {
     isShowMenu.value = false
     emitter.emit('mobileMenuStateChange', false)
   }
-  router.push('/store')
-}
-
-function toUserCase() {
-  if (isMobile.value && isShowMenu.value) {
-    isShowMenu.value = false
-    emitter.emit('mobileMenuStateChange', false)
-  }
-  router.push('/userCase')
+  window.open('https://app.lemonai.ai/store', '_blank')
 }
 
 function closeMenu() {
@@ -209,8 +205,8 @@ function closeOtherWindows() {
 const chatList = computed(() => chatStore.list)
 
 const versionInfo = ref({
-  localVersion: '0.2.5',
-  latestVersion: '0.2.5',
+  localVersion: '0.4.0',
+  latestVersion: '0.4.0',
   isLatest: true,
   updateUrl: 'https://github.com/yu-mengyun/vue-admin-template',
   message: 'the current version is the latest version',

@@ -54,12 +54,6 @@ let menuItems = [
     name: "setting.menu.searchService",
     icon: GlobalOutlined,
   },
-  // { key: 'default-model-setting', name: 'setting.menu.defaultModel', icon: ModelOutlined },
-  {
-    key: "experience",
-    name: "setting.menu.experience",
-    icon: AppstoreOutlined,
-  },
   { key: "mcp-service", name: "setting.menu.mcpService", icon: CodeOutlined },
   { key: "about", name: "setting.menu.about", icon: InfoCircleOutlined },
 ];
