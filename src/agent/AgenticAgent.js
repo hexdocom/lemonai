@@ -28,7 +28,7 @@ const runtimeMap = {
 
 const { retrieveAndFormatPreviousSummary } = require('./conversationHistoryUtils');
 const { getAllFilesRecursively, getFilesMetadata, ensureDirectoryExists } = require('./fileUtils');
-const { createStaticConf } = require('@src/utils/nginx-static');
+// const { createStaticConf } = require('@src/utils/nginx-static');
 const { createFilesVersion } = require('@src/utils/versionManager');
 
 class AgenticAgent {
@@ -88,7 +88,7 @@ class AgenticAgent {
     // 创建nginx静态文件配置（仅在docker/e2b环境下）
     if (RUNTIME_TYPE === 'docker' || RUNTIME_TYPE === 'e2b') {
       try {
-        const nginxResult = await createStaticConf(this.context.conversation_id, conversationDirPath);
+        // const nginxResult = await createStaticConf(this.context.conversation_id, conversationDirPath);
         console.log(`Nginx static config created for ${nginxResult.subdomain}`);
         // 保存静态文件访问地址到上下文
         this.context.staticUrl = nginxResult.url;

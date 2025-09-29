@@ -21,7 +21,6 @@ const modules = [
   'version',
   'mcp_server',
   'knowledge',
-  'dev',
   'agent_store',
   'conversation_case',
   'order',

@@ -1,11 +1,9 @@
 const router = require("koa-router")();
 
-const DockerRuntime = require("@src/runtime/DockerRuntime");
+const DockerRuntime = require("@src/runtime/DockerRuntime.local");
 
 const RUNTIME_TYPE = process.env.RUNTIME_TYPE || 'local-docker';
-const { closeContainer: dockerCloseContainer } = require('@src/utils/eci_server');
 
-let closeContainer = dockerCloseContainer
 const runtimeMap = {
   'docker': DockerRuntime,
 }
@@ -58,22 +56,11 @@ router.get('/vscode-url', async ({ state, query, response }) => {
 
   const runtime = new Runtime({ user_id, conversation_id })
   await runtime.connect_container()
-  // 五分钟后关闭
-  setTimeout(() => {
-    closeContainer(user_id);
-  }, 5 * 60 * 1000);
 
   const vscode_port = 9002
 
   const vscode_url = runtime.get_vscode_url(dir_name);
   return response.success({ url: vscode_url });
-});
-
-router.post('/delete_container', async ({ state, response }) => {
-  const user_id = state.user.id
-
-  let res = await closeContainer(user_id)
-  return response.success(res);
 });
 
 

@@ -16,12 +16,10 @@ const Model = require('@src/models/Model')
 const path = require('path')
 const fs = require('fs').promises
 const { getDirpath } = require('@src/utils/electron');
-const { ArynDocsetManager, ArynDocumentUploader } = require('@src/utils/docset');
 const RUNTIME_TYPE = process.env.RUNTIME_TYPE || 'local-docker'
-const { closeContainer: dockerCloseContainer } = require('@src/utils/eci_server');
 
 
-let closeContainer = dockerCloseContainer
+let closeContainer
 if (RUNTIME_TYPE && RUNTIME_TYPE === 'local-docker') {
   closeContainer = async () => {
     console.log('本地不执行')
@@ -31,70 +29,9 @@ if (RUNTIME_TYPE && RUNTIME_TYPE === 'local-docker') {
 const activeAgents = new Map();
 const MessageTable = require('@src/models/Message');
 
-// 检查文件是否支持文档解析并上传到docset
-async function uploadDocumentToDocset(file, destPath, conversation, conversation_id, user_id, docsetId, apiKey) {
-  if (!apiKey) {
-    return docsetId;
-  }
-
-  try {
-    const supportedExtensions = ['.pdf', '.docx', '.doc', '.pptx', '.ppt', '.txt', '.jpg', '.png'];
-    const fileExt = path.extname(file.name).toLowerCase();
-
-    if (supportedExtensions.includes(fileExt)) {
-      // 如果没有docset，创建一个新的
-
-      if (!docsetId && conversation) {
-        const docsetManager = new ArynDocsetManager(apiKey);
-        const docsetResult = await docsetManager.createDocset({
-          name: `Conversation_${conversation_id.slice(0, 8)}`,
-          description: `Document collection for conversation ${conversation_id}`,
-          metadata: {
-            conversation_id: conversation_id,
-            user_id: user_id,
-            createdDate: new Date().toISOString()
-          }
-        });
-
-        console.log("docsetResult", docsetResult)
-        docsetId = docsetResult.docset_id;
-
-        // 更新conversation表中的docset_id
-        await Conversation.update(
-          { docset_id: docsetId },
-          { where: { conversation_id: conversation_id } }
-        );
-      }
-
-      // 上传文档到docset
-      if (docsetId) {
-        const uploader = new ArynDocumentUploader(apiKey);
-        await uploader.addDocument({
-          docsetId: docsetId,
-          filePath: destPath,
-          fileName: file.name,
-          userId: user_id,
-          conversationId: conversation_id,
-          metadata: {
-            conversation_id: conversation_id,
-            user_id: user_id,
-            file_id: file.id,
-            uploadDate: new Date().toISOString()
-          }
-        });
-        console.log(`Document ${file.name} uploaded to docset ${docsetId}`);
-      }
-    }
-  } catch (docError) {
-    console.warn(`Failed to upload document ${file.name} to docset:`, docError.message);
-  }
-
-  return docsetId;
-}
-
 const handle_feedback = require("@src/knowledge/feedback");
 const Knowledge = require("@src/models/Knowledge");
-const ENABLE_KNOWLEDGE = process.env.ENABLE_KNOWLEDGE || "OFF"
+const ENABLE_KNOWLEDGE = process.env.ENABLE_KNOWLEDGE || "ON"
 
 /**
  * @swagger
@@ -185,13 +122,6 @@ router.post("/run", async (ctx, next) => {
     const targetUploadDir = path.join(dir_path, 'upload');
     await fs.mkdir(targetUploadDir, { recursive: true });
 
-    // 获取或创建docset用于文档解析
-    let conversation = await Conversation.findOne({
-      where: { conversation_id: conversation_id }
-    });
-
-    let docsetId = conversation ? conversation.docset_id : null;
-    const apiKey = process.env.ARYN_API_KEY;
 
     for (const file of files) {
       // 假设 file.filename 字段存在，且为文件名
@@ -212,8 +142,6 @@ router.post("/run", async (ctx, next) => {
         }
       }
 
-      // 检查文件是否支持文档解析并上传到docset
-      docsetId = await uploadDocumentToDocset(file, destPath, conversation, conversation_id, ctx.state.user.id, docsetId, apiKey);
     }
   }
   if (!conversation_id) {

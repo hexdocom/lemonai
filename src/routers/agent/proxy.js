@@ -4,7 +4,6 @@ const axios = require('axios')
 const { PassThrough } = require("stream");
 
 const calcToken = require('@src/completion/calc.token.js')
-const { deductPoints } = require('@src/utils/point')
 
 const OPENAI_API_KEY = process.env.API_KEY;
 const OPENAI_BASE_URL = process.env.BASE_URL;
@@ -120,7 +119,6 @@ router.post("/v1/chat/completions", async (ctx, next) => {
         const output_tokens = calcToken(fullContent);
 
         // 扣除积分
-        await deductPoints(state.user.id, { input_tokens, output_tokens }, conversation_id);
         console.log("===input_tokens, output_tokens======", input_tokens, output_tokens)
 
         clientResponseStream.end();
@@ -150,7 +148,6 @@ router.post("/v1/chat/completions", async (ctx, next) => {
 
       console.log("===input_tokens, output_tokens======nostream:", input_tokens, output_tokens)
 
-      await deductPoints(state.user.id, { input_tokens, output_tokens }, conversation_id)
 
       ctx.body = openaiResponse.data;
       ctx.status = openaiResponse.status;

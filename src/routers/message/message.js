@@ -3,7 +3,6 @@ const router = require("koa-router")();
 const Message = require("@src/models/Message");
 const Conversation = require("@src/models/Conversation")
 
-const { auth_check } = require('@src/utils/share_auth')
 
 // api/message/list?conversation_id=1234567890
 /**
@@ -32,11 +31,7 @@ router.get("/list", async ({ state, query, response }) => {
     }
 
     const conversation = await Conversation.findOne({ where: { conversation_id } })
-    const allow_read = await auth_check(state.user.id, conversation.dataValues.user_id, conversation)
 
-    if (!allow_read) {
-        return response.fail('no auth')
-    }
     const messages = await Message.findAll({
         where: { conversation_id: conversation_id },
         order: [['timestamp', 'ASC']] // 按timestamp升序
