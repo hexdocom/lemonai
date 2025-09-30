@@ -739,6 +739,7 @@ export default {
       updateFailed: "Update failed",
       updateFailedDataNotExist: "Update failed, current data does not exist",
       getDataError: "Get data error",
+      systemExperienceRequiresUpgrade: "Viewing system experiences requires an upgrade",
       detect: "Intent detection",
       plan: "Task planning",
       action: "Task execution",

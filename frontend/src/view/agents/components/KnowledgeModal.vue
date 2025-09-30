@@ -56,7 +56,7 @@
       <!-- 蒙版，仅在非会员查看 system 时显示 -->
       <div v-if="showOverlay" class="overlay-mask">
         <div class="overlay-content">
-          Viewing system experiences requires an upgrade
+          {{ $t("setting.experience.systemExperienceRequiresUpgrade") }}
           <button @click="goUpgrade" class="upgrade">{{ $t("member.upgrade") }}</button>
         </div>
         
@@ -104,12 +104,15 @@ import service from '@/services/knowledge.js';
 import { useChatStore } from '@/store/modules/chat';
 import { useUserStore } from '@/store/modules/user'; // 确保你有这行
 import { storeToRefs } from 'pinia';
+import { useRouter } from 'vue-router';
 
 const chatStore = useChatStore();
 const { agent } = storeToRefs(chatStore);
 
 const userStore = useUserStore();
 const { user, membership, points } = storeToRefs(userStore);
+
+const router = useRouter();
 
 const visible = ref(false);
 const editVisible = ref(false);
@@ -231,8 +234,17 @@ const onSearch = () => {
 };
 
 const goUpgrade = () => {
-  // 替换成你的升级页面路径
-  window.location.href = '/pricing';
+  // 检查用户是否登录
+  const accessToken = localStorage.getItem('access_token');
+  const hasUserId = user.value && user.value.id;
+  
+  if (!accessToken || !hasUserId) {
+    // 未登录，跳转到登录页面
+    router.push({ name: 'login' });
+  } else {
+    // 已登录，跳转到升级页面
+    router.push({ name: 'pricing' });
+  }
 };
 
 const columns = [

@@ -742,6 +742,7 @@ export default {
       updateFailed: "更新失败",
       updateFailedDataNotExist: "更新失败，当前数据不存在",
       getDataError: "获取数据错误",
+      systemExperienceRequiresUpgrade: "查看系统经验需要升级",
       detect: "意图识别",
       plan: "任务规划",
       action: "任务执行",
