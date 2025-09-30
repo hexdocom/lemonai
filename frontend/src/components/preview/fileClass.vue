@@ -347,20 +347,21 @@ const zip = new JSZip()
 const promises = selectedFiles.map(async (file) => {
   const fileName = file.filename.split('/').pop()
   const fileContent = await workspaceService.getFile(file.filepath)
-  // 根据文件类型设置 MIME 类型
+  console.log('fileContent', fileContent)
+  
+  // 根据文件扩展名判断是否为二进制文件
   const ext = fileName.split('.').pop().toLowerCase()
-  const mimeType = fileTypeExtensions.image.includes(ext)
-    ? `image/${ext}`
-    : fileTypeExtensions.document.includes(ext)
-    ? 'application/octet-stream'
-    : 'text/plain'
-  let zipContent =  fileContent
-  if(mimeType === 'text/plain'){
-      //to String: some time the fileContent is not a string,such as json file,can be solve to object
-      zipContent = JSON.stringify(fileContent)
+  const isBinaryFile = fileTypeExtensions.image.includes(ext) || 
+                      ['pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'zip', 'rar'].includes(ext)
+  
+  // 对于二进制文件，直接使用原始内容；对于文本文件，确保是字符串格式
+  let zipContent = fileContent
+  if (!isBinaryFile && typeof fileContent !== 'string') {
+    // 如果是对象（如JSON），转换为格式化的字符串
+    zipContent = typeof fileContent === 'object' ? JSON.stringify(fileContent, null, 2) : String(fileContent)
   }
   
-  zip.file(fileName, zipContent, { binary: mimeType !== 'text/plain' })
+  zip.file(fileName, zipContent, { binary: isBinaryFile })
 })
 try {
   // 等待所有文件内容加载完成
