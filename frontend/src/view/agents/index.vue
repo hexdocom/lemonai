@@ -265,7 +265,7 @@ onUnmounted(() => {
   display: flex;
   gap: 12px;
   flex-direction: column;
-  height: calc(100vh - 380px);
+  height: calc(100vh - 270px);
   overflow: hidden;
 }
 .agent-list{
