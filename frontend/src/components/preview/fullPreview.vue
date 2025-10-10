@@ -224,7 +224,9 @@ import { useRoute } from "vue-router";
 const route = useRoute();
 const chatStore = useChatStore();
 const editable = ref(false);
-editable.value = import.meta.env.VITE_EDITABLE == "ON" && route.name !== "share" && route.name !== "preview";
+const editableFlag = import.meta.env.VITE_EDITABLE || "ON";
+editable.value = editableFlag === "ON" && route.name !== "share" && route.name !== "preview";
+
 
 const { agent, messages } = storeToRefs(chatStore);
 
