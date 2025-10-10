@@ -152,7 +152,7 @@ docker run -it --rm --pull=always \
 * [GitHub Issues](https://github.com/hexdocom/lemon/issues)。👉：使用 Lemon AI 时遇到的错误和问题，请参阅贡献指南
 * 电子邮件支持👉：关于使用 Lemon的问题。
 * [X(Twitter)](https://x.com/LemonAI_cc)。👉：分享您的应用程序并与社区交流。
-* [Discord](https://discord.gg/EVvCx4BU)。👉：分享您的应用程序并与社区交流。
+* [Discord](https://discord.com/invite/gjEXg4UBR4)。👉：分享您的应用程序并与社区交流。
 * 商业许可。👉：有关商业用途许可 Lemon AI的商业咨询。
 
 ### Star History
