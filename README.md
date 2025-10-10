@@ -156,7 +156,7 @@ We welcome your contribution to lemon AI to help improve lemon AI. Include: subm
 * [GitHub Issues](https://github.com/hexdocom/Lemon/issues).Best for: bugs you encounter using Lemon.AI, and feature proposals. See our [Contribution Guide](https://github.com/hexdocom/lemon/blob/main/CONTRIBUTING.md).
 * [X(Twitter)](https://x.com/LemonAI_cc). Best for: sharing your applications and hanging out with the community.
 * [Discord](https://discord.com/invite/gjEXg4UBR4). Best for: sharing your applications and hanging out with the community.
-* commercial license（[service@hexdo.com](mailto:service@hexdo.com)）. Business consulting on commercial use licensing lemon AI.
+* commercial license（[feedback@lemonai.ai](mailto:feedback@lemonai.ai)）. Business consulting on commercial use licensing lemon AI.
 
 ### Star History
 
@@ -164,7 +164,7 @@ We welcome your contribution to lemon AI to help improve lemon AI. Include: subm
 
 ### Security disclosure
 
-To protect your privacy, please avoid posting security issues on GitHub. Instead, send your questions to [service@hexdo.com](mailto:service@hexdo.com) and we will provide you with a more detailed answer.
+To protect your privacy, please avoid posting security issues on GitHub. Instead, send your questions to [feedback@lemonai.ai](mailto:feedback@lemonai.ai) and we will provide you with a more detailed answer.
 
 ### License
 
