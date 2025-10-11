@@ -1,7 +1,6 @@
 const uuid = require("uuid");
 const handleStream = require("@src/utils/stream.util");
 const {
-  validateModelPermissions,
   ensureConversation,
   prepareWorkspace,
   processFileUploads,
@@ -9,7 +8,7 @@ const {
 } = require('./coding-helpers');
 
 const { saveUserMessage } = require('./coding-messages');
-
+const { uploadBase64Image } = require('@src/utils/img_upload');
 /**
  * 处理screenshot数据，上传到OSS并返回URL
  * @param {string} screenshot - base64图片数据
@@ -25,18 +24,18 @@ async function processScreenshot(screenshot, conversation_id) {
     console.log('处理截图数据...');
 
     // todo 实现新的uploadBase64Image
-    // const uploadResult = await uploadBase64Image(screenshot, {
-    //   prefix: `coding-screenshots/${conversation_id}`,
-    //   fileName: `selection-${Date.now()}.png`
-    // });
+    const uploadResult = await uploadBase64Image(screenshot, {
+      prefix: `coding-screenshots/${conversation_id}`,
+      fileName: `selection-${Date.now()}.png`
+    });
 
-    // if (uploadResult.success) {
-    //   console.log('截图上传成功:', uploadResult.url);
-    //   return uploadResult.url;
-    // } else {
-    console.error('截图上传失败:', uploadResult.error);
-    return screenshot;
-    //}
+    if (uploadResult.success) {
+      console.log('截图上传成功:', uploadResult.url);
+      return uploadResult.url;
+    } else {
+      console.error('截图上传失败:', uploadResult.error);
+      return screenshot;
+    }
   } catch (error) {
     console.error('处理截图数据时出错:', error.message);
     return screenshot;
