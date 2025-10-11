@@ -471,6 +471,11 @@ emitter.on("fullPreviewVisable", (val) => {
   console.log("messages.value", val);
   fileList.value = viewList.viewLocal(messages.value, true); // loading again TODO:
   currentIndex.value = fileList.value.findIndex((item) => item.id === val.id);
+  //做一个处理 如果currentIndex.value 为-1 则 把数据 添加到fileList.value 中
+  if (currentIndex.value === -1) {
+    fileList.value.push(val);
+    currentIndex.value = fileList.value.length - 1;
+  }
   console.log("fileList.value", fileList.value, currentIndex.value);
   fullPreviewVisable.value = true;
 });
