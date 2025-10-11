@@ -9,7 +9,11 @@ const { getDirpath } = require('@src/utils/electron');
  */
 const resolveAbsolutePath = (filepath, state = {}) => {
   const userId = state.user?.id;
-  const WORKSPACE_DIR = getDirpath(process.env.WORKSPACE_DIR || 'workspace', userId);
+  let workspace_dir = process.env.WORKSPACE_DIR || 'workspace';
+  if(process.env.DOCKER_HOST_ADDR){
+    workspace_dir = "../"+workspace_dir;
+  }
+  const WORKSPACE_DIR = getDirpath(workspace_dir, userId);
   return path.join(WORKSPACE_DIR, filepath);
 };
 
