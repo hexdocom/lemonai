@@ -45,6 +45,10 @@ export default defineConfig(({ mode }) => {
         changeOrigin: true,
         ws: true,
       },
+      '/coding-screenshots': {
+        target: env.VITE_SERVICE_URL ||'http://localhost:3000',
+        changeOrigin: true,
+      }
     },
     },
   };

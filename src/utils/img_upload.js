@@ -90,7 +90,7 @@ class ImgUploader {
             await fs.writeFile(targetPath, buffer);
 
             // Generate access URL (relative to public folder path)
-            const url = `http://localhost:3000/${finalFileName.replace(/\\/g, '/')}`;
+            const url = `http://localhost:5005/${finalFileName.replace(/\\/g, '/')}`;
 
             console.log('File saved successfully:', url);
 
