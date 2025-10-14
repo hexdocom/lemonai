@@ -65,6 +65,34 @@ Lemon AI作为支持无限任务场景的通用 AI Agent 能力，包括：
 - 基于开源 DeepSeekV3 模型  
 - 在不牺牲质量和性能的前提下大幅节省成本，使各类规模组织都能轻松获取先进的 AI 能力
 
+### Lemon AI Editor
+
+**全球首款通用AI智能体编辑器---Lemon AI Editor**
+
+#### 为什么我们需要一个通用AI智能体编辑器？
+
+当你使用智能体创建研究报告、Vibe编程或生成数据分析图表时，结果往往并不完美。而当你试图修复某一部分时，其余部分可能会变得混乱。我们真正需要的是人类与AI之间的无缝协作。Lemon AI编辑器让你能够根据需要多次优化所有这些结果，直到你完全满意为止。你可以一遍又一遍地反复编辑。
+
+#### 功能和特点
+
+Lemon AI Editor 功能支持对生成的HTML页面进行持续编辑、修改、完善，所见即所得，所点即可改。
+
+1.AI 编辑模式：
+
+ - 让AI修改页面中任意板块内容
+
+ - 让AI插入全新段落或内容
+
+ - 让AI重新格式化整个页面
+
+2.高级编辑模式：直接编辑，快速人工调整文本。
+
+<a href="https://youtu.be/XaU4Vnt1lTI?si=iQJRSAaiUcqaN45k">
+  <figure>
+    <img src="./public/img/githubEditor.png" alt="">
+  </figure>
+</a>
+
 ### 使用 Lemon AI
 
 * 使用这个[入门指南](https://lemon-11.gitbook.io/lemon-docs)快速在您的环境中运行 Lemon AI。更多参考和详细说明请参阅我们的文档。
