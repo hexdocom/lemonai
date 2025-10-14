@@ -68,6 +68,35 @@ Dramatically reduced operational costs:
 
 Significant cost savings without compromising on quality or performance, making advanced AI capabilities accessible to organizations of all sizes.
 
+### Lemon AI Editor
+
+**The world’s first General AI Agent Editor---Lemon AI Editor**
+
+#### Why do we need a General AI Agent Editor? 
+
+When you use an Agent to creating a research report, Vibe coding, or generating a data analysis chart, the results often are not perfect. And when you try to fix one part, the rest may get messed up . What we really need is seamless collaboration between humans and AI. Lemon AI Editor empowers you to refine all this results as many times as needed ,until you’re completely satisfied. You can Edit it Over and over and over again. 
+
+#### function and characteristic
+
+Lemon AI Editor lets you continuously edit, modify, and refine your generated HTML pages. What you see is what you get, and you can change anything just by clicking on it.
+
+1.AI Editing Mode：
+
+ - Let AI modify any section content on the page.
+
+ - Let AI insert new paragraphs or content.
+
+- Let AI reformat the entire page.
+
+2.Advanced Edit Mode：Direct editing for quick manual text adjustments.
+
+<a href="https://youtu.be/XaU4Vnt1lTI?si=iQJRSAaiUcqaN45k">
+  <figure>
+    <img src="./public/img/githubEditor.png" alt="">
+  </figure>
+</a>
+
+
 ### Using Lemon AI
 
 * Quickly get Lemon AI running in your environment with this starter guide. Use our [documentation](https://document.lemonai.cc/) for further references and more in-depth instructions.
