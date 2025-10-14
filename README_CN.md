@@ -26,7 +26,7 @@ Lemon AI能够进行深度研究、网页浏览、实际编码和数据分析，
 
 <a href="https://youtu.be/OmU_4rrZUHE?si=iseqOl5TV2n2kovy">
   <figure>
-    <img src="./public/img/githubvideo2.png" alt="">
+    <img src="./public/img/githubvideo.png" alt="">
   </figure>
 </a>
 
@@ -89,7 +89,7 @@ Lemon AI Editor 功能支持对生成的HTML页面进行持续编辑、修改、
 
 <a href="https://youtu.be/XaU4Vnt1lTI?si=iQJRSAaiUcqaN45k">
   <figure>
-    <img src="./public/img/githubEditor.png" alt="">
+    <img src="./public/img/githubEditor2.png" alt="">
   </figure>
 </a>
 
