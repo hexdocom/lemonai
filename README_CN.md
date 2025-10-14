@@ -26,7 +26,7 @@ Lemon AI能够进行深度研究、网页浏览、实际编码和数据分析，
 
 <a href="https://youtu.be/OmU_4rrZUHE?si=iseqOl5TV2n2kovy">
   <figure>
-    <img src="./public/img/githubvideo.png" alt="">
+    <img src="./public/img/githubvideo2.png" alt="">
   </figure>
 </a>
 
