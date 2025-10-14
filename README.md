@@ -92,7 +92,7 @@ Lemon AI Editor lets you continuously edit, modify, and refine your generated HT
 
 <a href="https://youtu.be/XaU4Vnt1lTI?si=iQJRSAaiUcqaN45k">
   <figure>
-    <img src="./public/img/githubEditor.png" alt="">
+    <img src="./public/img/githubEditor2.png" alt="">
   </figure>
 </a>
 
