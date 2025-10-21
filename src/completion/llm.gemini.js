@@ -90,19 +90,26 @@ class GeminiLLM extends BaseLLM {
     const instance = await axiosInstancePromise;
 
     // reference: https://ai.google.dev/gemini-api/docs/get-started/tutorial?lang=rest#stream_generate_content
+    //如果message第一条是system 推出messages里的第一条为systemPrompt
+    let systemPrompt = null
+    if (messages[0] && messages[0].role === 'system') {
+      systemPrompt = messages.shift()
+    }
     const config = {
       method: "post",
       maxBodyLength: Infinity,
-      url: `https://generativelanguage.googleapis.com/v1beta/models/${model}:streamGenerateContent?alt=sse&key=${this.GOOGLE_AI_KEY}`,
+      url: `https://generativelanguage.googleapis.com/v1beta/models/${model}:streamGenerateContent?alt=sse`,
       headers: {
-        "Content-Type": 'application/json'
+        "Content-Type": 'application/json',
+        "x-goog-api-key": this.GOOGLE_AI_KEY
       },
       transformResponse: [],
       data: {
         "contents": messages,
         "generationConfig": {
           "temperature": options.temperature || 0,
-        }
+        },
+        "systemInstruction": systemPrompt
       },
       responseType: "stream",
     };
@@ -117,8 +124,15 @@ class GeminiLLM extends BaseLLM {
   }
 
   async call(prompt, context = {}) {
-    const massageUser = [{ "parts": [{ "text": prompt }] }]
-    const messages = (context.messages || []).concat(massageUser);
+    const massageUser = [{ "role": "user", "parts": [{ "text": prompt }] }]
+    const newContextMessage = context.messages.map(item => {
+      //如果role是assistent，改成model
+      return {
+        "role": item.role === 'assistant' ? 'model' : item.role,
+        "parts": [{ "text": item.content }]
+      }
+    })
+    const messages = (newContextMessage || []).concat(massageUser);
     return this.request(messages);
   }
 
