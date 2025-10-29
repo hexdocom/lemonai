@@ -7,7 +7,7 @@
   <a href="https://lemon-11.gitbook.io/lemonai/lemon-docs">快速了解 Lemon AI</a> ·
   <a href="https://lemon-11.gitbook.io/lemonai/lemon-docs/kai-fa-bu-shu-zhi-nan/docker-kuai-su-bu-shu">Docker快速部署</a> ·
   <a href="https://lemon-11.gitbook.io/lemonai/lemon-docs">文档</a> ·
-  <a href="https://www.lemonai.cc">下载macOS 和 Windows 桌面应用程序</a> ·
+  <a href="https://www.lemonai.cc">访问官网</a> ·
   <a href="https://deepwiki.com/hexdocom/lemonai">DeepWiki</a> 
 </p>
 
