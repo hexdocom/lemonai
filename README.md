@@ -8,7 +8,7 @@
   <a href="https://lemon-11.gitbook.io/lemonai">Get to know Lemon AI quickly</a> ·
   <a href="https://lemon-11.gitbook.io/lemonai/development-deployment-guidelines/docker-quick-deployment">Docker Quick Deployment</a> ·
   <a href="https://lemon-11.gitbook.io/lemonai/">Documentation</a> ·
-  <a href="https://lemonai.cc/">Download the desktop app for macOS & Windows</a> ·
+  <a href="https://lemonai.cc/">Visit the official website</a> ·
   <a href="https://deepwiki.com/hexdocom/lemonai">DeepWiki</a> 
 </p>
 
