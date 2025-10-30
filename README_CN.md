@@ -1,4 +1,4 @@
-# Lemon AI 是首个全栈、开源、基于代理的 AI 框架，为 Manus & Genspark AI 等平台提供了一个完全本地化的替代方案。它具备集成的代码解释器虚拟机沙箱，以实现安全执行。
+# Lemon AI是全球首个全栈开源自进化通用AI智能体,提供完全本地化的替代方案,可替代Manus和Genspark AI等智能体平台。它配备集成的代码解释器虚拟机沙箱,可安全执行代码。
 
 <div align=center>
   <img src="./public/img/Lemon_logo.png" width="400">
