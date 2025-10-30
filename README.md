@@ -1,5 +1,5 @@
 
-# Lemon AI​ is the first Full-stack, Open-source, Agentic AI framework, offering a ​fully local alternative​ to platforms like Manus & Genspark AI. It features an integrated Code Interpreter VM sandbox for safe execution.​​
+# Lemon AI​ is the first Full-stack Open-source Self-Evolving General AI Agent, offering a ​fully local alternative​ to Agentic platforms like Manus & Genspark AI. It features an integrated Code Interpreter VM sandbox for safe execution.​​
 
 <div align=center>
   <img src="./public/img/Lemon_logo.png" width="400">
@@ -18,11 +18,11 @@
 </p>
 
 
-**Lemon AI​** is the first **​full-stack, open-source, agentic AI framework**, offering a **​fully local alternative​** to platforms like **Manus & Genspark AI. It features an integrated Code Interpreter VM sandbox for safe execution**.​​
+**Lemon AI​** is the first **​Full-stack Open-source Self-Evolving General AI Agent**, offering a **​fully local alternative​** to Agentic platforms like **Manus & Genspark AI. It features an integrated Code Interpreter VM sandbox for safe execution**.​​
 
-**​Lemon AI empowers deep research, web browsing, viable coding, and data analysis – running entirely on your local hardware.​​** It supports ​**planning, action, reflection, and memory​** functionalities using **​local LLMs**​ (like DeepSeek, Qwen, Llama, Gemma) via **Ollama**, ensuring **​complete privacy and zero cloud dependency.**
+**​Lemon AI empowers deep research, web browsing, viable coding, and data analysis – running entirely on your local hardware.​​** It supports ​**planning, action, reflection, and memory​** functionalities using **​local LLMs**​ (like DeepSeek,Kimi，Qwen, Llama, Gemma,GPTOSS) via **Ollama,VLLM**, ensuring **​complete privacy and zero cloud dependency.**
 
-For enhanced security, Lemon AI operates within a ​**local Virtual Machine (VM) sandbox.** This sandbox **​protects your machine's files and operating system​** by safely handling all code writing, execution, and editing tasks.
+For enhanced security, Lemon AI operates within a ​**local Virtual Machine (VM) sandbox by Docker.** This sandbox **​protects your machine's files and operating system​** by safely handling all code writing, execution, and editing tasks.
 
 Additionally, Lemon AI provides the **​flexibility to configure enhanced results**​ using APIs from leading cloud models like **​Claude, GPT, Gemini, and Grok.**
 
@@ -33,13 +33,21 @@ Additionally, Lemon AI provides the **​flexibility to configure enhanced resul
 </a>
 
 ### function and characteristic
-The world's first full-stack open-source AI Agentic framework with comprehensive capabilities
+The world's first Full-stack Open-source Self Evolving General AI Agent framework with comprehensive capabilities
 #### Multi: Infinite possibilities
 Universal AI Agent capabilities supporting unlimited task scenarios, including:
 - Deep search & research reports
 - Code generation & data analysis
 - Content creation & document processing
 Supports experience repository for self-learning and extending enterprise-specific customizations.
+
+#### Self-Evolving
+Make a personal memory for every conversation. Which make the Agent be more clever more used.
+
+#### AI Agent HTML Editor
+You could click the HTML element and change it by AI Agent. No need to re-generate all the HTML files every time. 
+Change it over and over again until satisfied.
+
 
 **Deployment options:** Open source code, Container, Client application, Online subscription - compatible with cloud/local/all-in-one systems
 
