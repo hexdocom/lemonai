@@ -35,7 +35,7 @@ Additionally, Lemon AI provides the **​flexibility to configure enhanced resul
 ### function and characteristic
 The world's first Full-stack Open-source Self Evolving General AI Agent framework with comprehensive capabilities
 #### Multi: Infinite possibilities
-Universal AI Agent capabilities supporting unlimited task scenarios, including:
+General AI Agent capabilities supporting unlimited task scenarios, including:
 - Deep search & research reports
 - Code generation & data analysis
 - Content creation & document processing
