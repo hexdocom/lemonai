@@ -1,9 +1,10 @@
 
 # Lemon AI​ is the first Full-stack Open-source Self-Evolving General AI Agent, offering a ​fully local alternative​ to Agentic platforms like Manus & Genspark AI. It features an integrated Code Interpreter VM sandbox for safe execution.​​
-
+<br><br>
 <div align=center>
-  <img src="./public/img/Lemon_logo.png" width="400">
+  <img src="./public/img/LemonAI_Evolving.png" width="500">
 </div>
+<br><br>
 <p align="center">
   <a href="https://lemon-11.gitbook.io/lemonai">Get to know Lemon AI quickly</a> ·
   <a href="https://lemon-11.gitbook.io/lemonai/development-deployment-guidelines/docker-quick-deployment">Docker Quick Deployment</a> ·
