@@ -1,8 +1,10 @@
 # Lemon AI是全球首个全栈开源自进化通用AI智能体,提供完全本地化的替代方案,可替代Manus和Genspark AI等智能体平台。它配备集成的代码解释器虚拟机沙箱,可安全执行代码。
 
+<br><br>
 <div align=center>
-  <img src="./public/img/Lemon_logo.png" width="400">
+  <img src="./public/img/LemonAI_Evolving.png" width="500">
 </div>
+<br><br>
 <p align="center">
   <a href="https://lemon-11.gitbook.io/lemonai/lemon-docs">快速了解 Lemon AI</a> ·
   <a href="https://lemon-11.gitbook.io/lemonai/lemon-docs/kai-fa-bu-shu-zhi-nan/docker-kuai-su-bu-shu">Docker快速部署</a> ·
