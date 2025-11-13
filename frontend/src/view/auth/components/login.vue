@@ -295,7 +295,7 @@ const toForgot = () => {
     .auth-footer-keep-offline{
         //下划线
         text-decoration: underline;
-        margin-left: 8px;;
+        // margin-left: 8px;;
         cursor: pointer;
     }
 

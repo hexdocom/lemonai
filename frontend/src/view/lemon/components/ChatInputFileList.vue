@@ -3,7 +3,7 @@
         <div class="upload-fileList">
             <div class="upload-fileList-item" v-for="(file, index) in fileList" :key="index">
                 <fileSvg :url="file.name" :is-update="true" class="file-icon" />
-                <div style="min-width: 0;width: 100%;">
+                <div style="min-width: 0;width: 100%;text-align: left;">
                     <div style="display: flex;width: 100%;    align-items: center;" v-if="!file.uploading">
                         <div class="file-name">{{ file.name }}</div>
                         <div class="delete-button" @click="handleDelete(file)">

@@ -10,7 +10,7 @@
       <!-- Title -->
       <h2 class="auth-title">{{ pageTitle }}</h2>
       <div v-if="activeKey === 'login'">
-        <login @toRegister="activeKey = 'register'" @handleLogin="handleLogin" @toForgot="activeKey = 'forgot'" @handleGoogleLogin="handleGoogleLogin" @handleSMSLogin="activeKey = 'smsLogin'" />
+        <login @toRegister="handleToRegister" @handleLogin="handleLogin" @toForgot="handleToForgot" @handleGoogleLogin="handleGoogleLogin" @handleSMSLogin="activeKey = 'smsLogin'" />
       </div>
       <div v-if="activeKey === 'smsLogin'">
         <smsLogin @toLogin="activeKey = 'login'" @handleLoginSMSCode="handleLoginSMSCode" />
@@ -176,6 +176,17 @@ const resendCode = async () => {
 const toHome = () => {
   router.push('/');
 };
+
+// 跳转到线上注册页面
+const handleToRegister = () => {
+  window.open('https://app.lemonai.ai/auth', '_blank');
+};
+
+// 跳转到线上忘记密码页面
+const handleToForgot = () => {
+  window.open('https://app.lemonai.ai/auth', '_blank');
+};
+
 // 处理登录
 const handleLogin = async (values) => {
   try {
@@ -342,7 +353,7 @@ const handleAppleRegister = async () => {
     .auth-footer-keep-offline{
         //下划线
         text-decoration: underline;
-        margin-left: 8px;;
+        // margin-left: 8px;;
         cursor: pointer;
     }
 }
