@@ -154,28 +154,19 @@ const handleWelcomeInput = async (value) => {
     if (conversation_id) {
       router.push(`/lemon/${agent.value.id}/${conversation_id}`);
     }
-    if (mode.value === "chat" || workMode === "chat") {
-        await seeAgent.sendMessage(text, conversation_id, [], mcp_server_ids, workMode);
-    } else {
-        await seeAgent.sendMessage(text, conversation_id, files, mcp_server_ids,workMode);
-    }
+    await seeAgent.sendMessage(text, conversation_id, files, mcp_server_ids, workMode);
   }
-  // Welcome 模式：根据 mode 决定是否创建新 agent
+  // Welcome 模式：创建新 agent
   else {
-    if (mode.value === 'chat' && conversation_id) {
-      router.push(`/lemon/chat/${conversation_id}`);
-      await seeAgent.sendMessage(text, conversation_id, [], mcp_server_ids, workMode);
-    } else {
-      show('Creating Agent...');
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      update('Learning from the Experience base...');
-      let res = await agentServices.generate(text, conversation_id, is_public);
-      hide();
-      // 刷新 agent
-      emitter.emit('selectedAgent', res);
-      router.push(`/lemon/${res.id}/${conversation_id}`);
-      await seeAgent.sendMessage(text, conversation_id, files, mcp_server_ids, workMode);
-    }
+    show('Creating Agent...');
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    update('Learning from the Experience base...');
+    let res = await agentServices.generate(text, conversation_id, is_public);
+    hide();
+    // 刷新 agent
+    emitter.emit('selectedAgent', res);
+    router.push(`/lemon/${res.id}/${conversation_id}`);
+    await seeAgent.sendMessage(text, conversation_id, files, mcp_server_ids, workMode);
   }
 };
 
