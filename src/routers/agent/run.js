@@ -18,7 +18,7 @@ const fs = require('fs').promises
 const { getDirpath } = require('@src/utils/electron');
 const RUNTIME_TYPE = process.env.RUNTIME_TYPE || 'local-docker'
 const { search_intent } = require('@src/agent/chatbot');
-const { WebSearch } = require('@src/tools/WebSearch');
+const WebSearch = require('@src/tools/WebSearch');
 
 let closeContainer
 if (RUNTIME_TYPE && RUNTIME_TYPE === 'local-docker') {
