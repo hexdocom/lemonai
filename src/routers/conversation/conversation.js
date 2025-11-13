@@ -65,13 +65,9 @@ router.post("/", async ({ state, request, response }) => {
     status: 'running',
     user_id: state.user.id,
     mode_type: modeType,
+    agent_id:agent_id,
     model_id,
   };
-
-  // 仅在 modeType 为 'task' 时添加 agent_id
-  if (modeType === 'task') {
-    newConversationData.agent_id = agent_id;
-  }
 
   const newConversation = await Conversation.create(newConversationData);
   return response.success(newConversation);
@@ -672,6 +668,259 @@ router.post("/screenshots/batch", async (ctx) => {
   } catch (error) {
     console.error('Error in batch screenshot processing:', error);
     return response.fail(`Failed to process batch screenshots: ${error.message}`);
+  }
+});
+
+
+router.post("/screenshots/single", async ({ request, response, state }) => {
+  const { conversation_id } = request.body;
+
+  if (!conversation_id) {
+    return response.fail("conversation_id is required");
+  }
+
+  try {
+    const conversation = await Conversation.findOne({
+      where: {
+        conversation_id,
+        deleted_at: null
+      }
+    });
+
+    if (!conversation) {
+      return response.fail("Conversation not found");
+    }
+
+    const user_id = conversation.user_id;
+
+    const WORKSPACE_DIR = getDirpath(process.env.WORKSPACE_DIR || 'workspace', user_id);
+    const dir_name = 'Conversation_' + conversation_id.slice(0, 6);
+    const dir_path = path.join(WORKSPACE_DIR, dir_name);
+
+    const final_file_path = await getFinalFile(dir_path);
+
+    if (!final_file_path) {
+      return response.fail("No files found in workspace");
+    }
+
+    const url = `${process.env.SUB_SERVER_DOMAIN}/file/?url=${final_file_path}`;
+
+    const token = request.headers.authorization;
+    const tokenString = token && token.startsWith('Bearer ') ? token.slice(7) : token;
+
+    const screen_result = await takeScreenshotAndUpload(url, {
+      accessToken: tokenString,
+      conversation_id
+    });
+
+    if (!screen_result || !screen_result.screenshotUrl) {
+      return response.fail("Screenshot generation failed");
+    }
+
+    const screen_url = screen_result.screenshotUrl;
+
+    await Conversation.update(
+      { screen_shot_url: screen_url },
+      { where: { conversation_id } }
+    );
+
+    console.log(`Screenshot updated for conversation ${conversation_id}: ${screen_url}`);
+
+    return response.success({
+      message: "Screenshot generated successfully",
+      conversation_id,
+      screenshotUrl: screen_url
+    });
+
+  } catch (error) {
+    console.error(`Error generating screenshot for conversation ${conversation_id}:`, error);
+    return response.fail(`Failed to generate screenshot: ${error.message}`);
+  }
+});
+
+// Twins conversation management
+/**
+ * @swagger
+ * /api/conversation/twins:
+ *   post:
+ *     summary: Handle twins conversation
+ *     tags:  
+ *       - Conversation
+ *     description: This endpoint handles twins conversation creation and retrieval based on conversation_id.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               conversation_id:
+ *                 type: string
+ *                 description: Current conversation ID
+ *             required:
+ *               - conversation_id
+ *     responses:
+ *       200:
+ *         description: Successfully handled twins conversation
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     conversation_id:
+ *                       type: string
+ *                       description: Target conversation ID
+ *                     is_new:
+ *                       type: boolean
+ *                       description: Whether a new conversation was created
+ *                 code:
+ *                   type: integer
+ *                   description: Status code
+ *                 msg:
+ *                   type: string
+ *                   description: Message
+ */
+router.post("/twins", async ({ state, request, response }) => {
+  try {
+    const body = request.body || {};
+    const { conversation_id } = body;
+
+    if (!conversation_id) {
+      return response.fail("conversation_id is required");
+    }
+
+    // 查找当前会话
+    const currentConversation = await Conversation.findOne({
+      where: { 
+        conversation_id: conversation_id, 
+        user_id: state.user.id, 
+        deleted_at: null 
+      }
+    });
+
+    if (!currentConversation) {
+      return response.fail("Current conversation not found");
+    }
+
+    let targetConversationId = null;
+    let isNew = false;
+
+    // 检查当前会话是否有 twins_id
+    if (currentConversation.twins_id) {
+      // twins_id 就是 twins 会话的 conversation_id，直接使用
+      targetConversationId = currentConversation.twins_id;
+    } else {
+      // 当前会话没有 twins_id，创建新的 twins 关系
+      const newConversationId = uuid.v4();
+      const newTwinsId = newConversationId;
+      
+      // 创建新的 twins 会话
+      const newConversation = await Conversation.create({
+        conversation_id: newConversationId,
+        content: currentConversation.content,
+        title: currentConversation.title,
+        status: 'ready',
+        user_id: state.user.id,
+        mode_type: currentConversation.mode_type,
+        agent_id: currentConversation.agent_id,
+        model_id: currentConversation.model_id
+      });
+
+      // 更新当前会话的 twins_id
+      await Conversation.update(
+        { twins_id: newTwinsId },
+        { where: { conversation_id: conversation_id } }
+      );
+
+      targetConversationId = newConversationId;
+      isNew = true;
+    }
+
+    return response.success({
+      conversation_id: targetConversationId,
+      is_new: isNew
+    });
+
+  } catch (error) {
+    console.error('Error handling twins conversation:', error);
+    return response.fail(`Failed to handle twins conversation: ${error.message}`);
+  }
+});
+
+// 获取 twins conversation 的 token 信息
+/**
+ * @swagger
+ * /api/conversation/twins/tokens/{conversation_id}:
+ *   get:
+ *     summary: Get twins conversation token information
+ *     tags:  
+ *       - Conversation
+ *     description: This endpoint retrieves token usage information for twins conversation.
+ *     parameters:
+ *       - in: path
+ *         name: conversation_id
+ *         required: true
+ *         description: Twins conversation ID
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Successfully retrieved token information
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     input_tokens:
+ *                       type: integer
+ *                       description: Input tokens count
+ *                     output_tokens:
+ *                       type: integer
+ *                       description: Output tokens count
+ *                     total:
+ *                       type: integer
+ *                       description: Total tokens count
+ *                 code:
+ *                   type: integer
+ *                   description: Status code
+ *                 msg:
+ *                   type: string
+ *                   description: Message
+ */
+router.get("/twins/tokens/:conversation_id", async ({ state, params, response }) => {
+  try {
+    const { conversation_id } = params;
+
+    // 查找 twins conversation
+    const conversation = await Conversation.findOne({
+      where: { 
+        conversation_id: conversation_id, 
+        deleted_at: null 
+      }
+    });
+
+    if (!conversation) {
+      return response.fail("Twins conversation not found");
+    }
+
+    // 返回 token 信息
+    const tokenInfo = {
+      input_tokens: conversation.input_tokens || 0,
+      output_tokens: conversation.output_tokens || 0,
+      total: (conversation.input_tokens || 0) + (conversation.output_tokens || 0)
+    };
+
+    return response.success(tokenInfo);
+
+  } catch (error) {
+    console.error('Error getting twins token info:', error);
+    return response.fail(`Failed to get twins token info: ${error.message}`);
   }
 });
 
