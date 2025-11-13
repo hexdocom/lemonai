@@ -40,10 +40,6 @@ export const useChatStore = defineStore('chat', {
     async init(mode = 'task') {
       //初始化 chat list
       this.mode = mode;
-      if (this.mode == 'chat') {
-        this.agent = {}
-      }
-      console.log("init", mode)
       const res = await chat.list(mode, this.agent.id)
       //处理一下排序 最近的排在前面
       let data = res || [];
@@ -388,11 +384,7 @@ export const useChatStore = defineStore('chat', {
       const result = await chat.create(message, mode_type, this.agent.id, this.model_id);
       this.chat = result;
       this.conversationId = result.conversation_id;
-      if (mode_type == 'task') {
-        this.init();
-      } else {
-        this.init('chat')
-      }
+      this.init();
       this.autoTitle();
       return result;
     },

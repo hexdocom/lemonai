@@ -111,23 +111,18 @@ router.get("/", async ({ state, query, response }) => {
 
     console.time("get conversations");
     console.log("get conversations", query);
-    const mode_type = query.mode_type || 'task';
+    // const mode_type = query.mode_type || 'task';
     const agent_id = query.agent_id
     // 1. 一次性查出所有会话
 
     // 构建查询条件
     const whereClause = {
       user_id: state.user.id,
-      mode_type,
+      // mode_type,
       is_from_sub_server: false,
+      agent_id: agent_id,
       deleted_at: null,  // 过滤已删除的记录
     };
-
-    // 如果 mode_type 不是 'chat'，才加上 agent_id 条件
-    if (mode_type !== 'chat') {
-      whereClause.agent_id = agent_id;
-    }
-
     const conversations = await Conversation.findAll({
       where: whereClause,
       order: [['update_at', 'DESC']],

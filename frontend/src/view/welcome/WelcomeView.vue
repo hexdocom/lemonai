@@ -151,6 +151,7 @@ const handleWelcomeInput = async (value) => {
 
   // Agent 模式：直接使用当前 agent
   if (isAgentMode.value) {
+    console.log('agent.value', agent.value);  
     if (conversation_id) {
       router.push(`/lemon/${agent.value.id}/${conversation_id}`);
     }
