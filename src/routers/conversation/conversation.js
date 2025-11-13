@@ -9,7 +9,7 @@ const auto_generate_title = require('@src/agent/generate-title')
 const { getDirpath } = require('@src/utils/electron');
 
 const uuid = require("uuid");
-const { Op } = require("sequelize");
+const { Op,literal } = require("sequelize");
 const fs = require('fs').promises;
 const path = require('path');
 
@@ -118,6 +118,11 @@ router.get("/", async ({ state, query, response }) => {
       is_from_sub_server: false,
       agent_id: agent_id,
       deleted_at: null,  // 过滤已删除的记录
+      conversation_id: {
+        [Op.notIn]: literal(
+          `(SELECT twins_id FROM conversation WHERE twins_id IS NOT NULL)`
+        )
+      }
     };
     const conversations = await Conversation.findAll({
       where: whereClause,
@@ -234,7 +239,8 @@ router.get("/:conversation_id", async ({ state, params, response }) => {
       modelMap = new Map(models.map(m => [m.id, m.model_name]));
     }
     conversation.dataValues.model_name = modelMap.get(conversation.model_id) || null;
-    
+
+    return response.success(conversation);
   } catch (error) {
     console.error(error);
     return response.fail("Failed to get conversation");

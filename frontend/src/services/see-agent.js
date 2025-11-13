@@ -16,6 +16,12 @@ import i18n from '@/locals';
 
 // 获取用户信息 getUserInfo
 async function getUserInfo() {
+    // 检查 access_token，如果没有则不调用接口
+    const access_token = localStorage.getItem('access_token');
+    if (!access_token) {
+        return;
+    }
+
     // is_subscribe
     // 获取缓存中的 model_info
     const model_info = localStorage.getItem('model_info');
@@ -281,10 +287,13 @@ async function sendChatMessage(question, conversationId, agentConversationId, fi
         console.log('Twins Chat Test Info ==> chatStore.chat', chatStore.chat)
         console.log('Twins Chat Test Info ==> chatStore.chat.twins_id', chatStore.chat.twins_id)
         console.log('Twins Chat Test Info ==> conversationId', conversationId)
+        console.log('Twins Chat Test Info ==> agentConversationId', agentConversationId)
+        console.log('Twins Chat Test Info ==> chatStore.chat.conversation_id', chatStore.chat.conversation_id)
         // 根据当前模式处理数据
         if (currentMode === 'chat') {
             //conversationId 判断这个 conversationId 是不是当前  conversation 的 
             if (chatStore.chat.conversation_id !== agentConversationId) { return; }
+            console.log("======> 渲染 <======= ch",ch);
             updateTwinsChatToken(ch);
         }
     }
