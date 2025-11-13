@@ -13,6 +13,8 @@ export const useChatStore = defineStore('chat', {
     list: [],
     chat: {},
     messages: [],
+    twinsChatMessages: [],
+    twinsConversationList: {}, // twins_id -> { status, input_tokens, output_tokens }
     events: [],
     agent: {},
     status: 'done',
@@ -49,6 +51,9 @@ export const useChatStore = defineStore('chat', {
         return new Date(b.update_at) - new Date(a.update_at);
       });
       this.list = data;
+
+      // 生成 twinsConversationList
+      this.generateTwinsConversationList();
     },
     //选择第一个 
     async selectFirst() {
@@ -77,12 +82,29 @@ export const useChatStore = defineStore('chat', {
         this.chatInfo.cursorKey = '';
         await chat.stopChat(this.conversationId)
       }
+
+      // 查找当前会话是否有 twins_id
+      const currentConversation = this.list.find(item => item.conversation_id === this.conversationId);
+      if (currentConversation && currentConversation.twins_id) {
+        // 如果有 twins_id，也需要停止 twins 会话
+        try {
+          await chat.stop(currentConversation.twins_id)
+          // 更新 twinsConversationList 中的状态
+          const twinsInfo = this.twinsConversationList[currentConversation.twins_id] || { status: 'done', input_tokens: 0, output_tokens: 0, total: 0 };
+          twinsInfo.status = 'done';
+          this.twinsConversationList[currentConversation.twins_id] = twinsInfo;
+        } catch (error) {
+          console.error('Error stopping twins conversation:', error);
+        }
+      }
+
       this.list.find(item => item.conversation_id === this.conversationId).status = 'done';
       this.chat.status = 'done'
       this.status = 'done'
     },
     clearMessages() {
       this.messages = [];
+      this.twinsChatMessages = [];
       this.isScrolledToBottom = true;
       this.status == "done";
       this.chatInfo.pid = -1;
@@ -90,13 +112,15 @@ export const useChatStore = defineStore('chat', {
     clearAgent() {
       this.agent = {};
       this.list = [];
+      this.twinsChatMessages = [];
       console.log('clearAgent', this.agent);
     },
     async initConversation(conversationId) {
-      console.log('initConversation');
       await this.resetChatInfo()
       let res = await chat.messageList(conversationId);
       this.messages = []
+      this.twinsChatMessages = [] // 清空 twins chat 消息
+
       if (this.mode === 'task') {
         res.forEach(item => {
           if (item.meta && typeof item.meta === 'string') {
@@ -110,6 +134,7 @@ export const useChatStore = defineStore('chat', {
               chat.status = "done";
             }
           }
+          // 处理消息
           messageFun.handleMessage(item, this.messages);
         });
         const lastItem = res[res.length - 1];
@@ -122,6 +147,43 @@ export const useChatStore = defineStore('chat', {
               chat.status = "done";
             }
           }
+        }
+
+        // 检查是否是 twins 模式，如果是则加载 twins chat 消息
+        if (this.chat.twins_id) {
+          try {
+            console.log('Loading twins chat messages for twins_id:', this.chat.twins_id);
+            // 直接使用 twins_id 作为 conversation_id 获取消息
+            const twinsChatRes = await chat.messageList(this.chat.twins_id);
+            //循环 把 meta 转 json
+            twinsChatRes.forEach(item => {
+              if (item.meta && typeof item.meta === 'string') {
+                item.meta = JSON.parse(item.meta);
+              }
+            });
+            this.twinsChatMessages = twinsChatRes || [];
+            console.log('Loaded twins chat messages:', this.twinsChatMessages.length);
+
+            // 初始化 twins token 信息
+            try {
+              const tokenInfo = await chat.getTwinsTokens(this.chat.twins_id);
+              console.log('Token info:', tokenInfo);
+              if (tokenInfo) {
+                const twinsInfo = this.twinsConversationList[this.chat.twins_id] || { status: 'done', input_tokens: 0, output_tokens: 0, total: 0 };
+                twinsInfo.input_tokens = tokenInfo.input_tokens || 0;
+                twinsInfo.output_tokens = tokenInfo.output_tokens || 0;
+                twinsInfo.total = tokenInfo.total || 0;
+                this.twinsConversationList[this.chat.twins_id] = twinsInfo;
+                console.log('Initialized twins token info:', twinsInfo);
+              }
+            } catch (tokenError) {
+              console.error('Error initializing twins token info:', tokenError);
+            }
+          } catch (error) {
+            console.error('Error loading twins chat messages:', error);
+          }
+          this.scrollToBottomLeft();
+          this.scrollToBottomRight();
         }
       } else if (this.mode === 'chat') {
         // reset
@@ -136,9 +198,69 @@ export const useChatStore = defineStore('chat', {
       this.stopReplay = false;
       this.replayStatus = 'running';
       this.messages = [];
+      this.twinsChatMessages = []; // 清空 twins chat 消息
       const get_res = await chat.get(conversationId);
       this.chat = get_res;
+
+      // 获取主对话消息
       let res = await chat.messageList(conversationId);
+
+      // 如果是 twins 模式，同时获取 twins chat 消息
+      let twinsRes = [];
+      if (this.chat.twins_id) {
+        try {
+          console.log('Loading twins chat messages for playback, twins_id:', this.chat.twins_id);
+          twinsRes = await chat.messageList(this.chat.twins_id);
+          console.log('Loaded twins chat messages for playback:', twinsRes.length);
+        } catch (error) {
+          console.error('Error loading twins chat messages for playback:', error);
+        }
+      }
+      // 处理 twins chat 消息
+      console.log('twinsRes', twinsRes);
+      if (this.chat.twins_id && twinsRes.length > 0) {
+        this.twinsChatMessages = [];
+
+        // twins消息逐条串行渲染，但整体与主chat并行
+        (async () => {
+          this.twinsChatMessages = [];
+          for (let i = 0; i < twinsRes.length; i++) {
+            let message = twinsRes[i];
+            let originalContent = message.content;
+            message.content = "";
+            this.twinsChatMessages.push(message);
+            if (message.role == "user") {
+              this.twinsChatMessages[i].content = originalContent;
+              continue
+            }
+
+            let delay = 50;
+            for (let j = 0; j < originalContent.length; j++) {
+              if (this.replayStatus != 'running') { break; }
+              await new Promise(resolve => setTimeout(resolve, delay));
+              this.twinsChatMessages[i].content += originalContent[j];
+              this.scrollToBottomLeft();
+            }
+            this.twinsChatMessages[i].content = originalContent;
+            this.scrollToBottomLeft();
+          }
+        })();
+
+
+        //更新token 信息
+        const tokenInfo = await chat.getTwinsTokens(this.chat.twins_id);
+        if (tokenInfo) {
+          const twinsInfo = this.twinsConversationList[this.chat.twins_id] || { status: 'done', input_tokens: 0, output_tokens: 0, total: 0 };
+          twinsInfo.input_tokens = tokenInfo.input_tokens || 0;
+          twinsInfo.output_tokens = tokenInfo.output_tokens || 0;
+          twinsInfo.total = tokenInfo.total || 0;
+          twinsInfo.status = 'done';
+          this.twinsConversationList[this.chat.twins_id] = twinsInfo;
+          console.log('Updated twins token info:', this.chat.twins_id, twinsInfo);
+        }
+      }
+
+      // 处理主对话消息
       for (let item of res) { // 使用 for...of 循环来遍历数组
         //延迟时间
         let delay = 100;
@@ -167,6 +289,9 @@ export const useChatStore = defineStore('chat', {
         this.isScrolledToBottom = true;
         this.scrollToBottom(0);
       }
+
+
+
       this.replayStatus = 'done';
     },
     async toResult() {
@@ -257,6 +382,7 @@ export const useChatStore = defineStore('chat', {
     async createConversation(message, mode_type = 'task') {
       console.log('createConversation', this.model_id);
       this.messages = []; // 清空消息
+      this.twinsChatMessages = [];
       await this.resetChatInfo()
       this.updateTitle = true;
       const result = await chat.create(message, mode_type, this.agent.id, this.model_id);
@@ -309,6 +435,34 @@ export const useChatStore = defineStore('chat', {
       this.isScrolledToBottom = true;
       this.scrollToBottom();
     },
+    // twins chat message initialization
+    handleInitTwinsMessage(content, files = [], screenshot = '', filepath = '') {
+      console.log('handleInitTwinsMessage', content);
+      let meta = {
+        json: files,
+        action_type: 'question',
+      }
+      if (screenshot && filepath) {
+        meta.json = { files, screenshot, filepath }
+      }
+      const message = {
+        content: content,
+        timestamp: new Date().getTime(),
+        meta: meta,
+        role: 'user',
+        is_temp: true,
+      }
+      this.twinsChatMessages.push(message);
+      const bot_message = {
+        content: "",
+        role: 'assistant',
+        timestamp: new Date().getTime(),
+        is_temp: true,
+      }
+      this.twinsChatMessages.push(bot_message);
+      this.isScrolledToBottom = true;
+      this.scrollToBottomLeft(); // 使用左栏专用的滚动函数
+    },
     async removeConversation(conversationId) {
       // if (this.socket) {
       //   this.socket.close();
@@ -325,9 +479,96 @@ export const useChatStore = defineStore('chat', {
         console.log('scrollToBottom', this.isScrolledToBottom);
         //将消息滚动到最底部
         const messageList = document.querySelector('.chat-messages');
-        if (this.isScrolledToBottom) {
+        if (this.isScrolledToBottom && messageList) {
           messageList.scrollTop = messageList.scrollHeight - messageList.clientHeight;
           // console.log('scrollToBottom', messageList.scrollTop, messageList.scrollHeight, messageList.clientHeight);
+        }
+      }, time);
+      this.scrollToBottomRight(time)
+    },
+    // twins 模式左栏滚动到底部 (Chat)
+    scrollToBottomLeft(time = 500) {
+      setTimeout(() => {
+        console.log('scrollToBottomLeft twins chat column');
+        const chatColumn = document.querySelector('.twins-column.chat-column .column-content');
+        console.log('chatColumn element found:', !!chatColumn);
+
+        // 检查自动滚动是否启用
+        if (typeof window !== 'undefined' && window.twinsAutoScrollState) {
+          if (!window.twinsAutoScrollState.isLeftEnabled()) {
+            console.log('⛔ Left auto scroll disabled, skipping store scroll');
+            return;
+          }
+        } else {
+          console.log('⚠️ No twinsAutoScrollState found, proceeding with scroll');
+        }
+
+        // 设置自动滚动标记，隐藏按钮
+        if (typeof window !== 'undefined' && window.twinsAutoScrollState) {
+          window.twinsAutoScrollState.setLeftScrolling(true);
+        }
+
+        if (chatColumn) {
+          const targetScrollTop = chatColumn.scrollHeight - chatColumn.clientHeight;
+          chatColumn.scrollTop = targetScrollTop;
+          console.log('scrollToBottomLeft', {
+            targetScrollTop,
+            actualScrollTop: chatColumn.scrollTop,
+            scrollHeight: chatColumn.scrollHeight,
+            clientHeight: chatColumn.clientHeight
+          });
+
+          // 稍后清除标记，让按钮可以重新显示
+          setTimeout(() => {
+            if (typeof window !== 'undefined' && window.twinsAutoScrollState) {
+              window.twinsAutoScrollState.setLeftScrolling(false);
+            }
+          }, 300);
+        } else {
+          console.warn('Chat column not found for scrollToBottomLeft');
+        }
+      }, time);
+    },
+    // twins 模式右栏滚动到底部 (Agent)
+    scrollToBottomRight(time = 500) {
+      setTimeout(() => {
+        console.log('scrollToBottomRight twins agent column');
+        const agentColumn = document.querySelector('.twins-column.agent-column .column-content');
+        console.log('agentColumn element found:', !!agentColumn);
+
+        // 检查自动滚动是否启用
+        if (typeof window !== 'undefined' && window.twinsAutoScrollState) {
+          if (!window.twinsAutoScrollState.isRightEnabled()) {
+            console.log('⛔ Right auto scroll disabled, skipping store scroll');
+            return;
+          }
+        } else {
+          console.log('⚠️ No twinsAutoScrollState found, proceeding with scroll');
+        }
+
+        // 设置自动滚动标记，隐藏按钮
+        if (typeof window !== 'undefined' && window.twinsAutoScrollState) {
+          window.twinsAutoScrollState.setRightScrolling(true);
+        }
+
+        if (agentColumn) {
+          const targetScrollTop = agentColumn.scrollHeight - agentColumn.clientHeight;
+          agentColumn.scrollTop = targetScrollTop;
+          console.log('scrollToBottomRight', {
+            targetScrollTop,
+            actualScrollTop: agentColumn.scrollTop,
+            scrollHeight: agentColumn.scrollHeight,
+            clientHeight: agentColumn.clientHeight
+          });
+
+          // 稍后清除标记，让按钮可以重新显示
+          setTimeout(() => {
+            if (typeof window !== 'undefined' && window.twinsAutoScrollState) {
+              window.twinsAutoScrollState.setRightScrolling(false);
+            }
+          }, 300);
+        } else {
+          console.warn('Agent column not found for scrollToBottomRight');
         }
       }, time);
     },
@@ -374,7 +615,27 @@ export const useChatStore = defineStore('chat', {
       tree.sort((a, b) => a.id - b.id);
 
       return tree;
-    }
+    },
+
+    // 生成 twinsConversationList
+    generateTwinsConversationList() {
+      // 清空之前的数据
+      this.twinsConversationList = {};
+
+      // 遍历 list，查找有 twins_id 的 conversation
+      this.list.forEach(conversation => {
+        if (conversation.twins_id) {
+          this.twinsConversationList[conversation.twins_id] = {
+            status: conversation.status || 'done',
+            input_tokens: 0,
+            output_tokens: 0,
+            total: 0
+          };
+        }
+      });
+
+      console.log('Generated twinsConversationList:', this.twinsConversationList);
+    },
 
   },
   persist: true,

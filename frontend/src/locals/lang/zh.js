@@ -256,6 +256,12 @@ export default {
     welcome: {
       greeting: "你好",
       question: "我能为你做什么？",
+      workMode: {
+        twins: "双模对比，一次输入，两种思维并行呈现",
+        task: "进化型智能体 · 任务执行中",
+        chat: "智能对话 · 随问随答",
+        auto: "自适应模式 · 智能路由中"
+      },
       tabs: {
         featured: "精选",
         research: "研究",
@@ -264,6 +270,12 @@ export default {
         education: "教育",
         productivity: "生产力",
         other: "其他"
+      },
+      placeholders: {
+        twins: "同时观看 AI Chat 与 Evolving Agent 的思考与回答",
+        task: "请告诉我您的任务目标，我将持续学习并执行",
+        chat: "有什么我可以帮您解答的？",
+        auto: "请告诉我您的需求，我将自动选择最适合的处理方式"
       },
       placeholder: "有什么我能帮您的吗?",
       communityNote: "社区中展示的所有任务和网站均由用户自愿分享。平台不会在用户不同意的情况下展示任何内容。"

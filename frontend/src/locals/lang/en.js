@@ -255,6 +255,12 @@ export default {
     welcome: {
       greeting: "Hello",
       question: "What can I do for you?",
+      workMode: {
+        twins: "One question, parallel thinking.",
+        task: "Let's tackle your mission together.",
+        chat: "I'm here for quick, accurate answers.",
+        auto: "Our system intelligently routes your task to the best-suited mode."
+      },
       tabs: {
         featured: "Featured",
         research: "Research",
@@ -263,6 +269,12 @@ export default {
         education: "Education",
         productivity: "Productivity",
         other: "Other"
+      },
+      placeholders: {
+        twins: "Enter one prompt. See a side-by-side comparison of our AI Chat and Evolving Agent.",
+        task: "What's your mission in mind? Give me the idea and I'll handle the rest",
+        chat: "What can I help you with?",
+        auto: "Describe your task. I'll choose the best mode for you."
       },
       placeholder: "What can I do for you?",
       communityNote: "All tasks and websites displayed in the community are voluntarily shared by users. The platform will not display any content without the user's consent."
