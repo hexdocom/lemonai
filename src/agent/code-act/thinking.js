@@ -6,8 +6,7 @@ const { getDefaultModel } = require('@src/utils/default_model')
 
 const call = require("@src/utils/llm");
 const DEVELOP_MODEL = 'assistant';
-const sub_server_request = require('@src/utils/sub_server_request')
-const conversation_token_usage = require('@src/utils/get_sub_server_token_usage')
+
 const chat_completion = require('@src/agent/chat-completion/index')
 
 const thinking = async (requirement, context = {}) => {

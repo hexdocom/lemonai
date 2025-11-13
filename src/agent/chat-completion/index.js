@@ -31,6 +31,10 @@ const chat_completion_server = async (question, options, conversation_id, onToke
 
 const chat_completion_local = async (question, options, conversation_id, onTokenStream) => {
   // Call the model to get a response in English based on the goal
+
+  const abortController = new AbortController();
+  const signal = abortController.signal;
+  options.signal = signal;
   return call(question, conversation_id, 'assistant', options, onTokenStream);
 }
 

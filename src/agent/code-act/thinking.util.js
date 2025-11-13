@@ -15,16 +15,17 @@ const loadConversationMemory = async (conversation_id) => {
 }
 
 const describeLocalMemory = async (context) => {
+  global.logging(context, 'thinking.util', JSON.stringify(context.tasks || [], null, 2));
   const tasks = (context.tasks || []).filter(item => item.status === 'completed');
   if (tasks.length === 0) {
     return '';
   }
   const completedDescription = tasks.map(item => {
-    const { id, requirement, result, memorized = '' } = item;
+    const { id, requirement, result, memorized = '', content } = item;
     return `=== TaskID: ${id}
 Task Goal: ${requirement}
 Task Execute Memory: ${memorized}
-Task Result: ${result}`
+Task Result: ${content}`
   }).join('\n');
   return `== Task Completion Status ==:
 ${completedDescription}`

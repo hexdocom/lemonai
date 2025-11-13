@@ -229,7 +229,7 @@ class TaskManager {
   async resolvePendingTask() {
     const getFirstPendingTask = (tasks = []) => {
       for (const task of tasks) {
-        if (task.status !== 'pending' && task.status !== 'revise_plan') {
+        if (task.status !== 'pending' && task.status !== 'revise_plan' && task.status !== 'pause_for_user_input') {
           continue;
         }
         if (task.children && task.children.length > 0) {

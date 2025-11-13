@@ -3,7 +3,8 @@ const planning = require("@src/agent/planning/index.js");
 const auto_reply = require("@src/agent/auto-reply/index")
 const summary = require("@src/agent/summary/index")
 
-const completeCodeAct = require("@src/agent/code-act/code-act.js");
+const completeCodeAct = require("@src/agent/code-act/index");
+
 const TaskManager = require('./TaskManager'); // assume task manager path
 const Message = require('@src/utils/message.js');
 const Conversation = require('@src/models/Conversation')
@@ -28,7 +29,6 @@ const runtimeMap = {
 
 const { retrieveAndFormatPreviousSummary } = require('./conversationHistoryUtils');
 const { getAllFilesRecursively, getFilesMetadata, ensureDirectoryExists } = require('./fileUtils');
-// const { createStaticConf } = require('@src/utils/nginx-static');
 const { createFilesVersion } = require('@src/utils/versionManager');
 
 class AgenticAgent {
@@ -85,18 +85,14 @@ class AgenticAgent {
     const conversationDirPath = await this._getConversationDirPath();
     await ensureDirectoryExists(conversationDirPath);
 
-    // 创建nginx静态文件配置（仅在docker/e2b环境下）
+    // 生成静态文件访问地址（使用统一的 static.lemonai.ai 域名）
     if (RUNTIME_TYPE === 'docker' || RUNTIME_TYPE === 'e2b') {
-      try {
-        // const nginxResult = await createStaticConf(this.context.conversation_id, conversationDirPath);
-        console.log(`Nginx static config created for ${nginxResult.subdomain}`);
-        // 保存静态文件访问地址到上下文
-        this.context.staticUrl = nginxResult.url;
-      } catch (error) {
-        console.error('Failed to create nginx static config:', error);
-      }
+      const staticDomain = process.env.STATIC_DOMAIN || 'static.lemonai.ai';
+      const staticProtocol = process.env.STATIC_PROTOCOL || 'https';
+      this.context.staticUrl = `${staticProtocol}://${staticDomain}/${this.context.conversation_id}`;
+      console.log(`Static URL: ${this.context.staticUrl}`);
     } else {
-      console.log(`Skipping nginx setup for RUNTIME_TYPE: ${RUNTIME_TYPE}`);
+      console.log(`Skipping static URL setup for RUNTIME_TYPE: ${RUNTIME_TYPE}`);
     }
 
     const reply = await auto_reply(this.goal, this.context.conversation_id);
@@ -226,6 +222,7 @@ class AgenticAgent {
 
       await this.taskManager.setTasks(plannedTasks);
       const tasks = this.taskManager.getTasks();
+      this.context.tasks = tasks;
       await this._publishMessage({ action_type: 'plan', status: 'success', content: '', json: tasks });
 
       console.log('====== planning completed ======');
@@ -329,14 +326,30 @@ class AgenticAgent {
       try {
         const result = await completeCodeAct(task, this.context);
         global.logging(this.context, loggerKey, result);
+        task.memorized = result.memorized || '';
         if (result.status === 'failure') {
           await this.handle_task_status(task, 'failed', {
             content: result.comments,
             memorized: result.memorized || '',
             comments: result.comments,
           });
-          await Conversation.update({ status: 'failed' }, { where: { conversation_id: this.context.conversation_id } });
+          if (result.comments == "Insufficient credits balance") {
+            await Conversation.update({ status: 'stop' }, { where: { conversation_id: this.context.conversation_id } });
+          } else {
+            await Conversation.update({ status: 'failed' }, { where: { conversation_id: this.context.conversation_id } });
+          }
           await this.stop();
+          return;
+        }
+
+        // 等待用户反馈输入, 暂停任务
+        if (result.status === 'pause_for_user_input') {
+          await this.handle_task_status(task, 'pause_for_user_input', {
+            content: result.params.question || '',
+            memorized: result.memorized || '',
+            params: result.params || {}
+          });
+          await this.stop(false);
           return;
         }
         if (result.status === 'revise_plan') {
@@ -359,9 +372,11 @@ class AgenticAgent {
     }
   }
 
-  async stop() {
+  async stop(publish = true) {
     this.is_stop = true;
-    await this._publishMessage({ action_type: 'stop', status: 'success' });
+    if (publish) {
+      await this._publishMessage({ action_type: 'stop', status: 'success' });
+    }
   }
 }
 
