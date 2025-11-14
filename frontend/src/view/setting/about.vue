@@ -104,10 +104,10 @@ function handleIssuePage() {
 }
 
 onMounted(() => {
-  versionService.getVersionInfo().then((res) => {
-    console.log(res);
-    versionInfo.value = res;
-  });
+  // versionService.getVersionInfo().then((res) => {
+  //   console.log(res);
+  //   versionInfo.value = res;
+  // });
 });
 </script>
 
