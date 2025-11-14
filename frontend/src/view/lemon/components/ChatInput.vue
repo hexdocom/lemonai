@@ -594,20 +594,10 @@ const initModel = async () => {
 
   // 设置默认模型为 deepseek-v3
   const setDefaultModel = (models) => {
-    if (models.length > 0) {
-      // 优先查找 deepseek-v3 模型（强制设置，无论是否已有 model_id）
-      const deepseeV3Model = models.find((model) => model.id === 68);
-      if (deepseeV3Model) {
-        model_id.value = deepseeV3Model.id * 1;
-        console.log("强制设置默认模型为 kimi-k2:", deepseeV3Model.id);
-      } else {
-        // 如果没有找到 deepseek-v3，只在没有 model_id 时使用第一个模型
-        if (!model_id.value) {
-          const defaultId = models[0].id * 1;
-          model_id.value = defaultId;
-          console.log("未找到 kimi-k2 模型，使用第一个模型:", defaultId);
-        }
-      }
+    if (models.length > 0 && !model_id.value) {
+        const defaultId = models[0].id * 1;
+        model_id.value = defaultId;
+        console.log("未找到 kimi-k2 模型，使用第一个模型:", defaultId);
     }
   };
 

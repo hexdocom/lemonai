@@ -2,7 +2,7 @@
     <a-upload :file-list="fileList" :before-upload="beforeUpload" :show-upload-list="false" :disabled="uploadDisabled">
         <a-button type="text" class="upload-button" @click="handleUploadClick">
             <template #icon>
-                <PaperClipOutlined />
+                <PaperClipIcon />
             </template>
         </a-button>
     </a-upload>
@@ -10,8 +10,10 @@
 <script setup>
 import { ref } from 'vue';
 import { Modal } from 'ant-design-vue';
-import { PaperClipOutlined } from '@ant-design/icons-vue';
+import PaperClipIcon from '@/assets/svg/paperclip-icon.svg';
 import files from '@/services/files';
+import { useChatStore } from '@/store/modules/chat';
+import { storeToRefs } from 'pinia';
 
 const props = defineProps({
     fileList: {
@@ -40,6 +42,9 @@ const setHasShownPublicWarning = (value) => {
 
 const hasShownPublicWarning = ref(getHasShownPublicWarning());
 const uploadDisabled = ref(false); // 控制上传组件是否可用
+
+const chatStore = useChatStore();
+const { chat } = storeToRefs(chatStore);
 
 const emit = defineEmits(['update:fileList']);
 
@@ -83,7 +88,7 @@ const beforeUpload = async (file) => {
     // 给每个文件生成一个唯一标识，方便后续替换状态
     file.uid = Date.now() + Math.random();
 
-    // 在文件列表里加入“上传中”状态的临时文件
+    // 在文件列表里加入"上传中"状态的临时文件
     const uploadingFile = {
         uid: file.uid,
         name: file.name,
@@ -94,23 +99,42 @@ const beforeUpload = async (file) => {
 
     // 先更新列表，添加上传中条目
     emit('update:fileList', [...props.fileList, uploadingFile]);
+    
     try {
-        const formData = new FormData();
-        formData.append('conversation_id', props.conversation_id || '');
-        formData.append('files', file);
+        // 检查是否是 twins 模式
+        console.log('chat.value:', chat.value);
+        console.log('chat.value?.twins_id:', chat.value?.twins_id);
+        console.log('props.conversation_id:', props.conversation_id);
+        
+        const isTwinsMode = chat.value && chat.value.twins_id && chat.value.twins_id !== props.conversation_id;
+        
+        // 上传到 agent conversation（当前 conversation_id）
+        const agentFormData = new FormData();
+        agentFormData.append('conversation_id', props.conversation_id || '');
+        agentFormData.append('files', file);
 
-        const result = await files.uploadFile(formData);
-        let upload = result[0];
-        console.log('upload', upload);
-        // 上传成功，替换列表中对应的临时文件
+        const agentResult = await files.uploadFile(agentFormData);
+        let agentUpload = agentResult[0];
+        // 如果是 twins 模式，同时上传到 chat conversation
+        if (isTwinsMode) {
+            console.log('Twins mode detected, uploading to chat conversation:', chat.value?.twins_id);
+            const chatFormData = new FormData();
+            chatFormData.append('conversation_id', chat.value.twins_id);
+            chatFormData.append('files', file);
+
+            const chatResult = await files.uploadFile(chatFormData);
+            console.log('chat upload', chatResult[0]);
+        }
+
+        // 上传成功，替换列表中对应的临时文件（使用 agent 的上传结果）
         const newFileList = props.fileList
             .filter((f) => f.uid !== file.uid) // 先移除临时文件
             .concat({
-                name: upload.name,
+                name: agentUpload.name,
                 size: file.size,
-                url:upload.url,
-                id: upload.id,
-                workspace_dir: upload.workspace_dir,
+                url: agentUpload.url,
+                id: agentUpload.id,
+                workspace_dir: agentUpload.workspace_dir,
                 uploading: false,
                 error: false,
             });
@@ -131,7 +155,25 @@ const beforeUpload = async (file) => {
 };
 </script>
 <style scoped>
-    @media (max-width: 768px) { 
+    .upload-button {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .upload-button :deep(.anticon) {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .upload-button :deep(svg) {
+        width: 24px;
+        height: 24px;
+        display: block;
+    }
+
+    @media (max-width: 768px) {
         .upload-button {
             font-size: 11px!important;
             height: 24px!important;
