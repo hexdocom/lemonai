@@ -470,7 +470,7 @@ export const useChatStore = defineStore('chat', {
       setTimeout(() => {
         console.log('scrollToBottom', this.isScrolledToBottom);
         //将消息滚动到最底部
-        const messageList = document.querySelector('.chat-messages');
+        const messageList = document.querySelector('.message-list');
         if (this.isScrolledToBottom && messageList) {
           messageList.scrollTop = messageList.scrollHeight - messageList.clientHeight;
           // console.log('scrollToBottom', messageList.scrollTop, messageList.scrollHeight, messageList.clientHeight);

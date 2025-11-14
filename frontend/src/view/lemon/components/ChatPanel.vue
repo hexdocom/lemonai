@@ -28,7 +28,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watchEffect, onMounted } from "vue";
+import { ref, computed, watchEffect, onMounted, onBeforeUnmount } from "vue";
 import ChatHeader from "./ChatHeader.vue";
 import ChatMessages from "./ChatMessages.vue";
 import Preview from "@/components/preview/index.vue";
@@ -43,7 +43,7 @@ const chatStore = useChatStore();
 import { storeToRefs } from "pinia";
 import { useRoute } from "vue-router";
 const route = useRoute();
-import WelcomeView from "@/view/welcome/WelcomeView.vue";
+import WelcomeView from "../welcome/WelcomeView.vue";
 import chat from "@/utils/chat";
 const { chatInfo, mode } = storeToRefs(chatStore);
 
@@ -52,6 +52,66 @@ import { useEditorStore } from "@/store/modules/editor";
 const editorStore = useEditorStore();
 import sse_coding from "@/services/sse-coding";
 
+// SSE connection management
+import { useSseConnection } from "@/composables/useSseConnection";
+import emitter from "@/utils/emitter";
+
+// Initialize SSE connection manager
+const sseConnection = useSseConnection();
+
+// Subscribe to SSE logs for a conversation
+const subscribeToLogs = async (conversation_id, workMode) => {
+  if (!conversation_id) return;
+
+  await sseConnection.subscribe({
+    conversationId: conversation_id,
+    mode: workMode || mode.value,
+    chatStore,
+    onConnected: (data, connId) => {
+      console.log("[ChatPanel] SSE connected:", data);
+    },
+    onComplete: (data, connId) => {
+      console.log("[ChatPanel] Task completed:", data);
+    },
+    onError: (error, connId) => {
+      console.error("[ChatPanel] Task error:", error);
+    },
+  });
+};
+
+// Clean up all active connections
+const cleanupConnections = () => {
+  console.log("[ChatPanel] Cleaning up connections");
+  sseConnection.unsubscribeAll();
+};
+
+// Handle user feedback submitted event (e.g., agent-continue-success)
+const handleSubscribeToLogs = async (data) => {
+  const { conversation_id } = data;
+  console.log("[ChatPanel] User feedback submitted, resubscribing to logs:", conversation_id);
+
+  // Update chat status to running
+  const chat = chatStore.list.find((c) => c.conversation_id === conversation_id);
+  if (chat) {
+    chat.status = "running";
+  }
+
+  // Unsubscribe first to ensure clean state
+  sseConnection.unsubscribe(conversation_id);
+
+  // Then subscribe again
+  await subscribeToLogs(conversation_id, "task");
+};
+
+// Handle message deleted event
+const handleMessageDeleted = (data) => {
+  const { message_id, conversation_id } = data;
+  // Remove message from the messages array
+  const messageIndex = chatStore.messages.findIndex((msg) => msg.id === message_id);
+  if (messageIndex !== -1) {
+    chatStore.messages.splice(messageIndex, 1);
+  }
+};
 
 // 发送消息
 const handleSendMessage = async (value) => {
@@ -68,15 +128,41 @@ const handleSendMessage = async (value) => {
 };
 
 const conversationId = ref(route.params.id);
-const agentId = computed(() => route.params.agentId && route.params.agentId != "chat");
+const agentId = computed(() => route.params.agentId);
 
+// Watch for route changes and manage SSE subscriptions
 watchEffect(() => {
   console.log("route.params", route.params);
-  conversationId.value = route.params.id;
-  if (!route.params.id) {
+  const newConversationId = route.params.id;
+
+  // Clean up old connections when changing conversations
+  if (conversationId.value !== newConversationId) {
+    const status = sseConnection.getStatus();
+    if (status.activeCount > 0) {
+      console.log("[ChatPanel] Conversation changed, cleaning up old connections");
+      cleanupConnections();
+    }
+  }
+
+  conversationId.value = newConversationId;
+
+  if (!newConversationId) {
     chatStore.conversationId = null;
     chatStore.chat = null;
     chatStore.messages = [];
+    return;
+  }
+
+  // Subscribe to logs if conversation exists and is running
+  const chat = chatStore.list.find((c) => c.conversation_id === newConversationId);
+  if (chat && chat.status === "running") {
+    console.log("[ChatPanel] Found running conversation, subscribing to logs");
+
+    // Determine mode from chat or default to task
+    const workMode = chat.mode || "task";
+
+    // Subscribe to main conversation logs
+    subscribeToLogs(newConversationId, workMode);
   }
 });
 
@@ -84,14 +170,7 @@ watchEffect(() => {
 const currentChat = computed(() => chatStore.chat);
 
 const messages = computed(() => {
-  switch (mode.value) {
-    case "task":
-      return chatStore.messages;
-    case "chat":
-      return chat.convertToTree(chatInfo.value.msgList);
-    default:
-      return chatStore.messages;
-  }
+  return chatStore.messages;
 });
 
 const twinsChatMessages = computed(() => {
@@ -107,8 +186,13 @@ const isShowScrollToBottom = ref(false);
 
 onMounted(() => {
   // 添加滚动事件监听（仅用于非 Twins 模式）
-  const chatMessages = document.querySelector(".chat-messages");
+  const chatMessages = document.querySelector(".message-list");
+  console.log("chatMessages", chatMessages);
   if (chatMessages) {
+    // 初始化 isShowScrollToBottom 的值
+    const scrollDistance = chatMessages.scrollHeight - chatMessages.scrollTop - chatMessages.clientHeight;
+    isShowScrollToBottom.value = scrollDistance > 200;
+
     chatMessages.addEventListener("scroll", () => {
       if (chatMessages.scrollHeight - chatMessages.scrollTop - chatMessages.clientHeight > 200) {
         isShowScrollToBottom.value = true;
@@ -117,10 +201,21 @@ onMounted(() => {
       }
     });
   }
+
+  emitter.on("agent-continue-success", handleSubscribeToLogs);
+  emitter.on("message-deleted", handleMessageDeleted);
+});
+
+// Clean up connections when component unmounts
+onBeforeUnmount(() => {
+  console.log("[ChatPanel] Component unmounting, cleaning up connections");
+  cleanupConnections();
+  emitter.off("agent-continue-success", handleSubscribeToLogs);
+  emitter.off("message-deleted", handleMessageDeleted);
 });
 
 const scrollToBottom = () => {
-  const chatMessages = document.querySelector(".chat-messages");
+  const chatMessages = document.querySelector(".message-list");
   if (!chatMessages) return false;
   chatMessages.scrollTop = chatMessages.scrollHeight - chatMessages.clientHeight;
 };
@@ -141,6 +236,7 @@ const handleShare = () => {
   height: 100%;
   display: flex;
   flex-direction: column;
+  position: relative;
 }
 
 @media (min-width: 640px) {
@@ -167,10 +263,11 @@ const handleShare = () => {
 .scroll-to-bottom {
   border: 1px solid #0000000f;
   background: #fff;
-  position: sticky;
-  bottom: 150px;
+  position: absolute;
+  bottom: 210px;
   z-index: 1000;
   left: 50%;
+  transform: translateX(-50%);
   border-radius: 9999999px;
   width: 36px;
   height: 36px;
