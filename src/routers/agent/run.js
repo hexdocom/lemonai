@@ -619,6 +619,8 @@ async function runChatPhase(params, isTwinsMode, ctx) {
   // 如果需要搜索，进行搜索，并返回搜索结果
   if (search_intent_result.source_type == 'SEARCH') {
     search_results = await WebSearch.execute({ query: search_intent_result.search_query, num_results: 5, conversation_id: conversation_id });
+    search_results.json = search_results.meta.json;
+    delete search_results.meta;
     messagesContext.push({
       role: 'assistant',
       content: search_results.content
@@ -693,7 +695,7 @@ async function runChatPhase(params, isTwinsMode, ctx) {
       task_id: conversation_id,
       type: 'chat',
       pid: new_pid,
-      json: search_results ? search_results.meta.json : null,
+      json: search_results ? search_results.json : null,
       // search_results并且search_results.meta并且search_results.meta.content存在 就赋值。否则为null
       meta_content: (search_results && search_results.content) ? search_results.content : null
     });
