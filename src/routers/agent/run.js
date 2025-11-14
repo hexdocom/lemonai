@@ -693,7 +693,7 @@ async function runChatPhase(params, isTwinsMode, ctx) {
       task_id: conversation_id,
       type: 'chat',
       pid: new_pid,
-      json: search_results ? search_results.json : null,
+      json: search_results ? search_results.meta.json : null,
       // search_results并且search_results.meta并且search_results.meta.content存在 就赋值。否则为null
       meta_content: (search_results && search_results.content) ? search_results.content : null
     });
