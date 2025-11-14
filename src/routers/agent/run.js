@@ -106,17 +106,64 @@ router.post("/run", async (ctx, next) => {
   };
 
   if (Array.isArray(fileIds) && fileIds.length > 0) {
+    const newFileIds = [];
     for (const fileId of fileIds) {
-      await File.update(
-        { conversation_id: conversation_id },
-        { where: { id: fileId } }
-      );
+      // 先查询文件
+      const file = await File.findOne({ where: { id: fileId } });
+
+      if (file) {
+        const originalConversationId = file.conversation_id;
+        console.log(`Processing file ${fileId}, current conversation_id: ${originalConversationId}, target: ${conversation_id}`);
+
+        // 如果 conversation_id 不为空且不等于当前 conversation_id，则复制
+        if (originalConversationId && originalConversationId !== conversation_id) {
+          // 复制文件记录
+          const fileData = file.toJSON();
+          delete fileData.id; // 删除 id，让数据库自动生成新的 id
+          delete fileData.create_at; // 删除时间戳
+          delete fileData.update_at;
+          fileData.conversation_id = conversation_id;
+          const newFile = await File.create(fileData);
+          console.log(`Copied file ${fileId} to new file ${newFile.id} with conversation_id: ${conversation_id}`);
+          newFileIds.push(newFile.id);
+        } else {
+          // 尝试更新，使用乐观锁：只有当 conversation_id 仍为原值时才更新
+          const [affectedCount] = await File.update(
+            { conversation_id: conversation_id },
+            {
+              where: {
+                id: fileId,
+                conversation_id: originalConversationId // 乐观锁：只有当值未变时才更新
+              }
+            }
+          );
+
+          // 如果更新成功（affectedCount > 0），使用原文件 ID
+          if (affectedCount > 0) {
+            console.log(`Updated file ${fileId} with conversation_id: ${conversation_id}`);
+            newFileIds.push(fileId);
+          } else {
+            // 更新失败，说明文件已被其他请求修改，复制一份
+            console.log(`File ${fileId} was modified by another request, creating a copy`);
+            const fileData = file.toJSON();
+            delete fileData.id;
+            delete fileData.create_at;
+            delete fileData.update_at;
+            fileData.conversation_id = conversation_id;
+            const newFile = await File.create(fileData);
+            console.log(`Copied file ${fileId} to new file ${newFile.id} with conversation_id: ${conversation_id}`);
+            newFileIds.push(newFile.id);
+          }
+        }
+      }
     }
+    console.log(`Final newFileIds:`, newFileIds);
     files = await File.findAll({
       where: {
-        id: fileIds
+        id: newFileIds
       }
     });
+    console.log(`Found ${files.length} files with conversation_id: ${conversation_id}`);
 
     // 根据文件名把文件从 upload文件夹内，移动到 dir_name下面的upload文件夹内
     const uploadDir = path.join(WORKSPACE_DIR, 'upload');
