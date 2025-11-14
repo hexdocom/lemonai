@@ -64,18 +64,7 @@ async function sendMessage(question, conversationId, files, mcp_server_ids = [],
         return await sendTwinsMessage(question, conversationId, files, mcp_server_ids);
     }
     const abortController = new AbortController();
-    let fileIds = [];
-    if (files && files.length > 0) {
-        fileIds = files.map(file => file.id);
-        // Modify files to include filepath
-        files = files.map(file => {
-            const filepath = `${file.workspace_dir}/Conversation_${conversationId.slice(0, 6)}/upload/${file.name}`;
-            const filename = file.name;
-            return { ...file, filepath, filename };
-        });
-        console.log('updatedFiles', files);
-        await fileConversationId(files, conversationId)
-    }
+    let fileIds = files.map(file => file.id);
     //判断当前会话是否存在
     let chat = chatStore.list.find((c) => c.conversation_id == conversationId);
     if (chat) {
@@ -196,18 +185,7 @@ async function sendMessage(question, conversationId, files, mcp_server_ids = [],
 
 async function sendChatMessage(question, conversationId, agentConversationId, files, mcp_server_ids = [], workMode = "chat", testMode = false, testDataStream = []) {
     const abortController = new AbortController();
-    let fileIds = [];
-    if (files && files.length > 0) {
-        fileIds = files.map(file => file.id);
-        // Modify files to include filepath
-        files = files.map(file => {
-            const filepath = `${file.workspace_dir}/Conversation_${conversationId.slice(0, 6)}/upload/${file.name}`;
-            const filename = file.name;
-            return { ...file, filepath, filename };
-        });
-        console.log('updatedFiles', files);
-        await fileConversationId(files, conversationId)
-    }
+    let  fileIds = files.map(file => file.id);
     // 直接更新 twinsConversationList 中的状态（conversationId 就是 twins_id）
     const twinsInfo = chatStore.twinsConversationList[conversationId] || { status: 'done', input_tokens: 0, output_tokens: 0, total: 0 };
     twinsInfo.status = 'running';

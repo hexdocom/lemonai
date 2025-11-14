@@ -101,13 +101,6 @@ const beforeUpload = async (file) => {
     emit('update:fileList', [...props.fileList, uploadingFile]);
     
     try {
-        // 检查是否是 twins 模式
-        console.log('chat.value:', chat.value);
-        console.log('chat.value?.twins_id:', chat.value?.twins_id);
-        console.log('props.conversation_id:', props.conversation_id);
-        
-        const isTwinsMode = chat.value && chat.value.twins_id && chat.value.twins_id !== props.conversation_id;
-        
         // 上传到 agent conversation（当前 conversation_id）
         const agentFormData = new FormData();
         agentFormData.append('conversation_id', props.conversation_id || '');
@@ -115,16 +108,6 @@ const beforeUpload = async (file) => {
 
         const agentResult = await files.uploadFile(agentFormData);
         let agentUpload = agentResult[0];
-        // 如果是 twins 模式，同时上传到 chat conversation
-        if (isTwinsMode) {
-            console.log('Twins mode detected, uploading to chat conversation:', chat.value?.twins_id);
-            const chatFormData = new FormData();
-            chatFormData.append('conversation_id', chat.value.twins_id);
-            chatFormData.append('files', file);
-
-            const chatResult = await files.uploadFile(chatFormData);
-            console.log('chat upload', chatResult[0]);
-        }
 
         // 上传成功，替换列表中对应的临时文件（使用 agent 的上传结果）
         const newFileList = props.fileList
