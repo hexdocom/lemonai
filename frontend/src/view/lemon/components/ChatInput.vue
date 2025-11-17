@@ -19,8 +19,7 @@
                 <!-- 模式切换器 - 响应式 -->
                 <ModeSelector v-model:modelValue="workMode" :disabled="hasTwinsId" @modeChange="handleModeChange" />
 
-                <div class="visibility-toggle">
-                  <!-- 桌面端下拉框 -->
+                <!-- <div class="visibility-toggle">
                   <a-select v-if="!isMobile" v-model:value="isPublic" class="visibility-select"
                     :options="visibilityOptions" @change="handleVisibilityChange" :dropdownMatchSelectWidth="false"
                     :bordered="false">
@@ -39,14 +38,12 @@
                       </div>
                     </template>
                   </a-select>
-
-                  <!-- 移动端触发器 -->
                   <div v-else class="mobile-visibility-trigger" @click="openVisibilityModal">
                     <span class="visibility-name">{{visibilityOptions.find((opt) => opt.value === isPublic)?.label ||
                       "Public" }}</span>
                     <DownOutlined class="dropdown-icon" />
                   </div>
-                </div>
+                </div> -->
                 <div class="mcp-button-container" v-if="!isTwins && workMode !== 'chat'">
                   <!-- MCP服务器 -->
                   <a-dropdown :trigger="['click']" placement="top" class="mcp-dropdown">

@@ -12,6 +12,7 @@ const defaultActions = [
   ['terminal_run', ['command', 'args']],
   ['web_search', ['topic', 'query', 'num_results']],
   ['browser', ['question']],
+  ['mcp_tool', ['name', 'arguments']],
   ['evaluation', ['status', 'comments']],
   ['document_query', ['query', 'conversation_id']],
   ['document_upload', ['file_path', 'conversation_id', 'file_name']]
