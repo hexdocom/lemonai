@@ -43,7 +43,7 @@ const chatStore = useChatStore();
 import { storeToRefs } from "pinia";
 import { useRoute } from "vue-router";
 const route = useRoute();
-import WelcomeView from "../welcome/WelcomeView.vue";
+import WelcomeView from "@/view/welcome/WelcomeView.vue";
 import chat from "@/utils/chat";
 const { chatInfo, mode } = storeToRefs(chatStore);
 
@@ -51,67 +51,8 @@ const { chatInfo, mode } = storeToRefs(chatStore);
 import { useEditorStore } from "@/store/modules/editor";
 const editorStore = useEditorStore();
 import sse_coding from "@/services/sse-coding";
-
-// SSE connection management
-import { useSseConnection } from "@/composables/useSseConnection";
 import emitter from "@/utils/emitter";
 
-// Initialize SSE connection manager
-const sseConnection = useSseConnection();
-
-// Subscribe to SSE logs for a conversation
-const subscribeToLogs = async (conversation_id, workMode) => {
-  if (!conversation_id) return;
-
-  await sseConnection.subscribe({
-    conversationId: conversation_id,
-    mode: workMode || mode.value,
-    chatStore,
-    onConnected: (data, connId) => {
-      console.log("[ChatPanel] SSE connected:", data);
-    },
-    onComplete: (data, connId) => {
-      console.log("[ChatPanel] Task completed:", data);
-    },
-    onError: (error, connId) => {
-      console.error("[ChatPanel] Task error:", error);
-    },
-  });
-};
-
-// Clean up all active connections
-const cleanupConnections = () => {
-  console.log("[ChatPanel] Cleaning up connections");
-  sseConnection.unsubscribeAll();
-};
-
-// Handle user feedback submitted event (e.g., agent-continue-success)
-const handleSubscribeToLogs = async (data) => {
-  const { conversation_id } = data;
-  console.log("[ChatPanel] User feedback submitted, resubscribing to logs:", conversation_id);
-
-  // Update chat status to running
-  const chat = chatStore.list.find((c) => c.conversation_id === conversation_id);
-  if (chat) {
-    chat.status = "running";
-  }
-
-  // Unsubscribe first to ensure clean state
-  sseConnection.unsubscribe(conversation_id);
-
-  // Then subscribe again
-  await subscribeToLogs(conversation_id, "task");
-};
-
-// Handle message deleted event
-const handleMessageDeleted = (data) => {
-  const { message_id, conversation_id } = data;
-  // Remove message from the messages array
-  const messageIndex = chatStore.messages.findIndex((msg) => msg.id === message_id);
-  if (messageIndex !== -1) {
-    chatStore.messages.splice(messageIndex, 1);
-  }
-};
 
 // 发送消息
 const handleSendMessage = async (value) => {
@@ -135,15 +76,6 @@ watchEffect(() => {
   console.log("route.params", route.params);
   const newConversationId = route.params.id;
 
-  // Clean up old connections when changing conversations
-  if (conversationId.value !== newConversationId) {
-    const status = sseConnection.getStatus();
-    if (status.activeCount > 0) {
-      console.log("[ChatPanel] Conversation changed, cleaning up old connections");
-      cleanupConnections();
-    }
-  }
-
   conversationId.value = newConversationId;
 
   if (!newConversationId) {
@@ -151,18 +83,6 @@ watchEffect(() => {
     chatStore.chat = null;
     chatStore.messages = [];
     return;
-  }
-
-  // Subscribe to logs if conversation exists and is running
-  const chat = chatStore.list.find((c) => c.conversation_id === newConversationId);
-  if (chat && chat.status === "running") {
-    console.log("[ChatPanel] Found running conversation, subscribing to logs");
-
-    // Determine mode from chat or default to task
-    const workMode = chat.mode || "task";
-
-    // Subscribe to main conversation logs
-    subscribeToLogs(newConversationId, workMode);
   }
 });
 
@@ -201,17 +121,6 @@ onMounted(() => {
       }
     });
   }
-
-  emitter.on("agent-continue-success", handleSubscribeToLogs);
-  emitter.on("message-deleted", handleMessageDeleted);
-});
-
-// Clean up connections when component unmounts
-onBeforeUnmount(() => {
-  console.log("[ChatPanel] Component unmounting, cleaning up connections");
-  cleanupConnections();
-  emitter.off("agent-continue-success", handleSubscribeToLogs);
-  emitter.off("message-deleted", handleMessageDeleted);
 });
 
 const scrollToBottom = () => {
