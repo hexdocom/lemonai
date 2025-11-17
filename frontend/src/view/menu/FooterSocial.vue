@@ -33,10 +33,10 @@ import EmailIcon from '@/assets/svg/email-icon.svg'
 import DocIcon from '@/assets/svg/doc-icon.svg'
 import DiscordImage from '@/assets/image/discord.png'
 
-const homepageUrl = import.meta.env.VITE_HOMEPAGE_URL || 'https://www.lemonai.ai'
-const email = import.meta.env.VITE_EMAIL || 'hello@lemonai.ai'
+const homepageUrl = import.meta.env.VITE_HOMEPAGE_URL || 'https://www.lemonai.cc'
+const email = import.meta.env.VITE_EMAIL || 'feedback@lemonai.cc'
 const discordUrl = import.meta.env.VITE_DISCORD_URL || 'https://discord.gg/gjEXg4UBR4'
-const docsUrl = import.meta.env.VITE_DOCS_URL || 'https://lemon-11.gitbook.io/lemon-ai-docs'
+const docsUrl = import.meta.env.VITE_DOCS_URL || 'https://lemon-11.gitbook.io/lemonai'
 
 const emailLink = computed(() => `mailto:${email}`)
 </script>
