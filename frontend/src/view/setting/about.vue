@@ -75,8 +75,8 @@ import markdownRender from '@/components/markdown/index.vue';
 const { t } = useI18n();
 
 const versionInfo = ref({
-  localVersion: '0.4.1',
-  latestVersion: '0.4.1',
+  localVersion: '0.5.1',
+  latestVersion: '0.5.1',
   isLatest: true,
   updateUrl: 'https://github.com/yu-mengyun/vue-admin-template',
   message: 'the current version is the latest version',
@@ -104,10 +104,10 @@ function handleIssuePage() {
 }
 
 onMounted(() => {
-  versionService.getVersionInfo().then((res) => {
-    console.log(res);
-    versionInfo.value = res;
-  });
+  // versionService.getVersionInfo().then((res) => {
+  //   console.log(res);
+  //   versionInfo.value = res;
+  // });
 });
 </script>
 

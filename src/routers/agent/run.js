@@ -17,7 +17,8 @@ const path = require('path')
 const fs = require('fs').promises
 const { getDirpath } = require('@src/utils/electron');
 const RUNTIME_TYPE = process.env.RUNTIME_TYPE || 'local-docker'
-
+const { search_intent } = require('@src/agent/chatbot');
+const WebSearch = require('@src/tools/WebSearch');
 
 let closeContainer
 if (RUNTIME_TYPE && RUNTIME_TYPE === 'local-docker') {
@@ -105,17 +106,64 @@ router.post("/run", async (ctx, next) => {
   };
 
   if (Array.isArray(fileIds) && fileIds.length > 0) {
+    const newFileIds = [];
     for (const fileId of fileIds) {
-      await File.update(
-        { conversation_id: conversation_id },
-        { where: { id: fileId } }
-      );
+      // 先查询文件
+      const file = await File.findOne({ where: { id: fileId } });
+
+      if (file) {
+        const originalConversationId = file.conversation_id;
+        console.log(`Processing file ${fileId}, current conversation_id: ${originalConversationId}, target: ${conversation_id}`);
+
+        // 如果 conversation_id 不为空且不等于当前 conversation_id，则复制
+        if (originalConversationId && originalConversationId !== conversation_id) {
+          // 复制文件记录
+          const fileData = file.toJSON();
+          delete fileData.id; // 删除 id，让数据库自动生成新的 id
+          delete fileData.create_at; // 删除时间戳
+          delete fileData.update_at;
+          fileData.conversation_id = conversation_id;
+          const newFile = await File.create(fileData);
+          console.log(`Copied file ${fileId} to new file ${newFile.id} with conversation_id: ${conversation_id}`);
+          newFileIds.push(newFile.id);
+        } else {
+          // 尝试更新，使用乐观锁：只有当 conversation_id 仍为原值时才更新
+          const [affectedCount] = await File.update(
+            { conversation_id: conversation_id },
+            {
+              where: {
+                id: fileId,
+                conversation_id: originalConversationId // 乐观锁：只有当值未变时才更新
+              }
+            }
+          );
+
+          // 如果更新成功（affectedCount > 0），使用原文件 ID
+          if (affectedCount > 0) {
+            console.log(`Updated file ${fileId} with conversation_id: ${conversation_id}`);
+            newFileIds.push(fileId);
+          } else {
+            // 更新失败，说明文件已被其他请求修改，复制一份
+            console.log(`File ${fileId} was modified by another request, creating a copy`);
+            const fileData = file.toJSON();
+            delete fileData.id;
+            delete fileData.create_at;
+            delete fileData.update_at;
+            fileData.conversation_id = conversation_id;
+            const newFile = await File.create(fileData);
+            console.log(`Copied file ${fileId} to new file ${newFile.id} with conversation_id: ${conversation_id}`);
+            newFileIds.push(newFile.id);
+          }
+        }
+      }
     }
+    console.log(`Final newFileIds:`, newFileIds);
     files = await File.findAll({
       where: {
-        id: fileIds
+        id: newFileIds
       }
     });
+    console.log(`Found ${files.length} files with conversation_id: ${conversation_id}`);
 
     // 根据文件名把文件从 upload文件夹内，移动到 dir_name下面的upload文件夹内
     const uploadDir = path.join(WORKSPACE_DIR, 'upload');
@@ -123,26 +171,28 @@ router.post("/run", async (ctx, next) => {
     await fs.mkdir(targetUploadDir, { recursive: true });
 
 
-    for (const file of files) {
-      // 假设 file.filename 字段存在，且为文件名
+    // 并行复制所有文件
+    const copyFilePromises = files.map(async (file) => {
       const srcPath = path.join(uploadDir, file.name);
       const destPath = path.join(targetUploadDir, file.name);
 
       try {
-        // 尝试移动文件，如果目标已存在则覆盖
-        await fs.rename(srcPath, destPath);
+        // 复制文件到目标位置
+        await fs.copyFile(srcPath, destPath);
       } catch (err) {
-        if (err.code === 'EXDEV' || err.code === 'EEXIST') {
-          // 跨分区或已存在，尝试复制再删除
-          await fs.copyFile(srcPath, destPath);
-          await fs.unlink(srcPath);
+        if (err.code === 'ENOENT') {
+          // 文件不存在，可能已经被移动，忽略此错误
+          console.warn(`File not found: ${srcPath}, possibly already moved`);
         } else {
           // 其他错误抛出
           throw err;
         }
       }
+    });
 
-    }
+    await Promise.all(copyFilePromises);
+    console.log(`Copied ${files.length} files in parallel`);
+
   }
   if (!conversation_id) {
     conversation_id = uuid.v4();
@@ -179,7 +229,7 @@ router.post("/run", async (ctx, next) => {
     agent_id,
   }
 
-  // 根据mode参数确定处理方式
+  // 根据 mode 参数确定处理方式
   let intent;
   if (mode === 'auto') {
     // 自动选择：使用意图识别
@@ -230,12 +280,13 @@ router.post("/run", async (ctx, next) => {
   // 提取公共参数
   const commonParams = {
     conversation_id, question, newFiles, feedbackOptions,
-    onTokenStream, stream, context, agent_id, ctx
+    onTokenStream, stream, context, agent_id, ctx,
+    files, WORKSPACE_DIR
   };
 
   // 执行对应的模式
   if (intent === 'chat') {
-    await executeChatMode(commonParams);
+    await executeChatMode(commonParams, ctx);
   } else if (intent === 'twins') {
     await executeTwinsMode(commonParams, dir_path);
   } else {
@@ -259,14 +310,15 @@ router.post("/run", async (ctx, next) => {
     stream.on('close', async () => {
       console.log('Agent stream closed');
       await closeContainer(ctx.state.user.id)
-      // todo 实现新的takeScreenshotAndUpload
-      // 如果agent有制定的replay_conversation_id,则不更新screen_shot_url
 
       //更新 Conversation 的截图
       // await Conversation.update({ screen_shot_url: screen_url }, { where: { conversation_id } })
 
       // Check if task completed successfully and update recommend field
       await updateAgentRecommend(conversation_id, agent_id);
+
+      // 删除原upload文件夹中的文件
+      await deleteSourceFiles(files, WORKSPACE_DIR);
     });
 
     const onCompleted = () => {
@@ -302,11 +354,6 @@ router.post("/run", async (ctx, next) => {
     });
   }
 
-
-  // completeCodeAct(task, context).then(async content => {
-  //   console.log('content', content);
-  //   onCompleted();
-  // });
   ctx.body = stream;
   ctx.status = 200;
 });
@@ -345,7 +392,8 @@ async function updateAgentRecommend(conversation_id, agent_id) {
       }
     }
 
-    if (finishMessage) {
+    const conversation = await Conversation.findOne({ where: { conversation_id } });
+    if (finishMessage && (conversation.status === 'done' || conversation.status === 'completed')) {
       // 任务正常完成，将 recommend 设为 0（如果之前是 -1）
       if (agent.recommend === -1) {
         await Agent.update({ recommend: 0 }, { where: { id: agent_id } });
@@ -359,6 +407,33 @@ async function updateAgentRecommend(conversation_id, agent_id) {
   } catch (error) {
     console.error(`Error updating agent recommend for agent ${agent_id}:`, error);
   }
+}
+
+// 删除upload文件夹中的源文件
+async function deleteSourceFiles(files, workspaceDir) {
+  if (!files || files.length === 0) {
+    return;
+  }
+
+  const uploadDir = path.join(workspaceDir, 'upload');
+  const deleteFilePromises = files.map(async (file) => {
+    const srcPath = path.join(uploadDir, file.name);
+    try {
+      await fs.unlink(srcPath);
+      console.log(`Deleted source file: ${srcPath}`);
+    } catch (err) {
+      if (err.code === 'ENOENT') {
+        // 文件不存在，可能已经被删除，忽略此错误
+        console.warn(`File not found for deletion: ${srcPath}`);
+      } else {
+        // 其他错误仅记录警告，不影响主流程
+        console.warn(`Failed to delete file: ${srcPath}, error: ${err.message}`);
+      }
+    }
+  });
+
+  await Promise.all(deleteFilePromises);
+  console.log(`Deleted ${files.length} source files in parallel`);
 }
 
 // 找到除了todo.md以外最后生成的文件
@@ -510,16 +585,19 @@ function getMessagesContextByTime(messages) {
 }
 
 // 执行Chat模式
-async function executeChatMode(params) {
-  const { stream, conversation_id } = params;
+async function executeChatMode(params, ctx) {
+  const { stream, conversation_id, span, startTime } = params;
   console.log('使用对话模式');
 
   // Chat模式的stream关闭处理（无需截图逻辑）
   stream.on('close', async () => {
     console.log('Chat stream closed');
+    // 删除原upload文件夹中的文件
+    const { files, WORKSPACE_DIR } = params;
+    await deleteSourceFiles(files, WORKSPACE_DIR);
   });
 
-  await runChatPhase(params, false); // standalone chat mode
+  await runChatPhase(params, false, ctx); // standalone chat mode
 }
 
 // 执行Twins模式
@@ -539,6 +617,10 @@ async function executeTwinsMode(params, dir_path) {
     }
     // await Conversation.update({ screen_shot_url: screen_url }, { where: { conversation_id } })
     await updateAgentRecommend(conversation_id, agent_id);
+
+    // 删除原upload文件夹中的文件
+    const { files, WORKSPACE_DIR } = params;
+    await deleteSourceFiles(files, WORKSPACE_DIR);
   });
 
   // 第一阶段：Chat
@@ -550,7 +632,7 @@ async function executeTwinsMode(params, dir_path) {
 }
 
 // 通用Chat执行函数
-async function runChatPhase(params, isTwinsMode) {
+async function runChatPhase(params, isTwinsMode, ctx) {
   const { conversation_id, question, newFiles, onTokenStream, stream, agent_id, feedbackOptions } = params;
 
   // 准备上下文消息
@@ -576,12 +658,32 @@ async function runChatPhase(params, isTwinsMode) {
   }
   messagesContext.unshift(sysPromptMessage)
 
+  let search_results = null;
+  // 判断回答用户是否需要搜索
+  const document_list = await File.findAll({ where: { conversation_id: conversation_id } })
+  let document_list_str = document_list.map(file => file.name).join('\n')
+  let search_intent_result = await search_intent(messagesContext, question, document_list_str, conversation_id);
+  // 如果需要搜索，进行搜索，并返回搜索结果
+  if (search_intent_result.source_type == 'SEARCH') {
+    search_results = await WebSearch.execute({ query: search_intent_result.search_query, num_results: 5, conversation_id: conversation_id });
+    search_results.json = search_results.meta.json;
+    delete search_results.meta;
+    messagesContext.push({
+      role: 'assistant',
+      content: search_results.content
+    })
+  }
+
+  if (search_results) {
+    onTokenStream(`__lemon_chat_${search_intent_result.source_type}_start__\n${JSON.stringify(search_results)}\n__lemon_chat_${search_intent_result.source_type}_end__`)
+  }
+
   // 保存用户消息
   const userMsg = Message.format({
     role: 'user',
     status: 'success',
     content: question,
-    action_type: 'chat',
+    action_type: 'question',
     task_id: conversation_id,
     type: 'chat',
     pid: -1,
@@ -639,11 +741,15 @@ async function runChatPhase(params, isTwinsMode) {
       action_type: 'chat',
       task_id: conversation_id,
       type: 'chat',
-      pid: new_pid
+      pid: new_pid,
+      json: search_results ? search_results.json : null,
+      // search_results并且search_results.meta并且search_results.meta.content存在 就赋值。否则为null
+      meta_content: (search_results && search_results.content) ? search_results.content : null
     });
     let new_message = await Message.saveToDB(assistant_msg, conversation_id);
     await onChatCompleted(new_message.id, new_pid);
   }).catch(async (error) => {
+    console.error('Chat phase error:', error);
     const content = error.message
     const assistant_msg = Message.format({
       role: 'assistant',
@@ -652,7 +758,8 @@ async function runChatPhase(params, isTwinsMode) {
       action_type: 'chat',
       task_id: conversation_id,
       type: 'chat',
-      pid: new_pid
+      pid: new_pid,
+      json: search_results ? search_results.json : null
     });
     let new_message = await Message.saveToDB(assistant_msg, conversation_id);
     await onChatCompleted(new_message.id, new_pid);

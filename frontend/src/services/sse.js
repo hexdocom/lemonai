@@ -1,9 +1,7 @@
 import { fetchEventSource } from '@microsoft/fetch-event-source';
 import base64 from "@/utils/base64.js";
 const env = import.meta.env;
-console.log('env', env);
-
-const sse = (uri, options, onTokenStream = (answer, ch,conversation_id) => { }, onOpenStream = () => { }, answer, throttledScrollToBottom = () => { }, abortController = new AbortController(),conversationId) => {
+const sse = (uri, options, onTokenStream = (answer, ch,conversation_id) => { }, onOpenStream = () => { }, answer, throttledScrollToBottom = () => { }, abortController = new AbortController(),conversationId,agentConversationId = null) => {
   const nodeToken = localStorage.getItem('node_token');
   return new Promise((resolve, reject) => {
 
@@ -26,7 +24,7 @@ const sse = (uri, options, onTokenStream = (answer, ch,conversation_id) => { }, 
       onmessage(ev) {
         const ch = decodeBase64(ev.data);
         content += ch;
-        onTokenStream(answer, ch,conversationId); // 回调处理流式消息
+        onTokenStream(answer, ch,conversationId,agentConversationId); // 回调处理流式消息
         throttledScrollToBottom();
       },
       onerror(err) {

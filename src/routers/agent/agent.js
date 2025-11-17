@@ -53,6 +53,7 @@ router.post("/generate", async ({ state, request, response }) => {
 
 
 router.get("/", async ({ state, response }) => {
+  console.log(' ==== get agent list ==== ');
   try {
     const agents = await Agent.findAll({
       where: {

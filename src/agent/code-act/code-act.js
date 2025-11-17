@@ -1,6 +1,5 @@
 const thinking = require("./thinking");
-const { resolveActions } = require("@src/utils/resolve");
-const Message = require("@src/utils/message");
+
 const LocalMemory = require("@src/agent/memory/LocalMemory");
 const { isPauseRequiredError } = require("@src/utils/errors");
 
@@ -10,60 +9,11 @@ const MAX_RETRY_TIMES = 3;
 const MAX_TOTAL_RETRIES = 10; // add：max retries times 
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-const finish_action = async (action, context, task_id) => {
-  const { memory, onTokenStream } = context;
-  const memorized_content = await memory.getMemorizedContent();
-  const result = {
-    status: "success",
-    comments: "Task Success !",
-    content: action.params.message,
-    memorized: memorized_content,
-    meta: {
-      action_type: "finish",
-    },
-    timestamp: new Date().valueOf()
-  };
-  const msg = Message.format({ status: "success", task_id: task_id, action_type: 'finish', content: result.content, comments: result.comments, memorized: result.memorized });
-  onTokenStream && onTokenStream(msg);
-  await Message.saveToDB(msg, context.conversation_id);
-  return result;
-};
+const { resolveActions } = require("@src/xml/index");
 
-/**
- * Helper function to handle retry logic
- * @param {number} retryCount - Current consecutive retry count
- * @param {number} totalRetryAttempts - Current total retry attempts
- * @param {number} maxRetries - Maximum consecutive retry count
- * @param {number} maxTotalRetries - Maximum total retry attempts
- * @param {string} errorMessage - Error message (optional)
- * @returns {Object} - Contains whether to continue retrying and error result (if termination is needed)
- */
-const retryHandle = (retryCount, totalRetryAttempts, maxRetries, maxTotalRetries, errorMessage = "") => {
-  // check if max consecutive retry times is reached
-  if (retryCount >= maxRetries) {
-    return {
-      shouldContinue: false,
-      result: {
-        status: "failure",
-        comments: `Reached the maximum number of consecutive ${errorMessage ? "exceptions" : "execution failures"} (${maxRetries})${errorMessage ? ": " + errorMessage : ""}`,
-      },
-    };
-  }
-  // check if max total retry times is reached
-  if (totalRetryAttempts >= maxTotalRetries) {
-    return {
-      shouldContinue: false,
-      result: {
-        status: "failure",
-        comments: `Reached the maximum total retry attempts (${maxTotalRetries})${errorMessage ? ": " + errorMessage : ""}`,
-      },
-    };
-  }
-  // can continue retry
-  return { shouldContinue: true };
-};
+const { finish_action, retryHandle } = require("./code-act.common");
 
-const { checkConsecutiveAssistantXml, completeMessagesContent } = require("./message");
+const { checkActionToBeContinue, completeMessagesContent } = require("./message");
 
 // const MAX_CONTENT_LENGTH = 1e5;
 const MAX_CONTENT_LENGTH = 5 * 1e4;
@@ -138,6 +88,14 @@ const completeCodeAct = async (task = {}, context = {}) => {
         }
       }
 
+
+      if (action && action.type === 'pause_for_user_input') {
+        return {
+          status: 'pause_for_user_input',
+          params: action.params
+        }
+      }
+
       /**
        * 3. Action parse failed
        * ①. The max_tokens length is not enough, need to continue to supplement and improve
@@ -160,11 +118,6 @@ const completeCodeAct = async (task = {}, context = {}) => {
           return result;
         }
 
-        const status = checkConsecutiveAssistantXml(messages);
-        if (status === 'to be continue') {
-          continue;
-        }
-
         // Feedback invalid format
         await memory.addMessage('user', "resolve action failed, Please only generate valid xml format content");
 
@@ -176,6 +129,12 @@ const completeCodeAct = async (task = {}, context = {}) => {
       if (action.type === "finish") {
         const result = await finish_action(action, context, task.id);
         return result;
+      }
+
+      // Check if action is 'to be continue' to completion content
+      const actionToBeContinue = checkActionToBeContinue(action);
+      if (actionToBeContinue === 'to be continue') {
+        continue;
       }
 
       // 5. Execute action
@@ -190,7 +149,6 @@ const completeCodeAct = async (task = {}, context = {}) => {
 
       // 6. Reflection and evaluation
       const reflection_result = await reflection(requirement, action_result, context.conversation_id);
-      console.log("reflection_result", reflection_result);
       const { status, comments } = reflection_result;
 
       // 7. Handle execution result

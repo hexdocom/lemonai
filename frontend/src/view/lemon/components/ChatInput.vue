@@ -6,56 +6,23 @@
       <div class="input-area">
         <ChatInputFile v-model:fileList="fileList" v-model:conversation_id="conversation_id" />
         <div class="input-container">
-          <a-textarea class="input-textarea" v-model:value="messageText" :placeholder="placeholder" :auto-size="{ minRows: 2, maxRows: 8 }" @keydown="keydown" />
+          <a-textarea class="input-textarea" v-model:value="messageText" :placeholder="placeholder"
+            :auto-size="{ minRows: 2, maxRows: 8 }" @keydown="keydown" />
           <div class="input-actions">
             <div class="left-actions">
               <!-- 第一行按钮 -->
               <div class="button-row first-row">
                 <!-- 文件上传 -->
-                <ChatInputUpload v-model:fileList="fileList" v-model:conversation_id="conversation_id" :isPublic="isPublic" v-if="chatMode === 'task'" />
+                <ChatInputUpload v-model:fileList="fileList" v-model:conversation_id="conversation_id"
+                  :isPublic="isPublic" />
                 <ModelSelect/>
                 <!-- 模式切换器 - 响应式 -->
-                <div class="mode-selector-dropdown">
-                  <!-- 桌面端下拉框 -->
-                  <a-select
-                    v-if="!isMobile"
-                    v-model:value="workMode"
-                    class="mode-select-dropdown"
-                    :options="workModeOptions"
-                    @change="handleModeChange"
-                    :dropdownMatchSelectWidth="false"
-                    :bordered="false"
-                  >
-                    <template #option="{ value, label, description }">
-                      <div class="mode-option">
-                        <span class="mode-circle">
-                          <span v-if="workMode === value" class="mode-inner-circle" />
-                        </span>
-                        <div class="mode-texts">
-                          <div class="mode-label">{{ label }}</div>
-                          <div class="mode-desc">{{ description }}</div>
-                        </div>
-                      </div>
-                    </template>
-                  </a-select>
-
-                  <!-- 移动端触发器 -->
-                  <div v-else class="mobile-mode-trigger" @click="openModeModal">
-                    <span class="mode-name">{{ workModeOptions.find((opt) => opt.value === workMode)?.label || "Auto" }}</span>
-                    <DownOutlined class="dropdown-icon" />
-                  </div>
-                </div>
+                <ModeSelector v-model:modelValue="workMode" :disabled="hasTwinsId" @modeChange="handleModeChange" />
 
                 <!-- <div class="visibility-toggle">
-                  <a-select
-                    v-if="!isMobile"
-                    v-model:value="isPublic"
-                    class="visibility-select"
-                    :options="visibilityOptions"
-                    @change="handleVisibilityChange"
-                    :dropdownMatchSelectWidth="false"
-                    :bordered="false"
-                  >
+                  <a-select v-if="!isMobile" v-model:value="isPublic" class="visibility-select"
+                    :options="visibilityOptions" @change="handleVisibilityChange" :dropdownMatchSelectWidth="false"
+                    :bordered="false">
                     <template #option="{ value, label, desc }">
                       <div class="custom-option">
                         <span class="radio-circle">
@@ -72,28 +39,32 @@
                     </template>
                   </a-select>
                   <div v-else class="mobile-visibility-trigger" @click="openVisibilityModal">
-                    <span class="visibility-name">{{ visibilityOptions.find((opt) => opt.value === isPublic)?.label || "Public" }}</span>
+                    <span class="visibility-name">{{visibilityOptions.find((opt) => opt.value === isPublic)?.label ||
+                      "Public" }}</span>
                     <DownOutlined class="dropdown-icon" />
                   </div>
                 </div> -->
-                <div class="mcp-button-container">
+                <div class="mcp-button-container" v-if="!isTwins && workMode !== 'chat'">
                   <!-- MCP服务器 -->
                   <a-dropdown :trigger="['click']" placement="top" class="mcp-dropdown">
-                    <a-button class="mcp-button" :class="{ 'mcp-button-active': selectedMcpServerIds && selectedMcpServerIds.length > 0 }">
+                    <a-button class="mcp-button"
+                      :class="{ 'mcp-button-active': selectedMcpServerIds && selectedMcpServerIds.length > 0 }">
                       <template #icon>
                         <CloudServerOutlined />
                       </template>
                       MCP
                     </a-button>
                     <template #overlay>
-                      <a-menu :selectedKeys="mcpMenuSelectedKeys" multiple class="mcp-server-menu" @click="handleMcpMenuClick">
+                      <a-menu :selectedKeys="mcpMenuSelectedKeys" multiple class="mcp-server-menu"
+                        @click="handleMcpMenuClick">
                         <a-menu-item key="disable">
                           <span>Close MCP</span>
                         </a-menu-item>
                         <a-menu-divider />
                         <a-menu-item v-for="server in mcpServers" :key="server.id" class="mcp-server-item">
                           <span>{{ server.name }}</span>
-                          <CheckOutlined v-if="selectedMcpServerIds && selectedMcpServerIds.includes(server.id)" class="check-icon" />
+                          <CheckOutlined v-if="selectedMcpServerIds && selectedMcpServerIds.includes(server.id)"
+                            class="check-icon" />
                         </a-menu-item>
                       </a-menu>
                     </template>
@@ -111,12 +82,7 @@
             <!-- {{ messageStatus }} -->
             <a-button v-if="messageStatus" @click="handleSend" class="send-button" :disabled="!messageText">
               <template #icon>
-                <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 16 16" fill="#fff">
-                  <path
-                    d="M7.91699 15.0642C7.53125 15.0642 7.22119 14.9397 6.98682 14.6907C6.75244 14.4465 6.63525 14.1218 6.63525 13.7166V6.39966L6.77441 3.34546L7.48486 3.89478L5.62451 6.12134L3.99121 7.76196C3.87402 7.87915 3.73975 7.97681 3.58838 8.05493C3.44189 8.13306 3.271 8.17212 3.07568 8.17212C2.73389 8.17212 2.4458 8.05981 2.21143 7.83521C1.98193 7.60571 1.86719 7.3103 1.86719 6.94897C1.86719 6.60229 1.99902 6.29712 2.2627 6.03345L6.97949 1.30933C7.0918 1.19214 7.2334 1.10181 7.4043 1.03833C7.5752 0.969971 7.74609 0.935791 7.91699 0.935791C8.08789 0.935791 8.25879 0.969971 8.42969 1.03833C8.60059 1.10181 8.74463 1.19214 8.86182 1.30933L13.5786 6.03345C13.8423 6.29712 13.9741 6.60229 13.9741 6.94897C13.9741 7.3103 13.8569 7.60571 13.6226 7.83521C13.3931 8.05981 13.1074 8.17212 12.7656 8.17212C12.5703 8.17212 12.397 8.13306 12.2456 8.05493C12.0991 7.97681 11.9673 7.87915 11.8501 7.76196L10.2095 6.12134L8.34912 3.89478L9.05957 3.34546L9.19141 6.39966V13.7166C9.19141 14.1218 9.07422 14.4465 8.83984 14.6907C8.60547 14.9397 8.29785 15.0642 7.91699 15.0642Z"
-                    fill="var(--icon-onblack)"
-                  ></path>
-                </svg>
+                <SendIcon />
               </template>
             </a-button>
             <!-- 停止按钮 -->
@@ -129,33 +95,6 @@
     </div>
   </div>
 
-  <!-- 移动端模式选择弹窗 -->
-  <teleport to="body">
-    <div v-if="showModeModal" class="mobile-modal-overlay" @click="closeModeModal">
-      <div class="mobile-mode-selector" @click.stop>
-        <div class="modal-header">
-          <h3>{{ t('lemon.workMode.title') }}</h3>
-          <a-button type="text" @click="closeModeModal" class="close-btn">
-            <CloseOutlined />
-          </a-button>
-        </div>
-        <div class="option-list">
-          <div v-for="option in workModeOptions" :key="option.value" class="option-item" :class="{ selected: option.value === workMode }" @click="handleMobileModeSelect(option.value)">
-            <div class="option-info">
-              <span class="option-circle">
-                <span v-if="workMode === option.value" class="option-inner-circle" />
-              </span>
-              <div class="option-texts">
-                <div class="option-label">{{ option.label }}</div>
-                <div class="option-desc">{{ option.description }}</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </teleport>
-
   <!-- 移动端可视选择弹窗 -->
   <teleport to="body">
     <div v-if="showVisibilityModal" class="mobile-modal-overlay" @click="closeVisibilityModal">
@@ -167,7 +106,8 @@
           </a-button>
         </div>
         <div class="option-list">
-          <div v-for="option in visibilityOptions" :key="option.value" class="option-item" :class="{ selected: option.value === isPublic }" @click="handleMobileVisibilitySelect(option.value)">
+          <div v-for="option in visibilityOptions" :key="option.value" class="option-item"
+            :class="{ selected: option.value === isPublic }" @click="handleMobileVisibilitySelect(option.value)">
             <div class="option-info">
               <span class="option-circle">
                 <span v-if="isPublic === option.value" class="option-inner-circle" />
@@ -187,7 +127,8 @@
   </teleport>
 
   <!-- 升级弹窗 -->
-  <a-modal v-model:open="showUpgradeModal" :title="upgradeTitle" centered width="1200px" :footer="null" @cancel="closeModal">
+  <a-modal v-model:open="showUpgradeModal" :title="upgradeTitle" centered width="1200px" :footer="null"
+    @cancel="closeModal">
     <!-- 购买积分按钮 -->
     <div class="buy-credits">
       <div class="upgrade-des-wrapper">
@@ -198,6 +139,7 @@
     </div>
     <Pricing isWindow="true" showTitle="false" @close_window="closeModal" />
   </a-modal>
+
   <RechargeModal v-model:open="showRechargeModal" />
 </template>
 <script setup>
@@ -205,6 +147,7 @@ import { ref, computed, onMounted, onUnmounted, watch, h } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useI18n } from "vue-i18n";
 import { notification, message } from "ant-design-vue";
+import SendIcon from '@/assets/svg/send-icon.svg';
 import {
   PaperClipOutlined,
   CloudServerOutlined,
@@ -224,6 +167,7 @@ import {
 import ChatInputFile from "./ChatInputFileList.vue";
 import ChatInputUpload from "./ChatInputUpload.vue";
 import SelectionPreview from "./SelectionPreview.vue";
+import ModeSelector from "./ModeSelector.vue";
 
 import ModelSelect from "./ModelSelect.vue";
 import Pricing from "@/view/pay/components/pricing.vue";
@@ -255,25 +199,60 @@ const { agent, chat, model_id } = storeToRefs(chatStore);
 
 // ---------------- 状态定义 ------------------
 const messageText = ref("");
-const placeholder = ref(t("lemon.welcome.placeholder"));
 const fileList = ref([]);
 const currentMode = ref("text");
 const isPublic = ref(true); // 默认 public
 const showRechargeModal = ref(false);
 
-// 工作模式选项
-const workMode = ref(localStorage.getItem("workMode") || "auto"); // 从缓存读取，默认Auto模式
-const workModeOptions = computed(() => [
-  { value: "auto", label: t('lemon.workMode.auto.label'), description: t('lemon.workMode.auto.description') },
-  { value: "agent", label: t('lemon.workMode.agent.label'), description: t('lemon.workMode.agent.description') },
-  { value: "chat", label: t('lemon.workMode.chat.label'), description: t('lemon.workMode.chat.description') },
-  // { value: 'twins', label: 'Twins', description: 'Dual-agent collaborative chat' }
-]);
+// 工作模式
+const workMode = ref(localStorage.getItem("workMode") || "twins"); // 从缓存读取，默认Auto模式
+const isManualWorkModeChange = ref(false); // 标记是否为手动切换模式
 
 const mcpServers = ref([]);
 const selectedMcpServerIds = ref([]);
 
-const emit = defineEmits(["send"]);
+const emit = defineEmits(["send", "modeChange"]);
+
+// const visibilityOptions = computed(() => {
+//   // 如果当前 agent 是私有的，显示提示信息和所有选项（Public 为只读）
+//   if (agent.value && agent.value.is_public === false) {
+//     return [
+//       {
+//         value: "disabled-info",
+//         label: "Info",
+//         desc: "Agent is Personal, so conversation must be Personal",
+//         disabled: true,
+//         isInfo: true
+//       },
+//       {
+//         value: true,
+//         label: "Public",
+//         desc: "Anyone can view and remix",
+//         disabled: true,
+//         isReadonly: true
+//       },
+//       {
+//         value: false,
+//         label: "Personal",
+//         desc: "Only visible to yourself",
+//       },
+//     ];
+//   }
+
+//   // 默认情况下显示所有选项
+//   return [
+//     {
+//       value: true,
+//       label: "Public",
+//       desc: "Anyone can view and remix",
+//     },
+//     {
+//       value: false,
+//       label: "Personal",
+//       desc: "Only visible to yourself",
+//     },
+//   ];
+// });
 
 const visibilityOptions = [
   {
@@ -293,14 +272,66 @@ const upgradeDes = ref("");
 const upgradeDes1 = ref("");
 
 // 移动端相关状态
-const isMobile = ref(false);
-const showModeModal = ref(false);
+const isMobile = ref(window.innerWidth <= 768); // 初始化时立即检测
 const showVisibilityModal = ref(false);
 
 // ---------------- 计算属性 ------------------
 const isLogin = computed(() => !!user.value.id);
 
 const chatMode = computed(() => chatStore.mode);
+
+// 根据 workMode 动态返回 placeholder
+const placeholder = computed(() => {
+  return t(`lemon.welcome.placeholders.${workMode.value}`) || t("lemon.welcome.placeholder");
+});
+
+// 检查是否为 twins 模式（基于模式选择器的值）
+const isTwins = computed(() => {
+  return workMode.value === 'twins';
+});
+
+// 检查当前对话是否有 twins_id（用于判断是否禁用模式切换）
+const hasTwinsId = computed(() => {
+  // 如果当前对话没有 twins_id 但有普通消息，则不能切换到 twins 模式
+  const hasRegularMessages = (chatStore.messages?.length || 0) > 0;
+  const currentHasTwinsId = chatStore.chat?.twins_id;
+
+  console.log("hasTwinsId check:", {
+    hasRegularMessages,
+    currentHasTwinsId,
+    twinsChatMessagesLength: chatStore.twinsChatMessages?.length || 0
+  });
+
+  // 只有真正有 twins_id 的对话才返回 true
+  return currentHasTwinsId && (chatStore.twinsChatMessages?.length || 0) > 0;
+});
+
+// 监听 twins_id 变化，自动设置 workMode
+watch([hasTwinsId, () => chatStore.messages?.length || 0, () => chatStore.chat?.twins_id], (newVal, oldVal) => {
+  // 如果是手动切换模式，跳过自动设置逻辑
+  if (isManualWorkModeChange.value) {
+    return;
+  }
+
+  // 如果是首次执行（oldVal 为 undefined），不执行自动设置
+  // 让组件使用 localStorage 中的初始值
+  if (!oldVal) {
+    return;
+  }
+
+  const currentHasTwinsId = chatStore.chat?.twins_id;
+  const hasRegularMessages = (chatStore.messages?.length || 0) > 0;
+
+  if (hasTwinsId.value && workMode.value !== 'twins') {
+    // 如果当前对话有 twins_id，自动设置为 twins 模式
+    workMode.value = 'twins';
+    localStorage.setItem("workMode", 'twins');
+  } else if (!currentHasTwinsId && hasRegularMessages && workMode.value === 'twins') {
+    // 如果没有 twins_id 但有普通消息，且当前是twins模式，则切换到 auto 模式
+    workMode.value = 'auto';
+    localStorage.setItem("workMode", 'auto');
+  }
+}, { immediate: true });
 
 const conversation_id = computed(() => route.params.id || null);
 
@@ -317,24 +348,13 @@ const messageStatus = computed(() => {
 
 // 移动端检测
 const checkMobile = () => {
-  isMobile.value = window.innerWidth <= 768;
+  const newIsMobile = window.innerWidth <= 768;
+  if (isMobile.value !== newIsMobile) {
+    isMobile.value = newIsMobile;
+  }
 };
 
 // 移动端弹窗控制函数
-const openModeModal = () => {
-  showModeModal.value = true;
-};
-
-const closeModeModal = () => {
-  const modalSelector = document.querySelector(".mobile-mode-selector");
-  if (modalSelector) {
-    modalSelector.classList.add("closing");
-  }
-  setTimeout(() => {
-    showModeModal.value = false;
-  }, 250);
-};
-
 const openVisibilityModal = () => {
   showVisibilityModal.value = true;
 };
@@ -350,38 +370,86 @@ const closeVisibilityModal = () => {
 };
 
 // 移动端选项选择处理
-const handleMobileModeSelect = (mode) => {
-  handleModeChange(mode);
-  closeModeModal();
-};
-
 const handleMobileVisibilitySelect = (value) => {
+  // 过滤掉信息提示选项
+  if (value === "disabled-info") {
+    return;
+  }
   handleVisibilityChange(value);
   closeVisibilityModal();
 };
 
 // ---------------- 生命周期 ------------------
+// 监听 localStorage 变化
+const handleStorageChange = (e) => {
+  if (e.key === 'workMode' && e.newValue) {
+    // 设置手动切换标志，防止 watch 覆盖
+    isManualWorkModeChange.value = true;
+    workMode.value = e.newValue;
+
+    // 延迟重置标志，给 watch 足够的时间检测到
+    setTimeout(() => {
+      isManualWorkModeChange.value = false;
+    }, 100);
+  }
+};
+
 onMounted(async () => {
-  await initModel();
-  await fetchMcpServers();
   checkMobile();
   // 监听窗口大小变化
   window.addEventListener("resize", checkMobile);
+  // 监听 localStorage 变化
+  window.addEventListener("storage", handleStorageChange);
 
-  // initIsPublic();
+  // 立即注册所有监听器，不要等待异步操作
   emitter.on("changeMessageText", (text) => {
     messageText.value = text;
   });
+
   emitter.on("showUpgrade", () => {
     upgradeTitle.value = "";
     upgradeDes.value = "You don't have enough credits, and the prediction can't complete the task. ";
     upgradeDes1.value = "Please upgrade or purchase more credits.";
     showUpgradeModal.value = true;
   });
+
+  // 监听菜单发送的 workMode 更新事件
+  emitter.on("updateWorkMode", (newWorkMode) => {
+    // 设置手动切换标志，防止 watch 覆盖
+    isManualWorkModeChange.value = true;
+    workMode.value = newWorkMode;
+
+    // 延迟重置标志，给 watch 足够的时间检测到
+    setTimeout(() => {
+      isManualWorkModeChange.value = false;
+    }, 100);
+  });
+
+  // 检查是否有来自落地页的预填充问题
+  const prefillQuestion = sessionStorage.getItem('prefillQuestion');
+  const prefillQuestionSource = sessionStorage.getItem('prefillQuestionSource');
+
+  if (prefillQuestion && prefillQuestionSource === 'landing') {
+    // 预填充到输入框
+    messageText.value = prefillQuestion;
+
+    // 清除 sessionStorage 中的数据，避免重复使用
+    sessionStorage.removeItem('prefillQuestion');
+    sessionStorage.removeItem('prefillQuestionSource');
+  }
+
+  // 最后再执行异步操作
+  await initModel();
+  await fetchMcpServers();
 });
 
 onUnmounted(() => {
   window.removeEventListener("resize", checkMobile);
+  window.removeEventListener("storage", handleStorageChange);
+  // 清理 emitter 事件监听器
+  emitter.off("changeMessageText");
+  emitter.off("showUpgrade");
+  emitter.off("updateWorkMode");
 });
 
 // ---------------- 监听路由 ------------------
@@ -423,22 +491,51 @@ const updateAgent = async () => {
   }
 };
 
+const updateChat = async () => {
+  if (chat.value) {
+    chatStore.updateConversationVisibilityById(chat.value.is_public, chat.value.conversation_id);
+  }
+};
+
 // -------------- 函数定义 ------------------
 
 const closeModal = () => {
   showUpgradeModal.value = false;
 };
 
-// 处理模式切换
+// 处理模式切换 (简化版，主要逻辑已移到 ModeSelector 组件)
 const handleModeChange = (mode) => {
-  workMode.value = mode;
-  console.log("工作模式切换为:", mode);
-  // 保存到浏览器缓存
-  localStorage.setItem("workMode", mode);
-  // 这里可以添加模式切换后的逻辑处理
+  console.log("Mode changed to:", mode);
+  // 向父组件抛出模式切换事件
+  emit("modeChange", mode);
 };
 const handleVisibilityChange = (value) => {
   console.log("handleVisibilityChange", value);
+
+  // // 过滤掉信息提示选项
+  // if (value === "disabled-info") {
+  //   return;
+  // }
+
+  // // 如果 agent 是私有的，不允许设置 conversation 为公开
+  // if (agent.value && agent.value.is_public === false && value === true) {
+  //   return; // 静默阻止，因为选项已经显示为只读
+  // }
+
+  // if (!value) {
+  //   // 判断 是不是 会员
+  //   if (!membership.value?.planName) {
+  //     isPublic.value = true;
+  //     upgradeTitle.value = "Upgrade required";
+  //     upgradeDes.value = "";
+  //     showUpgradeModal.value = true;
+  //     return;
+  //   }
+  // }
+  // agent.value.is_public = value;
+  // updateAgent();
+  // updateChat();
+
   if (!value) {
     // 判断 是不是 会员
     if (!membership.value?.planName) {
@@ -453,7 +550,7 @@ const handleVisibilityChange = (value) => {
   updateAgent();
 };
 
-//监听 agent.value
+// 监听 agent.value
 watch(
   () => agent.value,
   (newValue) => {
@@ -468,17 +565,25 @@ watch(
   }
 );
 
-// 监听 message
-window.addEventListener("message", (event) => {
-  if (event.origin !== "https://lemonai.ai") return; // 安全性检查
-  const { type, payload } = event.data;
-  console.log("监听 message 事件", event.data);
-  if (type === "transferData") {
-    chatStore.mode = "task";
-    messageText.value = payload;
-    handleSend();
-  }
-});
+// 监听 agent 变化，如果 agent 是私有的，强制设置 conversation 为私有
+// watch(
+//   () => agent.value,
+//   (newAgent) => {
+//     if (newAgent && newAgent.is_public === false) {
+//       // 如果 agent 是私有的，强制将 conversation 设置为私有
+//       if (isPublic.value === true) {
+//         isPublic.value = false;
+//         if (chat.value) {
+//           chat.value.is_public = false;
+//           updateChat();
+//         }
+//       }
+//     }
+//   },
+//   {
+//     immediate: true,
+//   }
+// );
 
 const modelList = ref([]);
 const initModel = async () => {
@@ -486,11 +591,10 @@ const initModel = async () => {
 
   // 设置默认模型为 deepseek-v3
   const setDefaultModel = (models) => {
-    if (models.length > 0) {
-      if (!model_id.value) {
+    if (models.length > 0 && !model_id.value) {
         const defaultId = models[0].id * 1;
         model_id.value = defaultId;
-      }
+        console.log("未找到 kimi-k2 模型，使用第一个模型:", defaultId);
     }
   };
 
@@ -521,25 +625,22 @@ const initModel = async () => {
 // ---------------- 发送与停止 ------------------
 const handleSend = () => {
   const text = messageText.value.trim();
-  if (!text && fileList.value.length === 0) return;
+  if (!text) return;
 
-  // 判断选择的模型 是不是付费模型
-
-  console.log("selectedModelValue.value", model_id.value);
-  //获取模型详情
-  //浏览器缓存 modelList
-  let modelList = JSON.parse(localStorage.getItem("modelList"));
-  let modelDetail = modelList.find((item) => item.id === model_id.value);
-  console.log("modelDetail", modelDetail);
-
-  //is_subscribe
-  if (points.value.total <= 100 && modelDetail.is_subscribe) {
-    upgradeDes.value = "You don't have enough credits to use this subscription model. ";
-    upgradeDes1.value = "Please subscribe or purchase more credits to continue.";
+  if (points.value.total <= 100) {
+    // handleNotification("/setting/usage", t("auth.insufficientPoints"), t("auth.insufficientPointsPleaseGoToUpgradeOrPurchase"));
+    upgradeDes.value = "You don’t have enough credits, and the prediction can’t complete the task. ";
+    upgradeDes1.value = "Please upgrade or purchase more credits.";
     upgradeTitle.value = "";
     showUpgradeModal.value = true;
     return;
   }
+  console.log("workMode.value", workMode.value);
+
+  // 在 chat 或 twins 模式下清空文件列表
+  // if (workMode.value === 'chat' || workMode.value === 'twins') {
+  //   fileList.value = [];
+  // }
 
   emit("send", {
     text,
@@ -578,12 +679,81 @@ const handleNotification = (path, title, text) => {
   });
 };
 
+// 自定义模式图标组件 - 使用对话气泡+右下角图标的组合模式
+const ModeIcon = ({ type }) => {
+  // 创建复合图标的通用函数
+  const createCompositeIcon = (overlayIcon) => {
+    return h(
+      "div",
+      {
+        style: {
+          position: "relative",
+          display: "inline-flex",
+          alignItems: "center",
+          justifyContent: "center",
+          width: "16px",
+          height: "16px",
+        },
+      },
+      [
+        // 背景对话气泡 - 黑色
+        h(MessageOutlined, {
+          style: {
+            fontSize: "16px",
+            color: "#000",
+          },
+        }),
+        // 右下角叠加图标 - 灰色
+        h(overlayIcon, {
+          style: {
+            position: "absolute",
+            bottom: "-2px",
+            right: "-2px",
+            fontSize: "8px",
+            color: "#999",
+            background: "#fff",
+            borderRadius: "50%",
+            padding: "1px",
+          },
+        }),
+      ]
+    );
+  };
+
+  // 根据类型返回对应的复合图标
+  switch (type) {
+    case "chat":
+      // Chat保持简单的对话气泡 - 黑色
+      return h(MessageOutlined, { style: { fontSize: "16px", color: "#000" } });
+
+    case "task":
+      // Task: 对话气泡 + 右下角灯泡图标（表示智能想法和解决方案）
+      return createCompositeIcon(BulbOutlined);
+
+    case "auto":
+      // Auto: 对话气泡 + 右下角同步图标
+      return createCompositeIcon(SyncOutlined);
+
+    case "twins":
+      // Twins: 对话气泡 + 右下角分叉图标（表示分支协作）
+      return createCompositeIcon(ForkOutlined);
+
+    default:
+      return h(MessageOutlined, { style: { fontSize: "16px", color: "#000" } });
+  }
+};
+
 // ---------------- 输入框按键事件 ------------------
 const keydown = (e) => {
   if ((e.shiftKey && e.key === "Enter") || e.isComposing) return;
+
   if (e.key === "Enter") {
     e.preventDefault();
-    handleSend();
+    // 只有满足 messageStatus 才能发送
+    console.log("Enter messageStatus.value", messageStatus.value);
+    if (messageStatus.value) {
+      handleSend();
+    }
   }
 };
 </script>
@@ -596,6 +766,7 @@ const keydown = (e) => {
     justify-content: space-between;
   }
 }
+
 .visibility-select .desc {
   font-size: 12px;
   color: #888;
@@ -667,6 +838,77 @@ const keydown = (e) => {
   justify-content: center !important;
 }
 
+/* 信息提示选项样式 - 简化版 */
+.info-option {}
+
+.disabled-option {
+  cursor: not-allowed !important;
+  opacity: 0.5;
+  color: #999 !important;
+}
+
+.readonly-option {
+  cursor: not-allowed !important;
+  opacity: 0.6;
+  background-color: #f9f9f9 !important;
+}
+
+.info-icon {
+  width: 16px;
+  height: 16px;
+  border: 1px solid #333;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: bold;
+  color: #333;
+  background-color: #fff;
+  margin-top: 3px;
+}
+
+.info-icon-mobile {
+  width: 16px;
+  height: 16px;
+  border: 1px solid #333;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: bold;
+  color: #333;
+  background-color: #fff;
+  margin-top: 3px;
+}
+
+/* 移动端信息选项样式 */
+.info-item {
+  background-color: #f5f5f5 !important;
+  cursor: default !important;
+}
+
+.disabled-item {
+  cursor: not-allowed !important;
+  opacity: 0.5;
+  color: #999 !important;
+}
+
+.readonly-item {
+  cursor: not-allowed !important;
+  opacity: 0.6;
+  background-color: #f9f9f9 !important;
+}
+
+.info-item:hover {
+  background-color: #f5f5f5 !important;
+}
+
+.readonly-item:hover {
+  background-color: #f9f9f9 !important;
+}
+
 .mcp-server-menu {
   width: 250px;
 }
@@ -679,7 +921,6 @@ const keydown = (e) => {
   border-color: #0000000f;
 }
 
-//ant-dropdown .ant-dropdown-menu .ant-dropdown-menu-item-selected
 ::v-deep(.ant-dropdown-menu-item-selected) {
   background-color: #0000000f !important;
   color: #333 !important;
@@ -715,9 +956,11 @@ const keydown = (e) => {
 }
 
 .send-button {
-  background: #1a1a19;
-  border: 1px solid #e5e7eb;
-  border-radius: 6px;
+  width: 32px;
+  height: 31px;
+  border-radius: 8px;
+  border: unset !important;
+  background-color: rgba(255, 199, 0, 1);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -727,20 +970,20 @@ const keydown = (e) => {
 }
 
 .send-button:hover:not(:disabled) {
-  background: #2d2d2a;
+  background: rgba(255, 199, 0, 1);
   transform: translateY(-1px);
 }
 
 .stop-button {
-  background: #1a1a19;
-  border: 1px solid #e5e7eb;
-  border-radius: 6px;
+  background: rgba(255, 199, 0, 1);
+  border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
   width: 32px;
   height: 32px;
   cursor: pointer;
+  border: unset !important;
 
   div {
     width: 10px;
@@ -784,13 +1027,21 @@ const keydown = (e) => {
   background-color: #f5f5f5;
 }
 
+
+@media (min-width: 640px) {
+  .chat-input {
+    max-width: 1039px !important;
+    min-width: 390px !important;
+  }
+}
+
 .chat-input {
-  background: #f8f8f7;
   border-radius: 22px;
-  margin-top: 0.75rem;
   position: sticky;
   bottom: 0;
   padding-bottom: 0.75rem;
+  background: #f8f8f7;
+  padding-top: 0.75rem;
 }
 
 .input-wrapper {
@@ -799,42 +1050,37 @@ const keydown = (e) => {
 }
 
 .input-area {
+  // display: flex;
+  // gap: 0;
+  // background: #fff;
+  // align-items: flex-end;
+  // border: 1px solid rgb(229, 231, 235);
+  // border-radius: 22px;
+  // padding: 0.75rem;
+  // transition: border-color 0.3s;
+
+
   display: flex;
-  gap: 0;
-  background: #fff;
-  align-items: flex-end;
-  border: 1px solid rgb(229, 231, 235);
-  border-radius: 22px;
-  padding: 0.75rem;
-  transition: border-color 0.3s;
-
-  overflow: hidden;
   flex-direction: column;
-  align-items: baseline;
+  min-height: 140px;
+  padding: 20px 20px 12px 20px;
+  line-height: 20px;
+  border-radius: 16px;
+  background-color: rgba(255, 255, 255, 1);
+  color: rgba(255, 255, 255, 1);
+  font-size: 14px;
+  text-align: center;
+  box-shadow: 0px 1px 10px 0px rgba(0, 0, 0, 0.03);
+  font-family: PingFangSC-regular;
+  border: 1px solid rgba(236, 236, 236, 1);
 
-  &:hover {
-    border-color: rgb(229, 231, 235);
-  }
-
-  &:focus-within {
-    border-color: rgb(229, 231, 235);
-  }
-
-  &:focus {
-    border-color: rgb(229, 231, 235);
-  }
-
-  &:active {
-    border-color: rgb(229, 231, 235);
-    border: 1px solid rgb(229, 231, 235);
-  }
 }
 
 .input-container {
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  justify-content: space-between;
   width: 100%;
 }
 
@@ -870,7 +1116,8 @@ const keydown = (e) => {
 }
 
 .chat-input .left-actions .button-row {
-  display: contents; /* 让button-row容器不影响布局 */
+  display: contents;
+  /* 让button-row容器不影响布局 */
 }
 
 .mode-switcher {
@@ -911,53 +1158,6 @@ const keydown = (e) => {
   border-radius: 6px !important;
 }
 
-/* 模式选择下拉框样式 */
-.mode-select-dropdown .ant-select-selector {
-  border: 1px solid #e9ecef !important;
-  border-radius: 6px !important;
-}
-
-.mode-option {
-  display: flex;
-  align-items: flex-start;
-  gap: 8px;
-  padding: 4px 0;
-}
-
-.mode-circle {
-  width: 16px;
-  height: 16px;
-  border: 2px solid #333;
-  border-radius: 50%;
-  margin-top: 3px;
-  position: relative;
-}
-
-.mode-inner-circle {
-  position: absolute;
-  top: 1.5px;
-  left: 1.5px;
-  width: 8px;
-  height: 8px;
-  background-color: #333;
-  border-radius: 50%;
-}
-
-.mode-texts {
-  display: flex;
-  flex-direction: column;
-}
-
-.mode-label {
-  font-size: 14px;
-  font-weight: 500;
-}
-
-.mode-desc {
-  font-size: 12px;
-  color: #888;
-}
-
 /* 统一所有Ant Design组件的圆角 */
 :deep(.ant-select-selector),
 :deep(.ant-btn),
@@ -966,20 +1166,6 @@ const keydown = (e) => {
 }
 
 /* 移动端触发器样式 */
-.mobile-mode-trigger {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  width: 100%;
-  height: 24px;
-  padding: 0 2px;
-  background: #fff;
-  border: 1px solid #d9d9d9;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 10px;
-}
-
 .mobile-visibility-trigger {
   display: flex;
   align-items: center;
@@ -994,15 +1180,6 @@ const keydown = (e) => {
   font-size: 10px;
 }
 
-.mobile-mode-trigger .mode-name {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  flex: 1;
-  margin-right: 2px;
-  max-width: 45px;
-}
-
 .mobile-visibility-trigger .visibility-name {
   white-space: nowrap;
   overflow: hidden;
@@ -1011,7 +1188,6 @@ const keydown = (e) => {
   margin-right: 2px;
 }
 
-.mobile-mode-trigger .dropdown-icon,
 .mobile-visibility-trigger .dropdown-icon {
   font-size: 8px;
   color: #999;
@@ -1033,7 +1209,6 @@ const keydown = (e) => {
 }
 
 /* 移动端模态框内容样式 */
-.mobile-mode-selector,
 .mobile-visibility-selector {
   background: #fff;
   border-radius: 12px 12px 0 0;
@@ -1048,7 +1223,6 @@ const keydown = (e) => {
   animation: slideUpIn 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
 
-.mobile-mode-selector.closing,
 .mobile-visibility-selector.closing {
   animation: slideDownOut 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -1164,6 +1338,7 @@ const keydown = (e) => {
   from {
     transform: translateY(100%);
   }
+
   to {
     transform: translateY(0);
   }
@@ -1173,6 +1348,7 @@ const keydown = (e) => {
   from {
     transform: translateY(0);
   }
+
   to {
     transform: translateY(100%);
   }
@@ -1182,6 +1358,7 @@ const keydown = (e) => {
   from {
     opacity: 0;
   }
+
   to {
     opacity: 1;
   }
@@ -1192,12 +1369,14 @@ const keydown = (e) => {
   .chat-input .input-actions {
     height: auto;
     gap: 50px;
+
     span {
       height: 24px !important;
       max-height: 24px !important;
       line-height: 24px !important;
     }
   }
+
   .chat-input .left-actions {
     height: auto;
     flex: 1;
@@ -1224,76 +1403,70 @@ const keydown = (e) => {
   }
 
   /* 第一行按钮样式 */
-  .chat-input .left-actions .first-row > * {
+  .chat-input .left-actions .first-row>* {
     height: 24px;
     display: flex;
     align-items: center;
   }
 
   /* 第二行按钮样式 */
-  .chat-input .left-actions .second-row > * {
+  .chat-input .left-actions .second-row>* {
     height: 24px;
     display: flex;
     align-items: center;
   }
 
-  /* 上传按钮固定宽度 */
-  .chat-input .left-actions .first-row > *:first-child {
-    width: 32px;
-    flex: 0 0 32px;
+  /* 第一行：上传按钮 */
+  .chat-input .left-actions .first-row .chat-input-upload {
+    width: auto;
+    flex: 0 0 auto;
     justify-content: center;
   }
 
-  /* 模式选择按钮 */
-  .chat-input .left-actions .first-row .mode-selector-dropdown {
-    width: 60px;
-    flex: 0 0 60px;
-    justify-content: center;
+  /* 第一行：模式选择器 */
+  .chat-input .left-actions .first-row .mode-selector-wrapper {
+    flex: 0 0 auto;
+    min-width: 60px;
+    max-width: 90px;
+    pointer-events: auto !important;
+    position: relative !important;
   }
 
-  /* 模型选择组件 - 占用剩余空间 */
-  .chat-input .left-actions .first-row > *:last-child {
-    flex: 1;
-    min-width: 80px;
-    justify-content: flex-start;
-    width: fit-content;
-  }
-
-  /* 可视化选择按钮 */
-  .chat-input .left-actions .second-row .visibility-toggle {
-    width: 70px;
-    flex: 0 0 70px;
-    justify-content: center;
-  }
-
-  /* MCP按钮 */
-  .chat-input .left-actions .second-row .mcp-dropdown {
-    width: 50px;
-    flex: 0 0 50px;
-    justify-content: center;
-  }
-  .chat-input .left-actions .mode-selector-dropdown {
-    height: 24px;
-    font-size: 10px;
-
-    div {
-      height: 24px !important;
-      max-height: 24px !important;
-      width: 100% !important;
-    }
-  }
-  /** 修改 ant-select-selection-item 字体大小 - 限定在chat-input内 */
-  .chat-input .left-actions .mode-select-dropdown .ant-select-selection-item {
+  .chat-input .left-actions .mode-selector-wrapper .mobile-mode-trigger {
+    width: 100% !important;
     font-size: 10px !important;
-    padding-inline-end: 0px !important;
+    padding: 0 4px !important;
+    pointer-events: auto !important;
+    cursor: pointer !important;
+    position: relative !important;
+    z-index: 1 !important;
+  }
+
+  .chat-input .left-actions .mode-selector-wrapper .mobile-mode-trigger .mode-name {
+    max-width: none !important;
+    flex: 1 !important;
+    color: #333 !important;
     line-height: 24px !important;
+    pointer-events: none !important;
   }
-  .chat-input .left-actions .mode-select-dropdown .ant-select-selector {
-    padding: 0px 2px !important;
-    height: 24px !important;
+
+  .chat-input .left-actions .mode-selector-wrapper .mobile-mode-trigger .dropdown-icon {
+    font-size: 10px !important;
+    color: #666 !important;
+    pointer-events: none !important;
   }
-  .chat-input .left-actions .mode-select-dropdown .ant-select-arrow {
-    display: none !important;
+
+  /* 第一行：可视化选择 */
+  .chat-input .left-actions .first-row .visibility-toggle {
+    flex: 0 0 auto;
+    min-width: 60px;
+    max-width: 80px;
+  }
+
+  /* 第一行：MCP按钮 */
+  .chat-input .left-actions .first-row .mcp-button-container {
+    flex: 0 0 auto;
+    min-width: 50px;
   }
 
   /** 针对可视选择下拉框的特殊样式 - 限定在chat-input内 */
@@ -1305,9 +1478,11 @@ const keydown = (e) => {
     overflow: hidden;
     text-overflow: ellipsis;
   }
+
   .chat-input .left-actions .visibility-select .ant-select-selector {
     padding: 0px 2px !important;
   }
+
   .chat-input .left-actions .visibility-select .ant-select-arrow {
     display: none !important;
   }
@@ -1316,11 +1491,35 @@ const keydown = (e) => {
   .chat-input .left-actions .visibility-toggle {
     height: 24px;
     font-size: 11px;
+    width: 100%;
 
     div {
       height: 24px !important;
       max-height: 24px !important;
       width: 100% !important;
+    }
+
+    .mobile-visibility-trigger {
+      width: 100% !important;
+      font-size: 10px !important;
+      padding: 0 4px !important;
+      pointer-events: auto !important;
+      cursor: pointer !important;
+      position: relative !important;
+      z-index: 1 !important;
+    }
+
+    .mobile-visibility-trigger .visibility-name {
+      flex: 1 !important;
+      color: #333 !important;
+      line-height: 24px !important;
+      pointer-events: none !important;
+    }
+
+    .mobile-visibility-trigger .dropdown-icon {
+      font-size: 10px !important;
+      color: #666 !important;
+      pointer-events: none !important;
     }
   }
 

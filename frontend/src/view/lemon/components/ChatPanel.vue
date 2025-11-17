@@ -1,25 +1,34 @@
 <template>
   <div class="chat-panel">
-    <AgentWelcome class="welcome" v-if="agentId && !conversationId" />
-    <template v-else-if="conversationId">
+    <!-- 通过 route.params.id来渲染聊天框-->
+    <template v-if="!conversationId">
+      <WelcomeView class="welcome" :agentId="agentId" />
+    </template>
+    <template v-else>
       <div class="chat-panel-content">
-        <ChatHeader :title="currentChat?.title" @share="handleShare" />
-        <ChatMessages :messages="messages" :mode="mode" />
+        <ChatHeader :title="currentChat?.title" :conversationId="conversationId" @share="handleShare" />
+        <ChatMessages :messages="messages" :twinsChatMessages="twinsChatMessages" :mode="mode" />
         <ChatInput @send="handleSendMessage" />
-        <div class="scroll-to-bottom" @click="scrollToBottom" v-if="isShowScrollToBottom">
+        <!-- 非 Twins 模式的滚动到底部按钮 -->
+        <div class="scroll-to-bottom" @click="scrollToBottom" v-if="isShowScrollToBottom && !isTwins">
           <Down />
         </div>
+
+        <!-- Twins 模式的双栏滚动到底部按钮会在 ChatMessages 组件内部渲染 -->
+        <!-- 拟态框  文件资源预览-->
+        <!-- <fullPreview/> -->
       </div>
     </template>
-    <Welcome class="welcome" v-else />
     <fileClass />
   </div>
+  <!-- 实时预览文件-->
   <Preview class="preview" />
+  <!--本地预览文件-->
   <LocalPreview class="preview" />
 </template>
 
 <script setup>
-import { ref, computed, watchEffect, onMounted } from "vue";
+import { ref, computed, watchEffect, onMounted, onBeforeUnmount } from "vue";
 import ChatHeader from "./ChatHeader.vue";
 import ChatMessages from "./ChatMessages.vue";
 import Preview from "@/components/preview/index.vue";
@@ -34,8 +43,7 @@ const chatStore = useChatStore();
 import { storeToRefs } from "pinia";
 import { useRoute } from "vue-router";
 const route = useRoute();
-import Welcome from "./Welcome.vue";
-import AgentWelcome from "./AgentWelcome.vue";
+import WelcomeView from "@/view/welcome/WelcomeView.vue";
 import chat from "@/utils/chat";
 const { chatInfo, mode } = storeToRefs(chatStore);
 
@@ -43,6 +51,8 @@ const { chatInfo, mode } = storeToRefs(chatStore);
 import { useEditorStore } from "@/store/modules/editor";
 const editorStore = useEditorStore();
 import sse_coding from "@/services/sse-coding";
+import emitter from "@/utils/emitter";
+
 
 // 发送消息
 const handleSendMessage = async (value) => {
@@ -59,114 +69,68 @@ const handleSendMessage = async (value) => {
 };
 
 const conversationId = ref(route.params.id);
-const agentId = computed(() => route.params.agentId && route.params.agentId != "chat");
+const agentId = computed(() => route.params.agentId);
+
+// Watch for route changes and manage SSE subscriptions
 watchEffect(() => {
   console.log("route.params", route.params);
-  conversationId.value = route.params.id;
-  if (!route.params.id) {
+  const newConversationId = route.params.id;
+
+  conversationId.value = newConversationId;
+
+  if (!newConversationId) {
     chatStore.conversationId = null;
     chatStore.chat = null;
     chatStore.messages = [];
+    return;
   }
 });
 
 // src/context/ws-client-provider.tsx
 const currentChat = computed(() => chatStore.chat);
-const inputText = ref("");
 
 const messages = computed(() => {
-  console.log("出发了messages computed");
-  switch (mode.value) {
-    case "task":
-      return chatStore.messages;
-    case "chat":
-      console.log("chatInfo.value.msgList", chatInfo.value.msgList);
-      return chat.convertToTree(chatInfo.value.msgList);
-    default:
-      return chatStore.messages;
-  }
+  return chatStore.messages;
+});
+
+const twinsChatMessages = computed(() => {
+  return chatStore.twinsChatMessages;
+});
+
+// 判断是否为 Twins 模式
+const isTwins = computed(() => {
+  return chatStore.chat?.twins_id !== null && chatStore.chat?.twins_id != "";
 });
 
 const isShowScrollToBottom = ref(false);
 
 onMounted(() => {
-  //添加滚动事件监听
-  const chatMessages = document.querySelector(".chat-messages");
-  if (!chatMessages) return false;
-  chatMessages.addEventListener("scroll", () => {
-    if (chatMessages.scrollHeight - chatMessages.scrollTop - chatMessages.clientHeight > 200) {
-      isShowScrollToBottom.value = true;
-    } else {
-      isShowScrollToBottom.value = false;
-    }
-  });
+  // 添加滚动事件监听（仅用于非 Twins 模式）
+  const chatMessages = document.querySelector(".message-list");
+  console.log("chatMessages", chatMessages);
+  if (chatMessages) {
+    // 初始化 isShowScrollToBottom 的值
+    const scrollDistance = chatMessages.scrollHeight - chatMessages.scrollTop - chatMessages.clientHeight;
+    isShowScrollToBottom.value = scrollDistance > 200;
+
+    chatMessages.addEventListener("scroll", () => {
+      if (chatMessages.scrollHeight - chatMessages.scrollTop - chatMessages.clientHeight > 200) {
+        isShowScrollToBottom.value = true;
+      } else {
+        isShowScrollToBottom.value = false;
+      }
+    });
+  }
 });
 
 const scrollToBottom = () => {
-  const chatMessages = document.querySelector(".chat-messages");
+  const chatMessages = document.querySelector(".message-list");
   if (!chatMessages) return false;
   chatMessages.scrollTop = chatMessages.scrollHeight - chatMessages.clientHeight;
 };
 
-const viewEvents = () => {
-  // 从 store 获取 events 数据
-  const events = chatStore.events;
-  // 将数据转换为 JSON 字符串，使用缩进格式化
-  const json = JSON.stringify(events, null, 2);
-  // 创建 Blob 对象
-  const blob = new Blob([json], { type: "application/json" });
-  // 创建下载链接
-  const url = URL.createObjectURL(blob);
-  // 创建一个临时的 a 标签用于下载
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = `chat-events-${new Date().toISOString().slice(0, 19).replace(/:/g, "-")}.json`;
-  // 添加到文档中并触发点击
-  document.body.appendChild(link);
-  link.click();
-  // 清理
-  document.body.removeChild(link);
-  URL.revokeObjectURL(url);
-};
-
-const showConfirm = ref(false);
-
 const handleShare = () => {
   // 处理分享逻辑
-};
-
-const handleWelcomeInput = () => {
-  showConfirm.value = true;
-};
-
-const handleAcceptConfirm = () => {
-  showConfirm.value = false;
-  // 创建新的对话
-  currentChat.value = {
-    id: Date.now(),
-    title: inputText.value,
-  };
-
-  // 初始化对话消息
-  messages.value = [
-    {
-      id: Date.now(),
-      type: "user",
-      sender: username.value,
-      content: inputText.value,
-      time: new Date().toLocaleTimeString("zh-CN", {
-        hour: "2-digit",
-        minute: "2-digit",
-      }),
-    },
-  ];
-
-  // 清空输入
-  inputText.value = "";
-};
-
-const handleRejectConfirm = () => {
-  showConfirm.value = false;
 };
 </script>
 
@@ -179,6 +143,9 @@ const handleRejectConfirm = () => {
 .chat-panel-content {
   width: 100%;
   height: 100%;
+  display: flex;
+  flex-direction: column;
+  position: relative;
 }
 
 @media (min-width: 640px) {
@@ -187,6 +154,11 @@ const handleRejectConfirm = () => {
     min-width: 390px !important;
     margin-left: auto;
     margin-right: auto;
+  }
+
+  /* 当存在 twins-columns 时，使用更大的宽度 */
+  .chat-panel-content:has(.twins-container) {
+    max-width: 1068px !important;
   }
 }
 
@@ -200,10 +172,11 @@ const handleRejectConfirm = () => {
 .scroll-to-bottom {
   border: 1px solid #0000000f;
   background: #fff;
-  position: sticky;
-  bottom: 150px;
+  position: absolute;
+  bottom: 210px;
   z-index: 1000;
   left: 50%;
+  transform: translateX(-50%);
   border-radius: 9999999px;
   width: 36px;
   height: 36px;
@@ -225,11 +198,37 @@ const handleRejectConfirm = () => {
   overflow: hidden;
 }
 
+/* Twins 模式下且有预览显示时的三等分布局 */
+/* 当存在twins容器且preview可见时，chat-panel占2/3宽度 */
+body:has(.chat-panel .twins-container.both-visible):has(.preview:not([style*="display: none"])) .chat-panel {
+  min-width: 66.666667%;
+  max-width: 66.666667%;
+  width: 66.666667%;
+}
+
 .chat-panel:has(.welcome) {
   padding: unset !important;
 }
 
 .preview {
+  max-width: 50%;
+  min-width: 50%;
+}
+
+/* Twins 模式下且预览可见时，预览区域占1/3 */
+body:has(.chat-panel .twins-container.both-visible) .preview:not([style*="display: none"]) {
+  max-width: 33.333333%;
+  min-width: 33.333333%;
+}
+
+/* Twins 模式下收起chat会话时（single-column），agent页面和预览页面各占50% */
+body:has(.chat-panel .twins-container.single-column):has(.preview:not([style*="display: none"])) .chat-panel {
+  min-width: 50%;
+  max-width: 50%;
+  width: 50%;
+}
+
+body:has(.chat-panel .twins-container.single-column) .preview:not([style*="display: none"]) {
   max-width: 50%;
   min-width: 50%;
 }

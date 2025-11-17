@@ -1,7 +1,6 @@
 // https://www.promptingguide.ai/zh/techniques/reflexion
-const conversation = require('@src/routers/conversation');
 const llmEvaluate = require('./llm.evaluate');
-const { resolveXML } = require("@src/utils/resolve");
+const { resolveXML } = require("@src/xml/index");
 
 /**
  * 1. Evaluate based on environment execution

@@ -109,20 +109,25 @@ const fields = {
     allowNull: true,
     comment: 'Aryn Docset ID for document parsing',
   },
-  is_public: {
-    type: DataTypes.BOOLEAN,
-    defaultValue: true
-  },
-  screen_shot_url:{
+  twins_id:{
     type: DataTypes.STRING,
     allowNull: true,
-    comment: '截屏url'
-  },
-  recommend:{
-    type: DataTypes.INTEGER,
-    defaultValue: 0,
-    comment: '推荐次数'
-  },
+    comment: 'twins id',
+  }
+  // is_public: {
+  //   type: DataTypes.BOOLEAN,
+  //   defaultValue: true
+  // },
+  // screen_shot_url:{
+  //   type: DataTypes.STRING,
+  //   allowNull: true,
+  //   comment: '截屏url'
+  // },
+  // recommend:{
+  //   type: DataTypes.INTEGER,
+  //   defaultValue: 0,
+  //   comment: '推荐次数'
+  // },
 };
 
 ConversationTable.init(fields, {

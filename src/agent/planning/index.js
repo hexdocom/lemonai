@@ -2,12 +2,8 @@ require("module-alias/register");
 require("dotenv").config();
 
 const sub_server_request = require('@src/utils/sub_server_request')
-const conversation_token_usage = require('@src/utils/get_sub_server_token_usage')
 
-const call = require("@src/utils/llm");
-const resolvePlanningPrompt = require("@src/agent/prompt/plan");
 const { getDefaultModel } = require('@src/utils/default_model')
-
 
 const planning = async (goal, options) => {
   const { conversation_id } = options;
@@ -29,7 +25,6 @@ const planning_server = async (goal, options) => {
     options
   })
 
-  // await conversation_token_usage(token_usage, conversation_id)
   return res
 };
 
@@ -49,11 +44,7 @@ const planning_local = async (goal, options = {}) => {
       const { content: output } = resolveThinking(markdown);
       markdown = output;
     }
-    console.log("\n==== planning markdown ====");
-    console.log(markdown);
     const tasks = await resolveMarkdown(markdown);
-    console.log("\n==== planning tasks ====");
-    console.log(tasks);
     return tasks || [];
   };
   // 验证函数
@@ -61,19 +52,4 @@ const planning_local = async (goal, options = {}) => {
 
   return await retryWithFormatFix(prompt, processResult, validate, conversation_id);
 }
-
-const planning_local_v0 = async (goal, files, previousResult, conversation_id) => {
-  const planning_prompt = await resolvePlanningPrompt(goal, files, previousResult, conversation_id);
-  console.log("\n==== planning prompt ====", planning_prompt);
-  const tasks = await call(planning_prompt, conversation_id, 'assistant', {
-    response_format: 'json',
-    temperature: 0,
-  });
-  console.log("\n==== planning result ====");
-  console.log(tasks);
-  const clean_tasks = tasks.filter(item => {
-    return item.tools && item.tools.length > 0;
-  }) || [];
-  return clean_tasks;
-};
 module.exports = exports = planning;
