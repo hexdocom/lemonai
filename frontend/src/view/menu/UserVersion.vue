@@ -152,7 +152,7 @@ const versionInfo = ref({
 
 // Methods
 const handleVersionClick = () => {
-  window.open('https://lemon-11.gitbook.io/lemon-ai-docs/version-update', '_blank')
+  window.open('https://lemon-11.gitbook.io/lemonai/version-update', '_blank')
 }
 </script>
 
