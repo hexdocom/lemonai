@@ -82,7 +82,7 @@ import AgentsHistoryIcon from '@/assets/svg/agents-history-icon.svg'
 import SearchAgentsIcon from '@/assets/svg/search-agents-icon.svg'
 
 // 组件导入
-import Logo from '@/components/Logo.vue'
+import Logo from '@/components/logo.vue'
 import AgentList from '@/view/agents/index.vue'
 import AgentsEdit from '@/view/agents/components/agentsEdit.vue'
 import secondMenu from './secondMenu.vue'
