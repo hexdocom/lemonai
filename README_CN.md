@@ -5,10 +5,6 @@
   <img src="./public/img/LemonAI_Evolving.png" width="500">
 </div>
 <br><br>
-<div align=center>
-<a href="https://www.producthunt.com/products/lemonai?utm_source=badge-follow&utm_medium=badge&utm_source=badge-lemonai" target="_blank"><img src="https://api.producthunt.com/widgets/embed-image/v1/follow.svg?product_id=1128012&theme=light" alt="LemonAI - The&#0032;First&#0032;Full&#0045;Stack&#0032;Open&#0045;Source&#0032;AI&#0032;Agent&#0032;that&#0032;Self&#0032;Evolves&#0046; | Product Hunt" style="width: 250px; height: 54px;" width="250" height="54" /></a>
-</div>
-<br><br>
 <p align="center">
   <a href="https://lemon-11.gitbook.io/lemonai/lemon-docs">快速了解 Lemon AI</a> ·
   <a href="https://lemon-11.gitbook.io/lemonai/lemon-docs/kai-fa-bu-shu-zhi-nan/docker-kuai-su-bu-shu">Docker快速部署</a> ·
