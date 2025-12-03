@@ -23,7 +23,7 @@
 
 **​Lemon AI empowers deep research, web browsing, vibe coding, and data analysis – running entirely on your local hardware.​​** It supports ​**planning, action, reflection, and memory​** functionalities using **​local LLMs**​ (like DeepSeek, Kimi，Qwen, Llama, Gemma, GPTOSS) via **Ollama,VLLM**, ensuring **​complete privacy and zero cloud dependency.**
 
-For enhanced security, Lemon AI operates within a ​**local Virtual Machine (VM) sandbox by Docker.** This sandbox **​protects your machine's files and operating system​** by safely handling all code writing, execution, and editing tasks.
+For enhanced security, Lemon AI operates within a ​**local Virtual Machine (VM) sandbox by Docker.** This sandbox **​protects your machine's files and operating system​** by safely handling all code writing, executing, and editing tasks.
 
 Additionally, Lemon AI provides the **​flexibility to configure enhanced results**​ using APIs from leading cloud models like **​Claude, GPT, Gemini, and Grok.**
 
@@ -43,16 +43,16 @@ General AI Agent capabilities supporting unlimited task scenarios, including:
 Supports experience repository for self-learning and extending enterprise-specific customizations.
 
 #### Self-Evolving
-Make a personal memory for every conversation. Which make the Agent be more clever more used.
+Make a personal memory for every conversation, which makes the agent more clever the more Lemon AI is used.
 
 #### AI Agent HTML Editor
-You could click the HTML element and change it by AI Agent. No need to re-generate all the HTML files every time. 
+You can click the HTML element and have it changed by the AI agent. No need to re-generate all the HTML files every time. 
 Change it over and over again until satisfied.
 
 
 **Deployment options:** Open source code, Container, Client application, Online subscription - compatible with cloud/local/all-in-one systems
 
-#### Fast: Rapid Deploy
+#### Fast: Rapid Deployment
 One-click deployment for immediate usage with minimal technical requirements:
 - Simplified installation process for all deployment options
 - Quick setup without complex configurations
@@ -83,7 +83,7 @@ Significant cost savings without compromising on quality or performance, making 
 
 #### Why do we need a General AI Agent Editor? 
 
-When you use an Agent to creating a research report, Vibe coding, or generating a data analysis chart, the results often are not perfect. And when you try to fix one part, the rest may get messed up . What we really need is seamless collaboration between humans and AI. Lemon AI Editor empowers you to refine all this results as many times as needed ,until you’re completely satisfied. You can Edit it Over and over and over again. 
+When you use an Agent to create a research report, Vibe coding, or generating a data analysis chart, the results often are not perfect. And when you try to fix one part, the rest may get messed up . What we really need is seamless collaboration between humans and AI. Lemon AI Editor empowers you to refine all this results as many times as needed ,until you’re completely satisfied. You can Edit it Over and over and over again. 
 
 #### function and characteristic
 
