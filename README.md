@@ -21,7 +21,7 @@
 
 **Lemon AI​** is the first **​Full-stack Open-source Self-Evolving General AI Agent**, offering a **​fully local alternative​** to Agentic platforms like **Manus & Genspark AI. It features an integrated Code Interpreter VM sandbox for safe execution**.​​
 
-**​Lemon AI empowers deep research, web browsing, viable coding, and data analysis – running entirely on your local hardware.​​** It supports ​**planning, action, reflection, and memory​** functionalities using **​local LLMs**​ (like DeepSeek,Kimi，Qwen, Llama, Gemma,GPTOSS) via **Ollama,VLLM**, ensuring **​complete privacy and zero cloud dependency.**
+**​Lemon AI empowers deep research, web browsing, vibe coding, and data analysis – running entirely on your local hardware.​​** It supports ​**planning, action, reflection, and memory​** functionalities using **​local LLMs**​ (like DeepSeek,Kimi，Qwen, Llama, Gemma,GPTOSS) via **Ollama,VLLM**, ensuring **​complete privacy and zero cloud dependency.**
 
 For enhanced security, Lemon AI operates within a ​**local Virtual Machine (VM) sandbox by Docker.** This sandbox **​protects your machine's files and operating system​** by safely handling all code writing, execution, and editing tasks.
 
