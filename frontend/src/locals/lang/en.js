@@ -653,6 +653,7 @@ export default {
       baiduName: "Baidu (free)",
       bingName: "Bing (free)",
       couldswayName: "Cloudsway (key)",
+      metasoName: "Metaso (key)",
       accessKey: "Access key",
       endPoint: "Endpoint",
       endpointPlaceholder: "Enter your endpoint",

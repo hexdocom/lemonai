@@ -219,6 +219,7 @@ export default {
       url: "URL",
       apiKey: "Khóa API",
       apiAddress: "Địa chỉ API",
+      metasoName: "Metaso (khóa)",
       saveBlacklistSuccess: "Danh sách đen đã được lưu thành công",
       saveBlacklistFailed: "Lưu danh sách đen thất bại",
       addSubscriptionSuccess: "Đăng ký đã được thêm thành công",

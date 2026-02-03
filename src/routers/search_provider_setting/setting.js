@@ -6,6 +6,7 @@ const SearchProviderTable = require("@src/models/SearchProvider");
 const TalivySearch = require("@src/tools/impl/web_search/TalivySearch");
 const LocalSearch = require("@src/tools/impl/web_search/LocalSearch");
 const CloudswaySearch = require("@src/tools/impl/web_search/CloudswaySearch");
+const MetasoSearch = require("@src/tools/impl/web_search/MetasoSearch");
 // upsert user provider config
 /**
  * @swagger
@@ -318,6 +319,10 @@ router.post("/check_search_provider", async ({ request, response }) => {
     } else if (type === 'cloudsway') {
         const cloudsway = new CloudswaySearch({ access_key: api_key, endpoint: endpoint });
         const res = await cloudsway.check()
+        response.success(res)
+    } else if (type === 'metaso') {
+        const metaso = new MetasoSearch({ key: api_key, endpoint: endpoint || 'https://api.metaso.cn/v1/search' });
+        const res = await metaso.check()
         response.success(res)
     } else {
         response.fail("Invalid search provider type")

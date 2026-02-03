@@ -394,6 +394,7 @@ selectCheckModel: "Por favor, selecione o modelo de verificação",
       tavilyName: "Tavily (chave)",
       baiduName: "Baidu (grátis)",
       bingName: "Bing (grátis)",
+      metasoName: "Metaso (chave)",
       saveBlacklistSuccess: "Lista negra salva com sucesso",
       saveBlacklistFailed: "Falha ao salvar a lista negra"
     },

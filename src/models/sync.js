@@ -139,6 +139,19 @@ const dataUpdate = async () => {
     await SearchProviderTable.create(searchProviderData);
   }
 
+  const MetasoSearchProvider = defaultSearchProviderData.find(item => item.name === 'Metaso');
+  if (MetasoSearchProvider) {
+    const metasoProvider = await SearchProviderTable.findOne({ where: { name: MetasoSearchProvider.name } });
+    if (!metasoProvider) {
+      const searchProviderData = {
+        name: MetasoSearchProvider.name,
+        logo_url: MetasoSearchProvider.logo_url,
+        base_config_schema: MetasoSearchProvider.base_config_schema,
+      };
+      await SearchProviderTable.create(searchProviderData);
+    }
+  }
+
   const cloudswayPlatform = await Platform.findOne({ where: { name: 'Cloudsway' } })
   if (!cloudswayPlatform) {
     const cloudswayPlatform = defaultData.find(item => item.name === 'Cloudsway')

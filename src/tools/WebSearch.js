@@ -1,6 +1,7 @@
 const TalivySearch = require('./impl/web_search/TalivySearch');
 const LocalSearch = require('./impl/web_search/LocalSearch');
 const CloudswaySearch = require('./impl/web_search/CloudswaySearch');
+const MetasoSearch = require('./impl/web_search/MetasoSearch');
 const UserProviderConfig = require('@src/models/UserProviderConfig');
 const SearchProvider = require('@src/models/SearchProvider');
 const UserSearchSetting = require('@src/models/UserSearchSetting');
@@ -91,6 +92,11 @@ const WebSearchTool = {
                     json = obj.json
                     content = obj.content
                     break;
+                case 'Metaso':
+                    obj = await doMetasoSearch(query, num_results)
+                    json = obj.json
+                    content = obj.content
+                    break;
             }
             return {
                 content,
@@ -141,6 +147,35 @@ async function doCloudswaySearch(query, num_results) {
     const content = `Web search results for "${query}":\n\n${formatted}`;
     console.log(`[WebSearchTool] doCloudswaySearch Search results for "${query}":`, results)
     return { json, content }
+}
+
+async function doMetasoSearch(query, num_results) {
+    try {
+        let userSearchSetting = await UserSearchSetting.findOne()
+        const userProviderConfig = await UserProviderConfig.findOne({ where: { provider_id: userSearchSetting.provider_id } })
+        let metaso_api_key = userProviderConfig.base_config.api_key
+        let metaso_endpoint = userProviderConfig.base_config.endpoint
+        
+        if (!metaso_api_key) {
+            throw new Error('Metaso API key is not configured');
+        }
+        if (!metaso_endpoint) {
+            throw new Error('Metaso endpoint is not configured. Please provide your Metaso API endpoint URL in search provider settings.');
+        }
+        
+        console.log(`[WebSearchTool] Metaso config - endpoint: ${metaso_endpoint}, has_api_key: ${!!metaso_api_key}`);
+        
+        const metaso = new MetasoSearch({ key: metaso_api_key, endpoint: metaso_endpoint });
+        const results = await metaso.search(query, { max_results: num_results });
+        const formatted = await metaso.formatContent();
+        const json = await metaso.formatJSON();
+        const content = `Web search results for "${query}":\n\n${formatted}`;
+        console.log(`[WebSearchTool] doMetasoSearch Search results for "${query}":`, results)
+        return { json, content }
+    } catch (error) {
+        console.error(`[WebSearchTool] Metaso search failed:`, error);
+        throw error;
+    }
 }
 
 

@@ -30,6 +30,16 @@
                             :placeholder="$t('setting.searchService.endpointPlaceholder')" :disabled="loading"
                             @change="handleSave"/>
         </div>
+        <div class="search-choose-api-config" v-if="selectedTemplate === 'Metaso'">
+          <span style="white-space: nowrap">{{ $t('setting.searchService.apiKey') }}</span>
+          <a-input-password v-model:value="selectedConfig.base_config.api_key" class="search-choose-api-input"
+                            :placeholder="$t('setting.searchService.apiKeyPlaceholder')" :disabled="loading"
+                            @change="handleSave"/>
+          <span style="white-space: nowrap">{{ $t('setting.searchService.endPoint') }}</span>
+          <a-input v-model:value="selectedConfig.base_config.endpoint" class="search-choose-api-input"
+                   :placeholder="$t('setting.searchService.endpointPlaceholder')" :disabled="loading"
+                   @change="handleSave"/>
+        </div>
         <a-button v-show="selectedTemplate!==`Lemon`" class="save-button" @click="handleCheckApiKey" :loading="checkLoading">{{
             $t('setting.modelService.check')
           }}
@@ -162,7 +172,17 @@ const handleCheckApiKey = async () => {
       message.error(t('setting.searchService.endpointRequired'))
       return
     }
-    
+  } else if (selectedConfig.value.provider_name == "Metaso") {
+    config.type = "metaso"
+    config.api_key = selectedConfig.value.base_config.api_key;
+    config.endpoint = selectedConfig.value.base_config.endpoint;
+    if (config.api_key == ""){
+      message.error(t('setting.searchService.apiKeyRequired'))
+      return
+    } else if (config.endpoint == ""){
+      message.error(t('setting.searchService.endpointRequired'))
+      return
+    }
   }else {
     config.type = "local"
     config.engine = selectedConfig.value.provider_name;
@@ -261,6 +281,8 @@ function displayName(name) {
     return t('setting.searchService.bingName')
   } else if (name === 'Cloudsway') {
     return t('setting.searchService.couldswayName')
+  } else if (name === 'Metaso') {
+    return t('setting.searchService.metasoName')
   }
   return name
 }
@@ -288,6 +310,13 @@ onMounted(async () => {
           }
           selectedConfig.value.base_config.api_key = userConfig?.base_config?.api_key || "";
         } else if (userConfig.provider_name === 'Cloudsway') {
+          selectedConfig.value.base_config = {
+            api_key: "",
+            endpoint: ""
+          }
+          selectedConfig.value.base_config.api_key = userConfig?.base_config?.api_key || "";
+          selectedConfig.value.base_config.endpoint = userConfig?.base_config?.endpoint || "";
+        } else if (userConfig.provider_name === 'Metaso') {
           selectedConfig.value.base_config = {
             api_key: "",
             endpoint: ""
@@ -330,6 +359,17 @@ const handleSave = async () => {
         blacklist: selectedConfig.value.blacklist
       })
     } else if (selectedConfig.value.provider_name === 'Cloudsway') {
+      await searchEngineService.updateSearchEngineConfig({
+        provider_id: selectedConfig.value.provider_id,
+        api_key: selectedConfig.value.base_config.api_key,
+        endpoint: selectedConfig.value.base_config.endpoint,
+        include_date: selectedConfig.value.include_date,
+        cover_provider_search: selectedConfig.value.cover_provider_search,
+        enable_enhanced_mode: selectedConfig.value.enable_enhanced_mode,
+        result_count: selectedConfig.value.result_count,
+        blacklist: selectedConfig.value.blacklist
+      })
+    } else if (selectedConfig.value.provider_name === 'Metaso') {
       await searchEngineService.updateSearchEngineConfig({
         provider_id: selectedConfig.value.provider_id,
         api_key: selectedConfig.value.base_config.api_key,
