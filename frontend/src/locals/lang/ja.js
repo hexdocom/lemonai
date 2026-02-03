@@ -394,6 +394,7 @@ export default {
       tavilyName: "Tavily（キー）",
       baiduName: "百度（無料）",
       bingName: "Bing（無料）",
+      metasoName: "Metaso（キー）",
       saveBlacklistSuccess: "ブラックリストを保存しました",
       saveBlacklistFailed: "ブラックリストの保存に失敗しました"
     },

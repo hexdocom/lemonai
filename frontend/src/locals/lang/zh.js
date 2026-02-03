@@ -654,6 +654,7 @@ export default {
       baiduName: "百度（免费）",
       bingName: "必应（免费）",
       couldswayName: "Cloudsway（密钥）",
+      metasoName: "Metaso（密钥）",
       accessKey: "访问密钥",
       endPoint: "端点",
       endpointPlaceholder: "输入您的endpoint",

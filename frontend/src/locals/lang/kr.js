@@ -394,6 +394,7 @@ export default {
       tavilyName: "Tavily(키)",
       baiduName: "바이두(무료)",
       bingName: "Bing(무료)",
+      metasoName: "Metaso(키)",
       saveBlacklistSuccess: "블랙리스트 저장 성공",
       saveBlacklistFailed: "블랙리스트 저장 실패"
     },

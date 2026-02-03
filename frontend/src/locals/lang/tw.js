@@ -394,6 +394,7 @@ export default {
       tavilyName: "Tavily（密鑰）",
       baiduName: "百度（免費）",
       bingName: "必應（免費）",
+      metasoName: "Metaso（密鑰）",
       saveBlacklistSuccess: "黑名單儲存成功",
       saveBlacklistFailed: "黑名單儲存失敗"
     },

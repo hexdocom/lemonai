@@ -394,6 +394,7 @@ it: "Araç",
       tavilyName: "Tavily (anahtar)",
       baiduName: "Baidu (ücretsiz)",
       bingName: "Bing (ücretsiz)",
+      metasoName: "Metaso (anahtar)",
       saveBlacklistSuccess: "Kara liste başarıyla kaydedildi",
       saveBlacklistFailed: "Kara liste kaydetme başarısız"
     },

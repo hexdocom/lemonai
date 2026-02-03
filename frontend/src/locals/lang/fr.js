@@ -394,6 +394,7 @@ export default {
       tavilyName: "Tavily (Clé)",
       baiduName: "Baidu (Gratuit)",
       bingName: "Bing (Gratuit)",
+      metasoName: "Metaso (Clé)",
       saveBlacklistSuccess: "Liste noire enregistrée avec succès",
       saveBlacklistFailed: "Échec de l'enregistrement de la liste noire"
     },
